@@ -1,0 +1,23 @@
+Package: nmecr
+Type: Package
+Title: An implementation of peer-reviewed energy data analysis algorithms for site-specific M&V
+Version: 0.0.0.9000
+Author: c(person("Sharma", "Mrinalini", email = "msharma@kw-engineering.com", role = c("aut", "cre")),
+			 person("Johnson", "Devan", email = "djohnson@kw-engineering.com", role = c("ctb", "cph")),
+			 person("Jump", "David", email = "djump@kw-engineering.com", role = "cph")),
+Description: 
+License: Refer to License.txt file
+Depends: R (>= 3.1.0),
+    dplyr
+Imports: 
+    tidyverse,
+    dplyr,
+    lubridate,
+    readxl,
+    openxlsx,
+    segmented,
+    moments,
+    lmtest
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
