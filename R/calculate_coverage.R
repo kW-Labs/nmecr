@@ -4,7 +4,7 @@
 #' inform the user about the data range within which the model predictions are valid.}
 #'
 #' @param site_temp_data An nx2 dataframe with the temperature data of the facility. Colnames: time and temp.
-#' @param ref_temp_data An nx2 dataframe with the normalized temperature data corresponding to the facility's location. Colnames: time and temp.
+#' @param ref_temp_data An nx2 dataframe with the hourly normalized temperature data corresponding to the facility's location. Colnames: time and temp.
 #' @param outlier_threshold a numeric indicating the number of datapoints (hours or days, depending on the data interval) below which the temperature observation occurences will be considered an outlier.
 #' Default values: 1 for daily data, up to 10 for hourly data.
 #' @param extrapolation_limit A numeric indicating the percentage, beyond the minimum and maximum observed temperatures, up to which the data range may be extrapolated for model prediction.
@@ -26,21 +26,23 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
                                outlier_threshold = NULL, extrapolation_limit = NULL,
                                site_temp_start = NULL, site_temp_end = NULL, data_interval = NULL) {
 
-  site_temp_data <- exclude_incomplete_obs(site_temp_data)
-  ref_temp_data <- exclude_incomplete_obs(ref_temp_data)
+  site_temp_data <- site_temp_data[complete.cases(site_temp_data), ]
+  ref_temp_data <- ref_temp_data[complete.cases(ref_temp_data), ]
 
   site_temp_data_nterval <- difftime(site_temp_data$time[2],
                                      site_temp_data$time[1], units = "min")
 
   if (site_temp_data_nterval == 15) {
     site_temp_data_interval <- "15-min"
+  } else if (site_temp_data_nterval < 60) {
+    site_temp_data_interval <- "less than 60-min"
   } else if (site_temp_data_nterval == 60) {
     site_temp_data_interval <- "Hourly"
   } else if (site_temp_data_nterval == 1440) {
     site_temp_data_interval <- "Daily"
   }
 
-  if (site_temp_data_interval == "15-min"){
+  if (site_temp_data_interval == "15-min" | site_temp_data_interval == "less than 60-min"){
     site_temp_data <- agg_to_hourly(site_temp_data, "Mean")
     colnames(site_temp_data) <- c("time", "temp")
   }
@@ -49,7 +51,6 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
     filter(time > site_temp_start - 1 &
              time < site_temp_end + 1 )
 
-  # source: https://gist.github.com/albertosantini/3638434
   mround <- function(number, multiple=2) {
     n <- number / multiple
     if (abs(n - trunc(n)) == 0.5) {
@@ -60,20 +61,20 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
     round(n) * multiple
   }
 
-  if (site_temp_data_interval == "15-min" && data_interval == "Hourly" ||
+  if (site_temp_data_interval == "15-min" && data_interval == "Hourly" |
       site_temp_data_interval == "Hourly" && data_interval == "Hourly"){
 
     ref_temp_data <- ref_temp_data
     site_temp_data <- site_temp_data
 
-  } else if (site_temp_data_interval == "Hourly" && data_interval == "Daily" ||
+  } else if (site_temp_data_interval == "Hourly" && data_interval == "Daily" |
              site_temp_data_interval == "15-min" && data_interval == "Daily") {
-
-    ref_temp_data <- agg_to_daily(ref_temp_data, "Mean")
-    colnames(ref_temp_data) <- c("time", "temp")
 
     site_temp_data <- agg_to_daily(site_temp_data, "Mean")
     colnames(site_temp_data) <- c("time", "temp")
+
+    ref_temp_data <- agg_to_daily(ref_temp_data, "Mean")
+    colnames(ref_temp_data) <- c("time", "temp")
 
   } else if (site_temp_data_interval == "Daily" && data_interval == "Daily") {
 
@@ -110,7 +111,6 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
   colnames(ref_data_bins) <- c("bins")
 
   count_ref_data_bins <- as.data.frame(table(ref_data_bins))
-  count_ref_data_bins <- as.data.frame(count_ref_data_bins)
   colnames(count_ref_data_bins) <- c("bins", "frequency")
 
   # Populating the temperature bin matrix created above
