@@ -3,8 +3,8 @@
 #' \code{This function builds an energy use model using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param train_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
-#' @param pred_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
+#' @param baseline_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
+#' @param prediction_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
 #' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
 #' Change to improve accuracy of short term models.
 #' @param interval_minutes Numeric for the interval period. Default: 15.
@@ -19,10 +19,10 @@
 #' @param data_interval Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".
 #' @param data_units energy data's units
 #'
-#' @return a towt_baseline object, which is a list with the following components:
+#' @return a TOWT_baseline object, which is a list with the following components:
 #' \describe{
-#'   \item{towt_model}{an object that has been created by the function create_towt_weighted_reg,
-#'    and which correspond to the towt model.}
+#'   \item{TOWT_model}{an object that has been created by the function create_TOWT_weighted_reg,
+#'    and which correspond to the TOWT model.}
 #'   \item{baseline_data}{a dataframe corresponding to the training data after the
 #'   cleaning and filtering function were applied, fitted values, and residuls}
 #'   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
@@ -33,8 +33,8 @@
 #' }
 #' @export
 
-model_with_towt <- function(train_data = NULL,
-                          pred_data = NULL,
+model_with_TOWT <- function(baseline_data = NULL,
+                          prediction_data = NULL,
                           timescale_days = NULL,
                           interval_minutes = 15,
                           has_temp_knots_defined = FALSE,
@@ -50,15 +50,15 @@ model_with_towt <- function(train_data = NULL,
 
   if (! has_operating_modes){
 
-    train <- train_data
+    train <- baseline_data
     train <- dplyr::distinct(train)
 
     train_operating_mode_data <- NULL
     pred_operating_mode_data <- NULL
 
     # pred read and preprocessing
-    if (! is.null(pred_data)) {
-      pred <- pred_data
+    if (! is.null(prediction_data)) {
+      pred <- prediction_data
       pred <- dplyr::distinct(pred)
     } else {
       pred <- train
@@ -77,7 +77,7 @@ model_with_towt <- function(train_data = NULL,
       return(NULL)
     } else {
 
-      towt_model <- create_towt_weighted_reg(train$time,
+      TOWT_model <- create_TOWT_weighted_reg(train$time,
                                 train$eload,
                                 train$temp,
                                 pred$time,
@@ -97,7 +97,7 @@ model_with_towt <- function(train_data = NULL,
 
   } else {
 
-    eload_time <- train_data$time
+    eload_time <- baseline_data$time
     op_time <- train_operating_mode_data$time
 
     eload_time_interval <- difftime(eload_time[2], eload_time[1], units = "min")
@@ -119,11 +119,11 @@ model_with_towt <- function(train_data = NULL,
 
       # train read and preprocess
 
-      train <- dplyr::inner_join(train_data, train_operating_mode_data, by = "time")
+      train <- dplyr::inner_join(baseline_data, train_operating_mode_data, by = "time")
       train <- dplyr::distinct(train)
 
-      if (! is.null(pred_data)){
-        pred <- dplyr::inner_join(pred_data, pred_operating_mode_data, by = "time")
+      if (! is.null(prediction_data)){
+        pred <- dplyr::inner_join(prediction_data, pred_operating_mode_data, by = "time")
         pred <- dplyr::distinct(pred)
       } else {
         pred <- train
@@ -138,7 +138,7 @@ model_with_towt <- function(train_data = NULL,
       train_operating_mode_data <- as.data.frame(train[, categories])
       pred_operating_mode_data <- as.data.frame(pred[, categories])
 
-      towt_model <- create_towt_weighted_reg(train$time,
+      TOWT_model <- create_TOWT_weighted_reg(train$time,
                                 train$eload,
                                 train$temp,
                                 pred$time,
@@ -162,33 +162,33 @@ model_with_towt <- function(train_data = NULL,
     # Fitting results:
     if (run_temperature_model == T) {
 
-      if (class(towt_model$training_model_occ_period) == "character"){
+      if (class(TOWT_model$training_model_occ_period) == "character"){
         occ_coeff_count <- 0
       } else {
-        occ_coeff_count <- nrow(towt_model$training_model_occ_period)
+        occ_coeff_count <- nrow(TOWT_model$training_model_occ_period)
       }
 
-      if (class(towt_model$training_model_unocc_period) == "character"){
+      if (class(TOWT_model$training_model_unocc_period) == "character"){
           unocc_coeff_count <- 0
       } else {
-      unocc_coeff_count <- nrow(towt_model$training_model_unocc_period)
+      unocc_coeff_count <- nrow(TOWT_model$training_model_unocc_period)
       }
 
      nparameter <- occ_coeff_count +  unocc_coeff_count
 
     } else {
 
-      if (class(towt_model$training_model_occ_period)  == "character"){
+      if (class(TOWT_model$training_model_occ_period)  == "character"){
       occ_coeff_count <- 0
       } else {
-      occ_coeff_count <- nrow(towt_model$training_model_occ_period)
+      occ_coeff_count <- nrow(TOWT_model$training_model_occ_period)
       }
 
       nparameter <- occ_coeff_count
 
     }
 
-    yfit <- towt_model$train_baseline
+    yfit <- TOWT_model$train_baseline
     train_output <- train$eload
     fit_residuals_numeric <- train_output - yfit
     fit_residuals <- as.data.frame(train_output - yfit)
@@ -222,7 +222,7 @@ model_with_towt <- function(train_data = NULL,
     goodness_of_fit$'#Parameters' <- nparameter
 
     res <- NULL
-    res$towt_model <- towt_model
+    res$TOWT_model <- TOWT_model
     train$time <- format(train$time, "%m/%d/%y %H:%M")
     res$goodness_of_fit <- goodness_of_fit
     res$baseline_data <- as.data.frame(cbind(train, yfit, "resi" = fit_residuals_numeric))
@@ -264,9 +264,9 @@ model_with_towt <- function(train_data = NULL,
     res$energy_use_summary <- energy_use_summary
 
     # Prediction
-    if (! is.null(pred_data)) {
-      t_base_num <- as.numeric(towt_model$time_vec)
-      baseline <- towt_model$baseline
+    if (! is.null(prediction_data)) {
+      t_base_num <- as.numeric(TOWT_model$time_vec)
+      baseline <- TOWT_model$baseline
       y_pred <- approx(t_base_num, baseline, as.numeric(pred$time), method = "constant")$y
       pred$time <- format(pred$time, "%m/%d/%y %H:%M")
       res$post_implementation_data <- as.data.frame(pred)

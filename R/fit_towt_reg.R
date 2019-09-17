@@ -2,7 +2,7 @@
 #'
 #' \code{This function generates linear regressions for energy use data using the temperature changepoints and occupancy schedules determined
 #' by two other kWMV functions: 'find_occ_unocc' and 'create_temp_matrix'.
-#' It is a utility function for another kWMV function: 'create_towt_weighted_reg'.
+#' It is a utility function for another kWMV function: 'create_TOWT_weighted_reg'.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
 #' @param time_col time column of training data.
@@ -23,7 +23,7 @@
 #'
 #' @export
 
-fit_towt_reg <- function(time_col, eload_col, temp_col,
+fit_TOWT_reg <- function(time_col, eload_col, temp_col,
                            pred_time_col, pred_temp_col, temp_knots=temp_knots,
                            weight_vec=weight_vec,
                            interval_minutes=interval_minutes,
