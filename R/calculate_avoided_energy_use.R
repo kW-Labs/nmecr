@@ -2,7 +2,7 @@
 #'
 #' \code{This function computes the estimated avoided energy use using the predicted data of the post-implementation period.}
 #'
-#' @param baseline_obj  An object with modeled data results. For example, the output from 'model_with_towt' function.
+#' @param modeled_data_obj  An object with modeled data results. For example, the output from 'model_with_TOWT' function.
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -12,8 +12,8 @@
 #' }
 #' @export
 
-compute_avoided_energy_use <- function(baseline_obj){
-  pred <- baseline_obj$post_implementation_data
+calculate_avoided_energy_use <- function(modeled_data_obj){
+  pred <- modeled_data_obj$post_implementation_data
   # actual eload during prediction period = post-measure period
   act_post <- pred$eload
   # prediction of eload during prediction period = post period
@@ -26,7 +26,7 @@ compute_avoided_energy_use <- function(baseline_obj){
   names(savings_df) <- "savings"
   savings_df <- dplyr::bind_cols("time" = pred$time, savings_df)
   pct_savings <- (savings / sum_pred_post)
-  baseline_energy_use <- sum(baseline_obj$baseline_data$eload, na.rm = T)
+  baseline_energy_use <- sum(modeled_data_obj$baseline_data$eload, na.rm = T)
 
   results <- NULL
   savings_summary <- as.data.frame(matrix(nr = 1, nc = 2))
