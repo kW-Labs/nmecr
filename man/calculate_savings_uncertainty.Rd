@@ -4,10 +4,10 @@
 \alias{calculate_savings_uncertainty}
 \title{Compute Savings Uncertainity.}
 \usage{
-calculate_savings_uncertainty(data, savings_percent)
+calculate_savings_uncertainty(modeled_data_obj, savings_percent)
 }
 \arguments{
-\item{data}{The output object from 'compute_avoided_energy_use'.}
+\item{modeled_data_obj}{An object with modeled data results. For example, the output from 'model_with_TOWT' function.}
 
 \item{savings_percent}{a numeric indicating the observed/expected savings percentage}
 }

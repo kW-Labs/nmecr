@@ -2,7 +2,7 @@
 % Please edit documentation in R/agg_eload_temp_df_to_daily.R
 \name{agg_eload_temp_df_to_daily}
 \alias{agg_eload_temp_df_to_daily}
-\title{Aggregate 15 minute or hourly dataframe to a daily interval.}
+\title{Aggregate eload and temp dataframe to a daily interval.}
 \usage{
 agg_eload_temp_df_to_daily(eload_data, temp_data, data_is_quantity = T,
   balancepoint_temp)
@@ -24,5 +24,5 @@ calculating HDD and CDD.}
 The orginal dataframe aggregated to daily data interval.
 }
 \description{
-Aggregate 15 minute or hourly dataframe to a daily interval.
+Aggregate eload and temp dataframe to a daily interval.
 }

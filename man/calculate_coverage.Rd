@@ -11,7 +11,7 @@ calculate_coverage(site_temp_data, ref_temp_data,
 \arguments{
 \item{site_temp_data}{An nx2 dataframe with the temperature data of the facility. Colnames: time and temp.}
 
-\item{ref_temp_data}{An nx2 dataframe with the normalized temperature data corresponding to the facility's location. Colnames: time and temp.}
+\item{ref_temp_data}{An nx2 dataframe with the hourly normalized temperature data corresponding to the facility's location. Colnames: time and temp.}
 
 \item{outlier_threshold}{a numeric indicating the number of datapoints (hours or days, depending on the data interval) below which the temperature observation occurences will be considered an outlier.
 Default values: 1 for daily data, up to 10 for hourly data.}

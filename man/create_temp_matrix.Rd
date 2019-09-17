@@ -16,6 +16,6 @@ A matrix with component temperatures
 }
 \description{
 \code{This function generates temperature changepoints for subsequent use in energy data fitting.
-This function, along with the function 'find_occ_unocc', is a utility function for another kWMV function: 'fit_towt_reg'.
+This function, along with the function 'find_occ_unocc', is a utility function for another kWMV function: 'fit_TOWT_reg'.
 This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 }

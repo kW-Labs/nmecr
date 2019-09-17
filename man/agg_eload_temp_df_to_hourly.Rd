@@ -2,7 +2,7 @@
 % Please edit documentation in R/agg_eload_temp_df_to_hourly.R
 \name{agg_eload_temp_df_to_hourly}
 \alias{agg_eload_temp_df_to_hourly}
-\title{Aggregate 15 minute dataframe to hourly interval data}
+\title{Aggregate eload and temp dataframe to hourly interval data}
 \usage{
 agg_eload_temp_df_to_hourly(eload_data, temp_data, data_is_quantity = T)
 }
@@ -20,5 +20,5 @@ FALSE indicates interval data as rate.}
 The orginal dataframe aggregated to hourly data interval.
 }
 \description{
-Aggregate 15 minute dataframe to hourly interval data
+Aggregate eload and temp dataframe to hourly interval data
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/agg_eload_temp_df_to_monthly.R
 \name{agg_eload_temp_df_to_monthly}
 \alias{agg_eload_temp_df_to_monthly}
-\title{Aggregate 15 minute, hourly or daily dataframe to a monthly interval.}
+\title{Aggregate eload and temp dataframe to a monthly interval.}
 \usage{
 agg_eload_temp_df_to_monthly(eload_data, temp_data, data_is_quantity = T,
   balancepoint_temp)
@@ -26,5 +26,5 @@ calculating HDD and CDD.}
 The orginal dataframe aggregated to monthly data interval.
 }
 \description{
-Aggregate 15 minute, hourly or daily dataframe to a monthly interval.
+Aggregate eload and temp dataframe to a monthly interval.
 }
