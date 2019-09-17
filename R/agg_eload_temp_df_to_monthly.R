@@ -44,7 +44,7 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     data_interval_temp <- "Monthly"
   }
 
-  if (data_interval_temp == "15-min" | data_interval_temp == "Less than 60" |
+  if (data_interval_temp == "15-min" | data_interval_temp == "less than 60" |
       data_interval_temp == "Hourly" | data_interval_temp == "Daily") {
 
     dts_2 <- lubridate::floor_date(temp_data$time, "day")
@@ -112,7 +112,7 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     } else if (nterval_eload == 60) {
       data_interval_eload <- "Hourly"
     } else if (nterval_eload < 60) {
-      data_interval_eload <- "Less than 60"
+      data_interval_eload <- "less than 60"
     } else if (nterval_eload == 1440) {
       data_interval_eload <- "Daily"
     } else if (nterval_eload > 2880) {
@@ -120,7 +120,7 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     }
 
 
-    if (data_interval_eload == "15-min" | data_interval_eload == "Less than 60" |
+    if (data_interval_eload == "15-min" | data_interval_eload == "less than 60" |
         data_interval_eload == "Hourly" | data_interval_eload == "Daily") {
 
       eload_dts_2 <- lubridate::floor_date(eload_data$time, "day")
@@ -160,7 +160,7 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     }
 
 
-    if (data_interval_eload == "15-min" | data_interval_eload == "Less than 60" |
+    if (data_interval_eload == "15-min" | data_interval_eload == "less than 60" |
         data_interval_eload == "Hourly" | data_interval_eload == "Daily" ) {
 
       eload_monthly <- eload_daily %>%
