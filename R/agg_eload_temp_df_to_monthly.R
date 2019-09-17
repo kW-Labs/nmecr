@@ -1,4 +1,4 @@
-#' Aggregate 15 minute, hourly or daily dataframe to a monthly interval.
+#' Aggregate eload and temp dataframe to a monthly interval.
 
 #' @param eload_data A dataframe with energy consumption/demand time series.
 #'   Column names: "time" and "eload". If time series data interval is monthly,
@@ -29,18 +29,23 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
   eload_data <- eload_data[complete.cases(eload_data), ]
   temp_data <- temp_data[complete.cases(temp_data), ]
 
-  # Check interval of temp data
-  nterval <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
+  # Temperature Data
+  nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
 
-  if (nterval == 60) {
-    data_interval <- "Hourly"
-  } else if (nterval < 60) {
-    data_interval <- "15-min"
-  } else if (nterval == 1440) {
-    data_interval <- "Daily"
+  if (nterval_temp == 15) {
+    data_interval_temp <- "15-min"
+  } else if (nterval_temp < 60) {
+    data_interval_temp <- "less than 60-min"
+  } else if (nterval_temp == 60) {
+    data_interval_temp <- "Hourly"
+  } else if (nterval_temp == 1440) {
+    data_interval_temp <- "Daily"
+  } else if (nterval_temp > 2880) {
+    data_interval_temp <- "Monthly"
   }
 
-  if (data_interval == "Hourly" | data_interval == "15-min") {
+  if (data_interval_temp == "15-min" | data_interval_temp == "Less than 60" |
+      data_interval_temp == "Hourly" | data_interval_temp == "Daily") {
 
     dts_2 <- lubridate::floor_date(temp_data$time, "day")
     temp_data$days <- dts_2
@@ -49,25 +54,25 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
 
     ncolumns <- 2
 
-    data_daily <- as.data.frame(matrix(nrow = n_days, ncol = ncolumns))
+    temp_daily_prelim <- as.data.frame(matrix(nrow = n_days, ncol = ncolumns))
 
-    names(data_daily) <- c("days", "temp")
+    names(temp_daily_prelim) <- c("days", "temp")
 
-    data_daily$days <- days
+    temp_daily_prelim$days <- days
 
     for (k in 1:n_days){
       k_day <- days[k]
       idx_k_day <- which(temp_data$days == k_day)
-      data_daily$temp[k] <- mean(temp_data$temp[idx_k_day], na.rm = T)
+      temp_daily_prelim$temp[k] <- mean(temp_data$temp[idx_k_day], na.rm = T)
 
     }
 
-  } else if (data_interval == "Daily") {
-    data_daily <- temp_data
-    names(data_daily) <- c("days", "temp")
+  } else if (data_interval_temp == "Daily") {
+    temp_daily_prelim <- temp_data
+    names(temp_daily_prelim) <- c("days", "temp")
     }
 
-  temp_daily <- data_daily$temp
+  temp_daily <- temp_daily_prelim$temp
 
   base_temp <- rep(balancepoint_temp, length(temp_daily))
 
@@ -77,16 +82,16 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
   CDD <- temp_daily - base_temp
   CDD[CDD < 0 ] <- 0
 
-  data_daily <-  cbind(data_daily, HDD, CDD)
+  temp_daily_prelim <-  cbind(temp_daily_prelim, HDD, CDD)
 
-  monthly_data <- data_daily %>%
+  temp_monthly <- temp_daily_prelim %>%
     mutate(time = lubridate::floor_date(days, "month"))
 
-  days <- monthly_data %>%
+  days <- temp_monthly %>%
     count(time) %>%
     rename(cdays = n)
 
-  monthly_data <- monthly_data %>%
+  temp_monthly <- temp_monthly %>%
     group_by(time) %>%
     summarize(temp = mean(temp),
               HDD = sum(HDD),
@@ -95,10 +100,12 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     mutate(HDDperday = HDD / days) %>%
     mutate(CDDperday = CDD / days)
 
+  temp_monthly <- temp_monthly %>%
+    select(-days)
 
-  # Check interval of eload data
-    nterval_eload <- difftime(eload_data$time[2], eload_data$time[1],
-                              units = "min")
+
+  # Eload Data
+    nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
 
     if (nterval_eload == 15) {
       data_interval_eload <- "15-min"
@@ -113,8 +120,8 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
     }
 
 
-    if (data_interval_eload == "15-min" | data_interval_eload == "Hourly" |
-       data_interval_eload == "Daily" | data_interval_eload == "Less than 60") {
+    if (data_interval_eload == "15-min" | data_interval_eload == "Less than 60" |
+        data_interval_eload == "Hourly" | data_interval_eload == "Daily") {
 
       eload_dts_2 <- lubridate::floor_date(eload_data$time, "day")
       eload_data$days <- eload_dts_2
@@ -123,62 +130,64 @@ agg_eload_temp_df_to_monthly <- function(eload_data, temp_data,
 
       ncolumns <- 2
 
-      eload_data_daily <- as.data.frame(matrix(nrow = n_days, ncol = ncolumns))
+      eload_daily <- as.data.frame(matrix(nrow = n_days, ncol = ncolumns))
 
-      names(eload_data_daily) <- c("time", "eload")
+      names(eload_daily) <- c("time", "eload")
 
-      eload_data_daily$time <- days
+      eload_daily$time <- days
 
       for (k in 1:n_days){
         k_day <- days[k]
         idx_k_day <- which(eload_data$days == k_day)
         if (data_is_quantity){
-          eload_data_daily$eload[k] <- sum(eload_data$eload[idx_k_day],
+          eload_daily$eload[k] <- sum(eload_data$eload[idx_k_day],
                                            na.rm = T)
 
         } else {
-          eload_data_daily$eload[k] <- mean(eload_data$eload[idx_k_day],
+          eload_daily$eload[k] <- mean(eload_data$eload[idx_k_day],
                                                   na.rm = T) * 24
 
-        names(eload_data_daily) <- c("time", "eload")
+        names(eload_daily) <- c("time", "eload")
+        eload_daily$days <-  lubridate::floor_date(eload_daily$time, "day")
         }
 
       }
 
     } else if (data_interval_eload == "Monthly") {
 
-      eload_data_daily <- eload_data
+      eload_daily <- eload_data
 
     }
 
 
-    if (data_interval_eload == "15-min" | data_interval_eload == "Hourly" |
-       data_interval_eload == "Daily" | data_interval_eload == "Less than 60") {
+    if (data_interval_eload == "15-min" | data_interval_eload == "Less than 60" |
+        data_interval_eload == "Hourly" | data_interval_eload == "Daily" ) {
 
-      eload_monthly_data <- eload_data_daily %>%
+      eload_monthly <- eload_daily %>%
         mutate(time = lubridate::floor_date(days, "month"))
 
-     days <- eload_monthly_data %>%
+     days <- eload_monthly %>%
       count(time) %>%
       rename(cdays = n)
 
-     eload_monthly_data <- eload_monthly_data %>%
+     eload_monthly <- eload_monthly %>%
       group_by(time) %>%
       summarize(eload = sum(eload)) %>%
        mutate(days = days[[2]]) %>%
        mutate(eloadperday = eload / days)
 
     } else {
-      eload_monthly_data <- eload_data_daily %>%
+      eload_monthly <- eload_daily %>%
           inner_join(days, by = "time") %>%
           mutate(eloadperday = eload / cdays) %>%
           mutate(days = cdays)
       }
 
 
-  baseline_data <- dplyr::inner_join(monthly_data, eload_monthly_data,
-                              by = c("time", "days"))
-  baseline_data <- baseline_data[complete.cases(baseline_data), ]
+  data_monthly <- dplyr::inner_join(eload_monthly, temp_monthly, by = c("time"))
 
-  return(baseline_data)
+
+  data_monthly <- data_monthly[complete.cases(data_monthly), ]
+
+  return(data_monthly)
 }

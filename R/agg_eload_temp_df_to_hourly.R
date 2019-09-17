@@ -1,4 +1,4 @@
-#' Aggregate 15 minute dataframe to hourly interval data
+#' Aggregate eload and temp dataframe to hourly interval data
 
 #' @param eload_data A tidy dataframe with energy consumption/demand time series.
 #'   Column names: "time" and "eload".
@@ -12,7 +12,7 @@
 
 
 agg_eload_temp_df_to_hourly <- function(eload_data, temp_data,
-                                                  data_is_quantity = T){
+                                        data_is_quantity = T){
 
   if (is.character(eload_data$time)) {
     eload_data$time <- lubridate::mdy_hm(eload_data$time)
@@ -25,21 +25,21 @@ agg_eload_temp_df_to_hourly <- function(eload_data, temp_data,
   eload_data <- eload_data[complete.cases(eload_data), ]
   temp_data <- temp_data[complete.cases(temp_data), ]
 
-  # Check interval of temp data
-  nterval <- difftime(temp_data$time[2], temp_data$time[1],
-                      units = "min")
+  # Temperature Data
+  nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
 
-  if (nterval == 60) {
-    data_interval <- "Hourly"
-  } else if (nterval == 15) {
-    data_interval <- "15-min"
-  } else if (nterval < 60) {
-    data_interval <- "less than 60-min"
-  } else if (nterval == 1440) {
-    data_interval <- "Daily"
+  if (nterval_temp == 15) {
+    data_interval_temp <- "15-min"
+  } else if (nterval_temp < 60) {
+    data_interval_temp <- "less than 60-min"
+  } else if (nterval_temp == 60) {
+    data_interval_temp <- "Hourly"
+  } else if (nterval_temp == 1440) {
+    data_interval_temp <- "Daily"
   }
 
-  if (data_interval == "15-min" | data_interval == "less than 60-min") {
+  if (data_interval_temp == "15-min" | data_interval_temp == "less than 60-min") {
+
     dts_1 <- lubridate::floor_date(temp_data$time, "hour")
     temp_data$days_hours <- dts_1
     days_hours <- unique(temp_data$days_hours)
@@ -56,25 +56,24 @@ agg_eload_temp_df_to_hourly <- function(eload_data, temp_data,
       names(temp_hourly) <- c("time", "temp")
     }
 
-  } else if (data_interval == "Hourly" || data_interval == "Daily") {
+  } else if (data_interval_temp == "Hourly" || data_interval_temp == "Daily") {
     temp_hourly <- temp_data[, c("time", "temp")]
   }
 
-  # Check interval of eload data
-  nterval_eload <- difftime(eload_data$time[2], eload_data$time[1],
-                            units = "min")
+  # Eload Data
+  nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
 
-  if (nterval_eload == 60) {
-    data_interval <- "Hourly"
-  } else if (nterval_eload == 15) {
-    data_interval <- "15-min"
+  if (nterval_eload == 15) {
+    data_interval_eload <- "15-min"
   } else if (nterval_eload < 60) {
-    data_interval <- "less than 60-min"
+    data_interval_eload <- "less than 60-min"
+  } else if (nterval_eload == 60) {
+    data_interval_eload <- "Hourly"
   } else if (nterval_eload == 1440) {
-    data_interval <- "Daily"
+    data_interval_eload <- "Daily"
   }
 
-  if (data_interval == "15-min" | data_interval == "less than 60-min") {
+  if (data_interval_eload == "15-min" | data_interval_eload == "less than 60-min") {
     dts_1 <- lubridate::floor_date(eload_data$time, "hour")
     eload_data$days_hours <- dts_1
     days_hours <- unique(eload_data$days_hours)
@@ -95,7 +94,7 @@ agg_eload_temp_df_to_hourly <- function(eload_data, temp_data,
       names(eload_hourly) <- c("time", "eload")
     }
 
-  } else if (data_interval == "Hourly" || data_interval == "Daily") {
+  } else if (data_interval_eload == "Hourly" || data_interval_eload == "Daily") {
     eload_hourly <- eload_data[, c("time", "eload")]
   }
 
