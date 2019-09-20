@@ -26,7 +26,7 @@ calculate_avoided_energy_use <- function(modeled_data_obj){
   names(savings_df) <- "savings"
   savings_df <- dplyr::bind_cols("time" = pred$time, savings_df)
   pct_savings <- (savings / sum_pred_post)
-  baseline_energy_use <- sum(modeled_data_obj$baseline_data$eload, na.rm = T)
+  baseline_energy_use <- sum(modeled_data_obj$training_data$eload, na.rm = T)
 
   results <- NULL
   savings_summary <- as.data.frame(matrix(nr = 1, nc = 2))
