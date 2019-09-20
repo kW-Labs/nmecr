@@ -4,7 +4,7 @@
 \alias{model_with_TOWT}
 \title{Generate an energy data model using the Time-of-Week and Temperature algorithm.}
 \usage{
-model_with_TOWT(baseline_data = NULL, prediction_data = NULL,
+model_with_TOWT(training_data = NULL, prediction_data = NULL,
   timescale_days = NULL, interval_minutes = 15,
   has_temp_knots_defined = FALSE, run_temperature_model = TRUE,
   equal_temp_segment_points = T, temp_segments_numeric = 6,
@@ -14,7 +14,7 @@ model_with_TOWT(baseline_data = NULL, prediction_data = NULL,
   data_units = NULL)
 }
 \arguments{
-\item{baseline_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
+\item{training_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
 
 \item{prediction_data}{Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
 
@@ -48,12 +48,13 @@ a TOWT_baseline object, which is a list with the following components:
 \describe{
   \item{TOWT_model}{an object that has been created by the function create_TOWT_weighted_reg,
    and which correspond to the TOWT model.}
-  \item{baseline_data}{a dataframe corresponding to the training data after the
+  \item{training_data}{a dataframe corresponding to the training data after the
   cleaning and filtering function were applied, fitted values, and residuls}
   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
   \item{rsdl}{a data frame containing all residual values}
   \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
-  \item{energy use summary}{Summed basesline, post-implementation, and adjusted baseline energy use values.}
+  \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
+  energy project's baseline energy dataset.}
   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
 }
 }

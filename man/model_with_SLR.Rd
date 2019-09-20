@@ -4,13 +4,13 @@
 \alias{model_with_SLR}
 \title{Generate an energy data model using simple linear regression with outside air temperature.}
 \usage{
-model_with_SLR(baseline_data, prediction_data = NULL,
+model_with_SLR(training_data, prediction_data = NULL,
   data_interval = NULL, has_operating_modes = FALSE,
   train_operating_mode_data = NULL, pred_operating_mode_data = NULL,
   data_units = NULL)
 }
 \arguments{
-\item{baseline_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
+\item{training_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
 
 \item{prediction_data}{Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
 
@@ -30,11 +30,12 @@ Only used with 'Simple Linear Regression with OAT'.}
 a list with the following components:
 \describe{
   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-  \item{baseline_data}{a dataframe corresponding to the training data after the
+  \item{training_data}{a dataframe corresponding to the training data after the
   cleaning and filtering function were applied, fitted values, and residuls.}
   \item{SLR_model}{an object with parameter coefficients and associated p-values resulting from the SLR model.}
   \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
-  \item{energy use summary}{Summed basesline, post-implementation, and adjusted baseline energy use values.}
+  \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
+  energy project's baseline energy dataset.}
   \item{model}{the lm object created within 'model_with_SLR'.}
   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
 }
