@@ -125,22 +125,22 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
   results <- NULL
 
   uncertainty_summary <- as.data.frame(matrix(nr = 4, nc = 3))
-  names(uncertainty_summary) <- c(" ", "Savings Uncertainty", "Minimum Savings needed at 50% uncertainty, as per ASHRAE 14")
+  names(uncertainty_summary) <- c(" ", "Savings Uncertainty", "Min. Savings needed at 50% uncertainty")
 
 
-  uncertainty_summary[1, 1] <- paste("Uncertainty associated with", savings_percent * 100, "%", "savings at 68% confidence level")
+  uncertainty_summary[1, 1] <- paste0("Uncertainty for ", savings_percent * 100, "% ", "savings at 68% CL")
   uncertainty_summary[1, 2] <- paste(round(u_68 * 100, 2), "%", sep = "")
   uncertainty_summary[1, 3] <- format(energy_for_savings_at_50pct_u_68, scientific = FALSE, big.mark = ",", digits = 2)
 
-  uncertainty_summary[2, 1] <- paste("Uncertainty associated with", savings_percent * 100, "%", "savings at 90% confidence level")
+  uncertainty_summary[2, 1] <- paste0("Uncertainty for ", savings_percent * 100, "% ", "savings at 90% CL")
   uncertainty_summary[2, 2] <- paste(round(u_90 * 100, 2), "%", sep = "")
   uncertainty_summary[2, 3] <- format(energy_for_savings_at_50pct_u_90, scientific = FALSE, big.mark = ",", digits = 2)
 
-  uncertainty_summary[3, 1] <- paste("Uncertainty associated with", savings_percent * 100, "%", "savings at 95% confidence level")
+  uncertainty_summary[3, 1] <- paste0("Uncertainty for ", savings_percent * 100, "% ", "savings at 95% CL")
   uncertainty_summary[3, 2] <- paste(round(u_95 * 100, 2), "%", sep = "")
   uncertainty_summary[3, 3] <- format(energy_for_savings_at_50pct_u_95, scientific = FALSE, big.mark = ",", digits = 2)
 
-  uncertainty_summary[4, 1] <- paste("Uncertainty associated with", savings_percent * 100, "%", "savings at 99.7% confidence level")
+  uncertainty_summary[4, 1] <- paste0("Uncertainty for ", savings_percent * 100, "% ", "savings at 99.7% CL")
   uncertainty_summary[4, 2] <- paste(round(u_99.7 * 100, 2), "%", sep = "")
   uncertainty_summary[4, 3] <- format(energy_for_savings_at_50pct_u_99.7, scientific = FALSE, big.mark = ",", digits = 2)
 
