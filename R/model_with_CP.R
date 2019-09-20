@@ -17,7 +17,7 @@
 #'   \item{training_data}{a dataframe corresponding to the training data after the
 #'   cleaning and filtering function were applied, fitted values, and residuls.}
 #'   \item{CP_model}{an object with parameter coefficients and associated p-values resulting from the CP model.}
-#'   \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
+#'   \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
 #'   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
 #'   energy project's baseline energy dataset.}
 #'   \item{model}{the lm object created within 'model_with_CP'.}

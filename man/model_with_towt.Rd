@@ -52,7 +52,7 @@ a TOWT_baseline object, which is a list with the following components:
   cleaning and filtering function were applied, fitted values, and residuls}
   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
   \item{rsdl}{a data frame containing all residual values}
-  \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
+  \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
   energy project's baseline energy dataset.}
   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
