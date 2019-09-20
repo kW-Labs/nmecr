@@ -2,7 +2,7 @@
 #'
 #' \code{This function builds an energy use model using one of four available change point modeling algorithms.}
 #'
-#' @param baseline_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
+#' @param training_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
 #' @param prediction_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
 #' @param regression_type Character string indictating the modeling algorithm to run: "Three Parameter Heating", "Three Parameter Cooling",
 #' "Four Parameter Linear Model", "Five Parameter Linear Model",
@@ -14,24 +14,25 @@
 #' @return a list with the following components:
 #' \describe{
 #'   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-#'   \item{baseline_data}{a dataframe corresponding to the training data after the
+#'   \item{training_data}{a dataframe corresponding to the training data after the
 #'   cleaning and filtering function were applied, fitted values, and residuls.}
 #'   \item{CP_model}{an object with parameter coefficients and associated p-values resulting from the CP model.}
 #'   \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
-#'   \item{energy use summary}{Summed basesline, post-implementation, and adjusted baseline energy use values.}
+#'   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
+#'   energy project's baseline energy dataset.}
 #'   \item{model}{the lm object created within 'model_with_CP'.}
 #'   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
 #' }
 #' @export
 
-model_with_CP <- function(baseline_data, prediction_data = NULL,
+model_with_CP <- function(training_data, prediction_data = NULL,
                                        regression_type = NULL,
                                        initial_breakpoints = NULL,
                                        data_interval = NULL,
                                        data_units = NULL){
 
-  dependent_variable <- baseline_data$eload
-  independent_variable <- baseline_data$temp
+  dependent_variable <- training_data$eload
+  independent_variable <- training_data$temp
 
   if (regression_type == "Three Parameter Cooling") {
     dummy_cooling_model <- lm(dependent_variable ~ 1)
@@ -97,15 +98,15 @@ model_with_CP <- function(baseline_data, prediction_data = NULL,
     names(CP_model) <- c("Parameters", "Coefficients", "p-values")
   }
 
-  baseline_data <- baseline_data %>%
+  training_data <- training_data %>%
     mutate(yfit = yfit) %>%
     mutate(resi = eload - yfit) %>%
     mutate(resi_sq = resi ^ 2)
 
-  baseline_data <- baseline_data[complete.cases(baseline_data), ]
+  training_data <- training_data[complete.cases(training_data), ]
 
-  resi <-  baseline_data$eload - yfit
-  r_value <- (1 - mean((resi) ^ 2) / var(baseline_data$eload))
+  resi <-  training_data$eload - yfit
+  r_value <- (1 - mean((resi) ^ 2) / var(training_data$eload))
 
   if (regression_type == "Three Parameter Cooling") {
     nparameter <- nrow(as.data.frame(three_paramter_cooling_model$coefficients))
@@ -117,10 +118,10 @@ model_with_CP <- function(baseline_data, prediction_data = NULL,
     nparameter <- nrow(as.data.frame(linear_5P_model$coefficients))
   }
 
-  MBE <- sum(baseline_data[['resi']]) / nrow(baseline_data)
-  NDBE <- 100 * (sum(baseline_data[['resi']] / sum(baseline_data[['eload']])))
-  CVRMSE <- ((sqrt(sum(baseline_data[['resi_sq']]) / (nrow(baseline_data) - nparameter))) / mean(baseline_data[['eload']]))
-  CVMAE <- (sum(abs(baseline_data[['resi']])) / (nrow(baseline_data) - nparameter)) / mean(baseline_data[['eload']])
+  MBE <- sum(training_data[['resi']]) / nrow(training_data)
+  NDBE <- 100 * (sum(training_data[['resi']] / sum(training_data[['eload']])))
+  CVRMSE <- ((sqrt(sum(training_data[['resi_sq']]) / (nrow(training_data) - nparameter))) / mean(training_data[['eload']]))
+  CVMAE <- (sum(abs(training_data[['resi']])) / (nrow(training_data) - nparameter)) / mean(training_data[['eload']])
 
   goodness_of_fit <- data.frame()
   goodness_of_fit[1, 1] <- r_value
@@ -132,11 +133,11 @@ model_with_CP <- function(baseline_data, prediction_data = NULL,
 
   out <- NULL
   out$goodness_of_fit <- goodness_of_fit
-  out$baseline_data <- baseline_data
+  out$training_data <- training_data
   out$CP_model <- CP_model
 
-  skewness_rsdl <- moments::skewness(baseline_data$resi)
-  excess_kurtosis_rsdl <- moments::kurtosis(baseline_data$resi)
+  skewness_rsdl <- moments::skewness(training_data$resi)
+  excess_kurtosis_rsdl <- moments::kurtosis(training_data$resi)
 
   if (skewness_rsdl > - 0.5 && skewness_rsdl < 0.5) {
     skewness_rsdl_meaning <- "Fairly Symmetrical"
@@ -165,7 +166,7 @@ model_with_CP <- function(baseline_data, prediction_data = NULL,
 
   energy_use_summary <- as.data.frame(matrix(nr = 1, nc = 1))
   names(energy_use_summary) <- c("Baseline Energy Use")
-  energy_use_summary$'Baseline Energy Use' <- paste(format(sum(baseline_data$eload, na.rm = T),
+  energy_use_summary$'Baseline Energy Use' <- paste(format(sum(training_data$eload, na.rm = T),
                                                                scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
   out$energy_use_summary <- energy_use_summary
 
@@ -200,7 +201,7 @@ model_with_CP <- function(baseline_data, prediction_data = NULL,
     energy_use_summary <- as.data.frame(matrix(nr = 1, nc = 3))
     names(energy_use_summary) <- c("Baseline Energy Use", "Adjusted Baseline Energy Use", "Post Implementation Energy Use")
 
-    energy_use_summary$'Baseline Energy Use' <- paste(format(sum(baseline_data$eload, na.rm = T),
+    energy_use_summary$'Baseline Energy Use' <- paste(format(sum(training_data$eload, na.rm = T),
                                                              scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
     energy_use_summary$'Adjusted Baseline Energy Use' <- paste(format(sum(predicted_data$pred_eload, na.rm = T),
                                                                       scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))

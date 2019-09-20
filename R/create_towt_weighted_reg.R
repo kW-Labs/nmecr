@@ -134,18 +134,18 @@ create_TOWT_weighted_reg <- function(time_col, eload_col, temp_col,
 
   # Applying th weighting matrix to baseline and prediction data
 
-  final_baseline <- apply(pred_matrix * weight_matrix, 2, sum) /
+  final_pred_matrix <- apply(pred_matrix * weight_matrix, 2, sum) /
     apply(weight_matrix, 2, sum)
-  final_train_baseline <- apply(train_matrix * train_weight_matrix, 2, sum) /
+  final_train_matrix <- apply(train_matrix * train_weight_matrix, 2, sum) /
     apply(train_weight_matrix, 2, sum)
 
   output <- NULL
   output$time_vec <- pred_time_col
-  output$baseline <- final_baseline
+  output$final_pred_matrix <- final_pred_matrix
   output$pred_matrix <- pred_matrix
   output$weight_matrix <- weight_matrix
   output$train_time <- time_col
-  output$train_baseline <- final_train_baseline
+  output$final_train_matrix <- final_train_matrix
   output$temp_knots <- temp_knots
   output$training_model_occ_period <- training_model_occ_period
   output$training_model_unocc_period <- training_model_unocc_period

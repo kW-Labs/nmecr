@@ -3,7 +3,7 @@
 #' \code{This function builds an energy use model using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param baseline_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
+#' @param training_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
 #' @param prediction_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
 #' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
 #' Change to improve accuracy of short term models.
@@ -23,17 +23,18 @@
 #' \describe{
 #'   \item{TOWT_model}{an object that has been created by the function create_TOWT_weighted_reg,
 #'    and which correspond to the TOWT model.}
-#'   \item{baseline_data}{a dataframe corresponding to the training data after the
+#'   \item{training_data}{a dataframe corresponding to the training data after the
 #'   cleaning and filtering function were applied, fitted values, and residuls}
 #'   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
 #'   \item{rsdl}{a data frame containing all residual values}
 #'   \item{normality metrics}{a list with details on residual heteroskedasticity and kurtosis.}
-#'   \item{energy use summary}{Summed basesline, post-implementation, and adjusted baseline energy use values.}
+#'   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
+#'   energy project's baseline energy dataset.}
 #'   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
 #' }
 #' @export
 
-model_with_TOWT <- function(baseline_data = NULL,
+model_with_TOWT <- function(training_data = NULL,
                           prediction_data = NULL,
                           timescale_days = NULL,
                           interval_minutes = 15,
@@ -50,7 +51,7 @@ model_with_TOWT <- function(baseline_data = NULL,
 
   if (! has_operating_modes){
 
-    train <- baseline_data
+    train <- training_data
     train <- dplyr::distinct(train)
 
     train_operating_mode_data <- NULL
@@ -97,7 +98,7 @@ model_with_TOWT <- function(baseline_data = NULL,
 
   } else {
 
-    eload_time <- baseline_data$time
+    eload_time <- training_data$time
     op_time <- train_operating_mode_data$time
 
     eload_time_interval <- difftime(eload_time[2], eload_time[1], units = "min")
@@ -119,7 +120,7 @@ model_with_TOWT <- function(baseline_data = NULL,
 
       # train read and preprocess
 
-      train <- dplyr::inner_join(baseline_data, train_operating_mode_data, by = "time")
+      train <- dplyr::inner_join(training_data, train_operating_mode_data, by = "time")
       train <- dplyr::distinct(train)
 
       if (! is.null(prediction_data)){
@@ -188,7 +189,7 @@ model_with_TOWT <- function(baseline_data = NULL,
 
     }
 
-    yfit <- TOWT_model$train_baseline
+    yfit <- TOWT_model$final_train_matrix
     train_output <- train$eload
     fit_residuals_numeric <- train_output - yfit
     fit_residuals <- as.data.frame(train_output - yfit)
@@ -225,7 +226,7 @@ model_with_TOWT <- function(baseline_data = NULL,
     res$TOWT_model <- TOWT_model
     train$time <- format(train$time, "%m/%d/%y %H:%M")
     res$goodness_of_fit <- goodness_of_fit
-    res$baseline_data <- as.data.frame(cbind(train, yfit, "resi" = fit_residuals_numeric))
+    res$training_data <- as.data.frame(cbind(train, yfit, "resi" = fit_residuals_numeric))
     res$rdsl <- fit_residuals
 
     skewness_rsdl <- moments::skewness(fit_residuals)
