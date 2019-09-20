@@ -34,7 +34,7 @@ The nmecr package streamlines the application of the NMEC approach by enabling t
 
 ## Data
 
-Two datasets are made available to you when you download and load 'nmecr' to your R session: 'temp' and 'eload'. These contain two years (04/07/2017 - 04/06/2019) of energy use data and outside air temperature data from a commercial facility in North America. We will use the first year as the 'pre-implementation' dataset and the second year as the 'post-implementation' dataset.
+Two datasets are made available to you when you download and load 'nmecr' to your R session: 'temp' and 'eload'. These contain two years (04/07/2017 - 04/06/2019) of energy use data and outside air temperature data from a commercial facility in North America. We will use the first year as the pre-implementation dataset and the second year as the post-implementation dataset.
 
 'temp' and 'eload' are data frames with the two variables each. When using nmecr functions, you will need to ensure that the column headers of your datasets are the same as those shown below.
 
@@ -91,7 +91,7 @@ daily_post <- daily_energy_use %>%
 
 ## Data Modeling
 
-nmecr contains four data modeling algorithms. These create the data models, report on the models' goodness-of-fit metrics, provide details on the model residuals' skewness, and predict using the developed model when given a prediction dataset. 
+nmecr contains four data modeling algorithms. These create the data models, report on the models' goodness-of-fit metrics, provide details on the model residuals' skewness and kurtosis, and predict using the developed model when given a prediction dataset. 
 
 * `model_with_TOWT()`: Time-of-Week & Temperature and Time-Only algorithms
 
@@ -105,11 +105,15 @@ nmecr contains four data modeling algorithms. These create the data models, repo
 
 ### Modeling with Time of Week and Temperature
 
-Simple Linear Regression and its derivatives (changepoint models and HDD/CDD models) are the most popular data modeling algorithms in the energy efficiency community. The Time-of-Week and Temperature model, developed by Lawrence Berkeley National Laboratory, has improved upon the predictive capabilties of these algorithms by adding an additional variable to regress upon: Time-of-Week. While primitive implementations of TOWT required the occupancy schedule of the facility to be input into the algorithm to take advantage of this feature, the implementation below gleans this information from the energy use profile itself. The only independent variables input into the algoritm, therefore, are: Energy Use and Temperature
+Simple Linear Regression and its derivatives (changepoint models and HDD/CDD models) are the most popular data modeling algorithms in the energy efficiency community. The Time-of-Week and Temperature model, developed by Lawrence Berkeley National Laboratory, has improved upon the predictive capabilties of these algorithms by adding an additional variable to regress upon: Time-of-Week. While primitive implementations of TOWT required the occupancy schedule of the facility to be an input to the algorithm, the implementation below gleans this information from the energy use profile itself. The only independent variables input require by the algoritm, therefore, are: Energy Use and Temperature
 
 ```{r SLR}
-TOWT_results <- model_with_TOWT(training_data = daily_pre, data_interval = "Daily", data_units = "kWh")
+TOWT_results <- model_with_TOWT(training_data = daily_pre, data_interval = "Daily", 
+                                data_units = "kWh")
 ```
+
+The `TOWT_results` object contains all information pertainig to the developed, some of which is shown below:
+
 
 Model Goodness of Fit:
 
@@ -152,7 +156,7 @@ ggplot2::ggplot(df, aes(resi)) +
 TOWT_results$normality_metrics[, c(2,4)]
 ```
 
-The California Public Utility Commission requires savings uncertainty for 10% savings at the 90% confidence level to be reported to qualify a model as 'good' and fit for use in energy efficieny programs. You can obtain this information for your model using the `calculate_savings_uncertainty()` function:
+The California Public Utility Commission requires savings uncertainty for 10% savings at the 90% confidence level to be reported to qualify a model as 'good' and fit for use in energy efficieny programs. This information can be obtained using the `calculate_savings_uncertainty()` function:
 
 ```{r savings_unc @ 10, results='markup'}
 savings_uncertainty_10 <- calculate_savings_uncertainty(modeled_data_obj = TOWT_results, 
@@ -161,9 +165,11 @@ savings_uncertainty_10
 
 ```
 
+The uncertainty for 10% savings at a confidence level of 90% is 21.4% for this model. The corresponding minimum savings needed for this project are 218,704 kWh
+
 ### Predicting energy use using Time-of-Week and Temperature algorithm
 
-The goodness of fit metrics (CV(RMSE) < 25%, R^2 > 70%, NDBE < 0.005%), the time series plot, the residual analysis, and the savings uncertainty calculations show the developed model is good and fit for prediction.
+The goodness of fit metrics (CV(RMSE) < 25%, R^2 > 70%, NDBE < 0.005%), the time series plot, the residual analysis, and the savings uncertainty calculations show that the developed model is good and fit for prediction.
 
 We can create model predictions by simply adding an argument with the prediction dataframe to the `model_with_towt()` function:
 
@@ -196,8 +202,10 @@ The predictions can further be used to calculate 'Avoided Energy USe' for the pr
 
 avoided_energy_use <- calculate_avoided_energy_use(modeled_data_obj = TOWT_predictions)
 
-actual_savings_uncertainty <- calculate_savings_uncertainty(modeled_data_obj = TOWT_predictions, 
-                              savings_percent = avoided_energy_use$pct_savings)
+actual_savings_uncertainty <- calculate_savings_uncertainty(modeled_data_obj = 
+                                                              TOWT_predictions, 
+                                                            savings_percent = 
+                                                              avoided_energy_use$pct_savings)
 
 ```
 
