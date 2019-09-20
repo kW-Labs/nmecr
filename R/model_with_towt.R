@@ -249,12 +249,12 @@ model_with_TOWT <- function(training_data = NULL,
     }
 
     normality_metrics <- as.data.frame(matrix(nr = 1, nc = 4))
-    names(normality_metrics) <- c("Skewness Value", "Skewness Interpretation",
-                                  "Excess Kurtosis Value", "Excess Kurtosis Interpretation")
+    names(normality_metrics) <- c("Skewness Value", "Skewness",
+                                  "Excess Kurtosis Value", "Excess Kurtosis")
     normality_metrics$'Skewness Value' <-  formatC(skewness_rsdl, big.mark = ",")
-    normality_metrics$'Skewness Interpretation' <- skewness_rsdl_meaning
+    normality_metrics$'Skewness' <- skewness_rsdl_meaning
     normality_metrics$'Excess Kurtosis Value' <-  formatC(excess_kurtosis_rsdl, big.mark = ",")
-    normality_metrics$'Excess Kurtosis Interpretation' <- excess_kurtosis_rsdl_meaning
+    normality_metrics$'Excess Kurtosis' <- excess_kurtosis_rsdl_meaning
 
     res$normality_metrics <- normality_metrics
 
@@ -267,8 +267,8 @@ model_with_TOWT <- function(training_data = NULL,
     # Prediction
     if (! is.null(prediction_data)) {
       t_base_num <- as.numeric(TOWT_model$time_vec)
-      baseline <- TOWT_model$baseline
-      y_pred <- approx(t_base_num, baseline, as.numeric(pred$time), method = "constant")$y
+      final_pred_matrix <- TOWT_model$final_pred_matrix
+      y_pred <- approx(t_base_num, final_pred_matrix, as.numeric(pred$time), method = "constant")$y
       pred$time <- format(pred$time, "%m/%d/%y %H:%M")
       res$post_implementation_data <- as.data.frame(pred)
       res$post_implementation_data <- as.data.frame(cbind(pred, "pred_eload" = y_pred))

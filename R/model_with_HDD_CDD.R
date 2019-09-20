@@ -109,12 +109,12 @@ model_with_HDD_CDD <- function(training_data, prediction_data = NULL,
     }
 
     normality_metrics <- as.data.frame(matrix(nr = 1, nc = 4))
-    names(normality_metrics) <- c("Skewness Value", "Skewness Interpretation",
-                                      "Excess Kurtosis Value", "Excess Kurtosis Interpretation")
+    names(normality_metrics) <- c("Skewness Value", "Skewness",
+                                      "Excess Kurtosis Value", "Excess Kurtosis")
     normality_metrics$'Skewness Value' <-  formatC(skewness_rsdl, big.mark = ",")
-    normality_metrics$'Skewness Interpretation' <- skewness_rsdl_meaning
+    normality_metrics$'Skewness' <- skewness_rsdl_meaning
     normality_metrics$'Excess Kurtosis Value' <-  formatC(excess_kurtosis_rsdl, big.mark = ",")
-    normality_metrics$'Excess Kurtosis Interpretation' <- excess_kurtosis_rsdl_meaning
+    normality_metrics$'Excess Kurtosis' <- excess_kurtosis_rsdl_meaning
 
     out$normality_metrics <- normality_metrics
 
