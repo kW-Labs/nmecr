@@ -1,6 +1,6 @@
 ---
 title: "Introduction to nmecr"
-output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{Introduction to nmecr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -20,7 +20,7 @@ library(ggplot2)
 library(tidyr)
 ```
 
-NMEC, or Normalized Metered Energy Consumption, enables energy efficiency program stakeholders to determine energy and cost savings after measures are installed, based on the analysis of pre- and post-installation meter data. Traditionally applied with billing data, this approach has been updated with advanced modeling methods applied to high frequency data, enabling a much more accurate savings analysis. 
+NMEC, or Normalized Metered Energy Consumption, enables energy efficiency program stakeholders to determine energy and cost savings after measures are installed, based on the analysis of pre- and post-installation meter data. Traditionally applied with billing data, this approach has been updated with advanced modeling methods applied to high frequency data, enabling a granular savings analysis. 
 
 The nmecr package streamlines the application of the NMEC approach by enabling the:
 
@@ -34,26 +34,22 @@ The nmecr package streamlines the application of the NMEC approach by enabling t
 
 ## Data
 
-Two datasets are made available to you when you download and load 'nmecr' to your R session: 'temp' and 'eload'. These contain two years (04/07/2017 - 04/06/2019) of energy use data and outside air temperature data from a commercial facility in North America. We will use the first year as the pre-implementation dataset and the second year as the post-implementation dataset.
+'nmecr' includes two datasets: 'temp' and 'eload'. These contain two years (03/01/2012 - 03/01/2014) of outside air temperature data and energy use data from a commercial facility in North America. We will use the first year as the pre-implementation dataset and the second year as the post-implementation dataset.
 
-'temp' and 'eload' are data frames with the two variables each. When using nmecr functions, you will need to ensure that the column headers of your datasets are the same as those shown below.
+'temp' and 'eload' are data frames with the two variables each. When using nmecr functions, ensure that the column headers of your datasets are the same as those shown below.
 
 
-```{r temp, results='markup'}
-temp
-
+```{r temp, results='markup', echo=FALSE}
+head(temp, n=5)
 ```
 
-```{r eload, results='markup'}
-eload
+```{r eload, results='markup', echo=FALSE}
+head(eload, n=5)
 ```
-
-Note that the data is spaced in daily time intervals. 
 
 ## Aggregating Energy Use and Temperature data
 
 nmecr contains three main data manipulation functions:
-
 
 * `agg_eload_temp_df_to_hourly()`
 
@@ -63,31 +59,33 @@ nmecr contains three main data manipulation functions:
 
 These functions perform two tasks:
 
-1. Aggregating data from small time intervals to large time intervals (e.g. aggregating 15-min data to hourly).
+1. Aggregating data from small time intervals to large time intervals.   
 
 1. Combining eload and temp datasets into one data frame. 
+
+Note that the temp and eload do not need to necessarily have the same time interval. For example, you can input 15-min electric consumption data and hourly temperature data to `agg_eload_temp_df_to_daily()` to generate aggregated electric consumption and temperature data at the daily level.
 
 ```{r daily_energy_use, results='markup'}
 daily_energy_use <- agg_eload_temp_df_to_daily(eload_data = eload, temp_data = temp,
                                                  data_is_quantity = T,
                                                  balancepoint_temp = 65)
-
-head(daily_energy_use)
 ```
 
+```{r daily_energy_use head, results='markup', echo=FALSE}
+head(daily_energy_use, n = 5)
+```
 
 ## Separating pre-implementation and post-implementation datasets
 
-Once the energy use and temperature data are combined into one data frame, the next step is to create the pre- and post-implementation data frames. You can choose any method to do so. We recommend using the dplyr and the lubridate package.
+Once the eload and temp datasets are combined into one data frame, the next step is to create the pre- and post-implementation data frames. You can choose any method to do so. We recommend using the dplyr and the lubridate package.
 
 ```{r daily_pre, results='hide'}
 daily_pre <- daily_energy_use %>%
-  filter(time < lubridate::mdy("04/08/2018"))
+  filter(time < lubridate::mdy("3/1/2013"))
 
 daily_post <- daily_energy_use %>%
-  filter(time > lubridate::mdy("04/07/2018"))
+  filter(time > lubridate::mdy("2/28/2013"))
 ```
-
 
 ## Data Modeling
 
@@ -105,14 +103,14 @@ nmecr contains four data modeling algorithms. These create the data models, repo
 
 ### Modeling with Time of Week and Temperature
 
-Simple Linear Regression and its derivatives (changepoint models and HDD/CDD models) are the most popular data modeling algorithms in the energy efficiency community. The Time-of-Week and Temperature model, developed by Lawrence Berkeley National Laboratory, has improved upon the predictive capabilties of these algorithms by adding an additional variable to regress upon: Time-of-Week. While primitive implementations of TOWT required the occupancy schedule of the facility to be an input to the algorithm, the implementation below gleans this information from the energy use profile itself. The only independent variables input require by the algoritm, therefore, are: Energy Use and Temperature
+Simple Linear Regression and its derivatives (changepoint models and HDD/CDD models) are the most popular data modeling algorithms in the energy efficiency community. The Time-of-Week and Temperature model, developed by Lawrence Berkeley National Laboratory, has improved upon the predictive capabilties of these algorithms by adding an additional variable to regress upon: Time-of-Week. While primitive implementations of TOWT required the occupancy schedule of the facility to be an input to the algorithm, the implementation below gleans this information from the energy use profile itself. As a result, the only independent variable input required by the algorithm is temperature, which is made available in the daily_pre and the daily_post data frames already. 
 
-```{r SLR}
+```{r TOWT}
 TOWT_results <- model_with_TOWT(training_data = daily_pre, data_interval = "Daily", 
                                 data_units = "kWh")
 ```
 
-The `TOWT_results` object contains all information pertainig to the developed, some of which is shown below:
+The `TOWT_results` object contains all information pertainig to the developed model, some of which is shown below:
 
 
 Model Goodness of Fit:
@@ -161,15 +159,15 @@ The California Public Utility Commission requires savings uncertainty for 10% sa
 ```{r savings_unc @ 10, results='markup'}
 savings_uncertainty_10 <- calculate_savings_uncertainty(modeled_data_obj = TOWT_results, 
                                                         savings_percent = 10)
-savings_uncertainty_10
+```
+```{r savings_unc @ 10 90, results='markup', echo=FALSE}
+savings_uncertainty_10$uncertainty_summary[2, c(2,3)]
 
 ```
 
-The uncertainty for 10% savings at a confidence level of 90% is 21.4% for this model. The corresponding minimum savings needed for this project are 218,704 kWh
+The uncertainty for 10% savings at a confidence level of 90% is 14.2% for this model. The corresponding minimum savings needed for this project are 169,406 kWh
 
 ### Predicting energy use using Time-of-Week and Temperature algorithm
-
-The goodness of fit metrics (CV(RMSE) < 25%, R^2 > 70%, NDBE < 0.005%), the time series plot, the residual analysis, and the savings uncertainty calculations show that the developed model is good and fit for prediction.
 
 We can create model predictions by simply adding an argument with the prediction dataframe to the `model_with_towt()` function:
 
@@ -194,18 +192,29 @@ ggplot2::ggplot(df_pred, aes(x = time, y = value)) +
   theme_minimal()
 ```
 
-The predictions can further be used to calculate 'Avoided Energy USe' for the project:
+The predictions can further be summarized to calculate 'Avoided Energy Use' for the project:
 
 ### Avoided Energy Use and Savings Uncertainty
 
 ```{r avoided energy use, results='markup'}
 
 avoided_energy_use <- calculate_avoided_energy_use(modeled_data_obj = TOWT_predictions)
+```
+
+```{r avoided energy use results, results='markup', echo=FALSE}
+avoided_energy_use$savings_summary
+
+```
+
+```{r actual savings uncertainty, results='markup'}
 
 actual_savings_uncertainty <- calculate_savings_uncertainty(modeled_data_obj = 
                                                               TOWT_predictions, 
                                                             savings_percent = 
-                                                              avoided_energy_use$pct_savings)
+                                                            avoided_energy_use$pct_savings)
+```  
+```{r actual savings uncertainty 90, results='markup', echo = FALSE}
+actual_savings_uncertainty$uncertainty_summary[2, c(2,3)]
 
 ```
 
@@ -225,4 +234,4 @@ ggplot2::ggplot(cumulative_savings_df, aes(x = time, y = cusum_savings)) +
 
 ### Normalized Savings
 
-Normalized Savings for an energy efficiency project can be calculated using the functions described above by using a normalized temperature dataset as the prediction dataset. Remember to name the dataframe columns as: 'time' and 'temp'.  
+Normalized Savings for an energy efficiency project can be calculated using the functions described above by assigning a normalized temperature dataset as the prediction dataset. Remember to name the dataframe columns as: 'time' and 'temp'.  
