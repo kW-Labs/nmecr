@@ -121,7 +121,7 @@ TOWT_results$goodness_of_fit
 
 Model Results:
 
-```{r, fig.width=7, fig.height=3, echo = FALSE}
+```{r training data model, fig.width=7, fig.height=3, echo = FALSE}
 TOWT_results$training_data$time <- lubridate::mdy_hm(TOWT_results$training_data$time)
 
 df <- TOWT_results$training_data %>%
@@ -142,7 +142,7 @@ ggplot2::ggplot(TOWT_results$training_data, aes(x = eload, y = yfit)) +
 
 Model Residuals:
 
-```{r, fig.width=7, fig.height=3, echo = FALSE}
+```{r residual histogram, fig.width=7, fig.height=3, echo = FALSE}
 df <- TOWT_results$training_data
 
 ggplot2::ggplot(df, aes(resi)) +
@@ -177,7 +177,7 @@ TOWT_predictions <- model_with_TOWT(training_data = daily_pre, prediction_data =
 
 ```
 
-```{r, fig.width=7, fig.height=3, echo = FALSE}
+```{r post implementation energy use, fig.width=7, fig.height=3, echo = FALSE}
 TOWT_predictions$post_implementation_data$time <- lubridate::mdy_hm(TOWT_predictions$post_implementation_data$time)
 
 df_pred <- TOWT_predictions$post_implementation_data %>%
