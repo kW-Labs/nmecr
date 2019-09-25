@@ -99,7 +99,7 @@ nmecr contains four data modeling algorithms. These create the data models, repo
 
 * `model_with_HDD_CDD()`: Heating Degree Day only, Cooling Degree Day only, and a combination of Heating Degree Day and Cooling Degree Day algorithms
 
-`model_with_TOWT()` and `model_with_SLR()` have three additional arguments: has_operating_modes, train_operating_mode_data, pred_operating_mode_data. We use this arguments for facilities that have more than operating mode. Schools, for example, have a distinct operating mode in the summer. For usage of these arguments, please refer to the function documentation (type ?model_with_SLR or ?model_with_TOWT in the console.)
+`model_with_TOWT()` and `model_with_SLR()` have three additional arguments: has_operating_modes, train_operating_mode_data, pred_operating_mode_data. We use these arguments for facilities that have more than one operating mode. Schools, for example, have a distinct operating mode in the summer. For usage of these arguments, please refer to the function documentation (type ?model_with_SLR or ?model_with_TOWT in the console.)
 
 ### Modeling with Time of Week and Temperature
 
@@ -110,7 +110,7 @@ TOWT_results <- model_with_TOWT(training_data = daily_pre, data_interval = "Dail
                                 data_units = "kWh")
 ```
 
-The `TOWT_results` object contains all information pertainig to the developed model, some of which is shown below:
+The `TOWT_results` object contains all information pertaining to the developed model, some of which is shown below:
 
 
 Model Goodness of Fit:
