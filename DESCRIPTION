@@ -1,11 +1,13 @@
 Package: nmecr
 Type: Package
 Title: An implementation of peer-reviewed energy data analysis algorithms for site-specific M&V
-Version: 0.0.0.9000
+Version: 1.0.0
 Author: c(person("Sharma", "Mrinalini", email = "msharma@kw-engineering.com", role = c("aut", "cre")),
 			 person("Johnson", "Devan", email = "djohnson@kw-engineering.com", role = c("ctb", "cph")),
 			 person("Jump", "David", email = "djump@kw-engineering.com", role = "cph")),
-Description: 
+Description: nmecr builds statistical energy data models and provides a comprehensive assessment of model fit and prediction accuracy.
+  The modeling algortihms are derivatives of linear regression and have been enhanced for energy data modeling by various industry efforts 
+  (ASHRAE RP 1040, LBNL-4944E). 
 License: Refer to License.txt file
 BugReports: https://github.com/kW-Labs/nmecr/issues
 Depends: R (>= 3.5.0),
