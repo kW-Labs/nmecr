@@ -19,7 +19,7 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
   nterval <- difftime(modeled_data_obj$training_data$time[2],
                       modeled_data_obj$training_data$time[1], units = "min")
 
-  if (nterval < 60 && nterval > 0 ) {
+  if (nterval == 15 ) {
     data_interval <- "15-min"
   } else if (nterval == 60) {
     data_interval <- "Hourly"
@@ -49,7 +49,6 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
   t_95 <- qt((1 - (1 - (95 / 100)) / 2), 100000)
   t_99.7 <- qt((1 - (1 - (99.7 / 100)) / 2), 100000)
 
-
   if (data_interval == "Hourly" | data_interval == "Daily") {
 
     fit_residuals <- as.data.frame(modeled_data_obj$training_data$eload - modeled_data_obj$training_data$yfit)
@@ -61,12 +60,16 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
     n <- nrow(fit_residuals)
     n2 <- n * rho2
 
+    if(is.null(modeled_data_obj$post_implementation_data)) {
+      m <- n
+    } else m <- nrow(modeled_data_obj$post_implementation_data)
+
     fit_cvrmse <- modeled_data_obj$goodness_of_fit$fit_CVRMSE
 
-    u_68 <- t_68 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / nrow(fit_residuals)))) / savings_percent
-    u_90 <- t_90 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / nrow(fit_residuals)))) / savings_percent
-    u_95 <- t_95 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / nrow(fit_residuals)))) / savings_percent
-    u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / nrow(fit_residuals)))) / savings_percent
+    u_68 <- t_68 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / m))) / savings_percent
+    u_90 <- t_90 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / m))) / savings_percent
+    u_95 <- t_95 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *  (1 / m))) / savings_percent
+    u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) *(1 / m))) / savings_percent
 
   } else {
 
@@ -79,12 +82,16 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
     n <- nrow(fit_residuals)
     n2 <- n * rho2
 
+    if(is.null(modeled_data_obj$post_implementation_data)) {
+      m <- n
+    } else m <- nrow(modeled_data_obj$post_implementation_data)
+
     fit_cvrmse <- modeled_data_obj$goodness_of_fit$fit_CVRMSE
 
-    u_68 <- t_68 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / nrow(fit_residuals))) / savings_percent
-    u_90 <- t_90 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / nrow(fit_residuals))) / savings_percent
-    u_95 <- t_95 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / nrow(fit_residuals))) / savings_percent
-    u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / nrow(fit_residuals))) / savings_percent
+    u_68 <- t_68 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / m)) / savings_percent
+    u_90 <- t_90 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / m)) / savings_percent
+    u_95 <- t_95 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / m)) / savings_percent
+    u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt((1 + (2 / n)) *  (1 / m)) / savings_percent
   }
 
   # Savings
@@ -93,31 +100,32 @@ calculate_savings_uncertainty <- function(modeled_data_obj, savings_percent) {
 
     energy_saving_equiv_pct_savings <- savings_percent * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_68 <- t_68 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / nrow(fit_residuals)))) / u2
+    pct_savings_for_50pct_u_68 <- t_68 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / m))) / u2
     energy_for_savings_at_50pct_u_68 <- (pct_savings_for_50pct_u_68) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_90 <- t_90 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / nrow(fit_residuals)))) / u2
+    pct_savings_for_50pct_u_90 <- t_90 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / m))) / u2
     energy_for_savings_at_50pct_u_90 <- (pct_savings_for_50pct_u_90) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_95 <- t_95 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / nrow(fit_residuals)))) / u2
+    pct_savings_for_50pct_u_95 <- t_95 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / m))) / u2
     energy_for_savings_at_50pct_u_95 <- (pct_savings_for_50pct_u_95) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / nrow(fit_residuals)))) / u2
+    pct_savings_for_50pct_u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt(((n / n2) * (1 + (2 / n2)) * (1 / m))) / u2
     energy_for_savings_at_50pct_u_99.7 <- (pct_savings_for_50pct_u_99.7) * sum(modeled_data_obj$training_data$eload)
 
   } else {
+
     energy_saving_equiv_pct_savings <- savings_percent * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_68 <- t_68 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / nrow(modeled_data_obj$training_data))) / u2
+    pct_savings_for_50pct_u_68 <- t_68 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / m)) / u2
     energy_for_savings_at_50pct_u_68 <- (pct_savings_for_50pct_u_68) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_90 <- t_90 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / nrow(modeled_data_obj$training_data))) / u2
+    pct_savings_for_50pct_u_90 <- t_90 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / m)) / u2
     energy_for_savings_at_50pct_u_90 <- (pct_savings_for_50pct_u_90) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_95 <- t_95 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / nrow(modeled_data_obj$training_data))) / u2
+    pct_savings_for_50pct_u_95 <- t_95 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1 / m)) / u2
     energy_for_savings_at_50pct_u_95 <- (pct_savings_for_50pct_u_95) * sum(modeled_data_obj$training_data$eload)
 
-    pct_savings_for_50pct_u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1/nrow(modeled_data_obj$training_data))) / u2
+    pct_savings_for_50pct_u_99.7 <- t_99.7 * alpha * fit_cvrmse * sqrt((1 + 2 / nrow(modeled_data_obj$training_data)) * (1/ m)) / u2
     energy_for_savings_at_50pct_u_99.7 <- (pct_savings_for_50pct_u_99.7) * sum(modeled_data_obj$training_data$eload)
 
   }
