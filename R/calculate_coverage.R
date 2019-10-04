@@ -138,8 +138,8 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
   max_ref_OA_bin <- max(as.numeric(temp_coverage$bins[temp_coverage$n_ref_data > 0.1]))
   min_ref_OA_bin <- min(as.numeric(temp_coverage$bins[temp_coverage$n_ref_data > 0.1]))
 
-  extrapolated_max_obs_OA_bin <- max_obs_OA_bin + (extrapolation_limit * obs_weather_range)
-  extrapolated_min_obs_OA_bin <- min_obs_OA_bin - (extrapolation_limit * obs_weather_range)
+  extrapolated_max_obs_OA_bin <- mround(max_obs_OA_bin + (extrapolation_limit * obs_weather_range),2)
+  extrapolated_min_obs_OA_bin <- mround(min_obs_OA_bin - (extrapolation_limit * obs_weather_range),2)
 
   temp_coverage_factor <- signif(min(100, (100 * (extrapolated_max_obs_OA_bin - extrapolated_min_obs_OA_bin) /
                                              (max_ref_OA_bin - min_ref_OA_bin))), 4)
@@ -150,7 +150,7 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
     peak_bin_hourly <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
 
     hours_covered <- temp_coverage %>%
-      filter(bins < extrapolated_max_obs_OA_bin & bins > extrapolated_min_obs_OA_bin)
+      filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
 
     hours_covered <- sum(hours_covered$n_ref_data)
 
@@ -184,7 +184,7 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
     peak_bin_daily <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
 
     days_covered <- temp_coverage %>%
-      filter(bins < extrapolated_max_obs_OA_bin & bins > extrapolated_min_obs_OA_bin)
+      filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
 
     days_covered <- sum(days_covered$n_ref_data)
 
