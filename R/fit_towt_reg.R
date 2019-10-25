@@ -1,3 +1,5 @@
+#' TODO: return model fit and model form only.
+#' TODO: create new prediction function - common to all modeled objects
 #' Develop linear regression models for energy use data using time-of-week and outside air temperature as independent variables.
 #'
 #' \code{This function generates linear regressions for energy use data using the temperature changepoints and occupancy schedules determined
@@ -23,109 +25,88 @@
 #'
 #' @export
 
-fit_TOWT_reg <- function(time_col, eload_col, temp_col,
-                           pred_time_col, pred_temp_col, temp_knots=temp_knots,
-                           weight_vec=weight_vec,
-                           interval_minutes=interval_minutes,
-                           run_temperature_model=run_temperature_model,
-                           has_operating_modes = has_operating_modes,
-                          train_operating_mode_data = train_operating_mode_data,
-                          pred_operating_mode_data = pred_operating_mode_data,
-                           categories = categories) {
+fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knots = NULL,
+                           train_weight_vec = NULL, interval_minutes = NULL,
+                           run_temperature_model = NULL) {
 
-  minute_of_week <- (lubridate::wday(time_col) - 1) * 24 * 60 +
-    lubridate::hour(time_col) * 60 + lubridate::minute(time_col)
+  minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
+    lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+
   interval_of_week <- 1 + floor(minute_of_week / interval_minutes)
-  num_load_time <- as.numeric(time_col)
 
-  minute_of_week_pred <- (lubridate::wday(pred_time_col) - 1) * 24 * 60 +
-    lubridate::hour(pred_time_col) * 60 + lubridate::minute(pred_time_col)
+  num_load_time <- as.numeric(training_data$time)
+
+  minute_of_week_pred <- (lubridate::wday(prediction_data$time - 1) * 24 * 60 +
+    lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
+
   interval_of_week_pred <- 1 + floor(minute_of_week_pred / interval_minutes)
-  num_pred_time_col <- as.numeric(pred_time_col)
 
-  if (is.null(temp_col) | !run_temperature_model) {
+  num_pred_time_col <- as.numeric(prediction_data$time)
+
+  training_operating_mode_data <- training_data %>%
+    dplyr::select(-c("time", "eload", "temp"))
+
+  prediction_operating_mode_data <- prediction_data %>%
+    dplyr::select(-c("time", "eload", "temp"))
+
+  # run Time-only model
+
+  if (!run_temperature_model) {
 
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow)
 
-    if (has_operating_modes) {
+    if (!is.null(training_operating_mode_data)) {
       dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
     } else {
       dframe <- dframe
     }
 
-    amod <- lm(eload_col ~ . + 0, data = dframe, na.action = na.exclude, weights = weight_vec)
+    amod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude, weights = train_weight_vec)
     training_load_pred <- predict(amod)
 
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow)
 
-    if (has_operating_modes) {
+    if (! is.null(prediction_operating_mode_data)) {
       dframe_pred <- dplyr::bind_cols(dframe_pred, pred_operating_mode_data)
     } else {
       dframe_pred <- dframe_pred
     }
 
     ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
-    pred_vec <- rep(NA, length(pred_time_col))
+    pred_vec <- rep(NA, length(prediction_data$time)
     pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
 
-  } else {
+    pred_vec[pred_vec < 0] <- 0
 
-    ok_load <- ! is.na(eload_col)
+  } else { # run TOWT model
+
+    ok_load <- !is.na(training_data$eload)
+
+    # Determine occupancy information
+
     occ_info <- find_occ_unocc(interval_of_week[ok_load],
-                               eload_col[ok_load], temp_col[ok_load])
+                               training_data$eload[ok_load], training_data$temp[ok_load])
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
+
     # which time intervals are 'occupied'?
 
-    occ_vec <- rep(0, length(eload_col))
+    occ_vec <- rep(0, length(training_data$eload)
     if (length(occ_intervals) > 2) {
       for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
       }
     }
 
-    # If there aren't enough temperature data above the highest temp knot,
-    # then remove the knot.
-    # Repeat until there are sufficient data above the highest
-    # remaining knot, or until there's only one knot left.
+    # Remove extra temperature knots
 
-    num_temp_knots <- length(temp_knots)
+    num_temp_knots <- remove_extra_temp_knots(training_data = training_data, temp_knots = temp_knots)
 
-    check_knots <- TRUE
-    while (check_knots) {
-      if (sum(temp_col[ok_load] > temp_knots[num_temp_knots],
-              na.rm = TRUE) < 20) {
-        # not enough data above upper knot; throw away that upper knot
-        temp_knots <- temp_knots[- num_temp_knots]
-        num_temp_knots <- num_temp_knots - 1
-        if (num_temp_knots == 1) {
-          check_knots <- FALSE
-        }
-      } else {
-        # We have enough data above the upper knot, so need to keep checking
-        check_knots <- FALSE
-      }
-    }
+    # Create temperature matrix
 
-    # Same principle as above, for aomount of data below the lowest knot.
-    check_knots <- TRUE
-    while (check_knots) {
-      if (sum(temp_col[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
-        # not enough data below lower knot; throw away that lower knot
-        temp_knots <- temp_knots[- 1]
-        num_temp_knots <- num_temp_knots - 1
-        if (num_temp_knots == 1) {
-          # We have to keep one knot, even though we have no data below it.
-          check_knots <- FALSE
-        }
-      } else {
-        check_knots <- FALSE # we have sufficient data below the lowest knot
-      }
-    }
-
-    temp_mat <- create_temp_matrix(temp_col, temp_knots)
-    temp_mat_pred <- create_temp_matrix(pred_temp_col, temp_knots)
+    temp_mat <- create_temp_matrix(training_data$temp, temp_knots)
+    temp_mat_pred <- create_temp_matrix(prediction_data$temp, temp_knots)
     temp_m_name <- rep(NA, ncol(temp_mat))
 
     for (i in 1 : ncol(temp_mat)) {
@@ -143,7 +124,7 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow, temp_mat)
 
-    if (has_operating_modes) {
+    if (!is.null(training_operating_mode_data) {
       dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
     } else {
       dframe <- dframe
@@ -155,13 +136,13 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow, temp_mat_pred)
 
-    if (has_operating_modes) {
+    if (!is.null(prediction_operating_mode_data) {
       dframe_pred <- bind_cols(dframe_pred, pred_operating_mode_data)
     } else {
       dframe_pred <- dframe_pred
     }
 
-    pred_vec <- rep(NA, length(pred_time_col))
+    pred_vec <- rep(NA, length(prediction_data$time)
 
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
@@ -170,8 +151,8 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     if (sum(ok_occ > 0)) {
 
       # fit model to training data
-      amod <- lm(eload_col ~ . + 0, data = dframe,
-                 na.action = na.exclude, weights = weight_vec, subset = ok_occ)
+      amod <- lm(training_data$eload ~ . + 0, data = dframe,
+                 na.action = na.exclude, weights = train_weight_vec, subset = ok_occ)
       t_p <- predict(amod, dframe[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
 
@@ -179,12 +160,10 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
       ok_tow_pred <- dframe_pred$ftow %in% amod$xlevels$ftow
       pred_vec[ok_tow_pred] <- predict(amod, dframe_pred[ok_tow_pred, ])
 
-    }
+    } if (sum(! ok_occ) > 0) {
 
-    if (sum(! ok_occ) > 0) {
-
-      bmod <- lm(eload_col ~ . + 0, data = dframe, na.action = na.exclude,
-                 weights = weight_vec, subset = ! ok_occ)
+      bmod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude,
+                 weights = train_weight_vec, subset = ! ok_occ)
       t_p <- predict(bmod, dframe[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
 
@@ -192,64 +171,15 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
       ok_tow_pred <- dframe_pred$ftow %in% bmod$xlevels$ftow
       pred_vec[ok_tow_pred] <- predict(bmod, dframe_pred[ok_tow_pred, ])
 
+      pred_vec[pred_vec < 0] <- 0
+
     }
   }
-
-  pred_vec[pred_vec < 0] <- 0
-
 
   output <- NULL
-  output$training <- data.frame(time_col, num_load_time, training_load_pred)
-  output$predictions <- data.frame(pred_time_col, num_pred_time_col, pred_vec)
-
-  if (run_temperature_model) {
-
-    if (sum(ok_occ > 0)) {
-
-      parameters <- as.data.frame(rownames(summary(amod)$coefficients))
-      coefficients <- as.data.frame(summary(amod)$coefficients[, 1])
-      p_values <- as.data.frame(summary(amod)$coefficients[, 4])
-
-      lm_results_occ_period <- dplyr::bind_cols(parameters, coefficients,
-                                                       p_values)
-      names(lm_results_occ_period) <- c("Parameters", "Coefficients",
-                                               "p-values")
-      output$lm_results_occ_period <- lm_results_occ_period
-
-    } else {
-      output$lm_results_occ_period <- "No occupied mode model available"
-    }
-
-    if (sum(! ok_occ) > 0) {
-
-      parameters <- as.data.frame(rownames(summary(bmod)$coefficients))
-      coefficients <- as.data.frame(summary(bmod)$coefficients[, 1])
-      p_values <- as.data.frame(summary(bmod)$coefficients[, 4])
-
-      lm_results_unocc_period <- dplyr::bind_cols(parameters, coefficients,
-                                                     p_values)
-      names(lm_results_unocc_period) <- c("Parameters", "Coefficients",
-                                             "p-values")
-      output$lm_results_unocc_period <- lm_results_unocc_period
-
-    } else {
-      output$lm_results_unocc_period <- "No unoccupied mode model available"
-    }
-
-
-  } else {
-
-    parameters <- as.data.frame(rownames(summary(amod)$coefficients))
-    coefficients <- as.data.frame(summary(amod)$coefficients[, 1])
-    p_values <- as.data.frame(summary(amod)$coefficients[, 4])
-
-    lm_results_occ_period <- dplyr::bind_cols(parameters, coefficients,
-                                                   p_values)
-    names(lm_results_occ_period) <- c("Parameters", "Coefficients",
-                                           "p-values")
-    output$lm_results_occ_period <- lm_results_occ_period
-
-  }
+  output$training <- data.frame(training_data$time, num_load_time, training_load_pred)
+  output$predictions <- data.frame(prediction_data$time, num_pred_time_col, pred_vec)
 
   return(output)
+
 }

@@ -27,110 +27,67 @@
 #' @export
 
 
-create_TOWT_weighted_reg <- function(time_col, eload_col, temp_col,
-                          pred_time_col, pred_temp_col,
-                          timescale_days = timescale_days,
-                          interval_minutes=interval_minutes,
-                          has_temp_knots_defined=has_temp_knots_defined,
-                          run_temperature_model=run_temperature_model,
-                          equal_temp_segment_points = equal_temp_segment_points,
-                          temp_segments= temp_segments,
-                          temp_knots_value = temp_knots_value,
-                          has_operating_modes = has_operating_modes,
-                          train_operating_mode_data = train_operating_mode_data,
-                          pred_operating_mode_data = pred_operating_mode_data,
-                          categories = categories) {
+create_TOWT_weighted_reg <- function(training_data = NULL, prediction_data = NULL,
+                          timescale_days = NULL,
+                          interval_minutes = NULL,
+                          has_temp_knots_defined = c(TRUE, FALSE)
+                          equal_temp_segment_points = c(TRUE, FALSE),
+                          temp_segments_numeric = NULL,
+                          temp_knots_value = NULL,
+                          run_temperature_model = c(TRUE, FALSE)) {
 
-  # To determine num_model_runs
-  num_points <- length(eload_col)
-  t0 <- min(time_col, na.rm = TRUE)
-  t1 <- max(time_col, na.rm = TRUE)
+  # Determine num_model_runs
+  # TODO: move to model_with_TOWT
 
-  delta_t <- as.numeric(difftime(t1, t0, units = "days"))
-  num_segments <- max(1, ceiling(delta_t / timescale_days))
-  segment_width <- (num_points - 1) / num_segments
-  point_list <- floor(sort(num_points - segment_width * (0 : num_segments)) +
-                        0.001)
+  weighted_dataframes <- create_weighted_dataframes(training_data = training_data, prediction_data = prediction_data, timescale_days = timescale_days)
 
-  if (is.null(timescale_days)) {
-    num_model_runs <- 1
-  } else {
-    num_model_runs <- max(1, length(point_list))
-  }
+  num_model_runs <- weighted_dataframes$num_model_runs
+  train_weight_vec <- weighted_dataframes$train_weight_vec
+  pred_weight_vec <- weighted_dataframes$pred_weight_vec
+
+
+  # For temperature segments and corresponding knots
+  # TODO: move to model_with_TOWT
+
+  has_temp_knots_defined <- match.arg(has_temp_knots_defined)
+  equal_temp_segment_points <- match.arg(equal_temp_segment_points)
+  run_temperature_model <- match.arg(run_temperature_model)
+
+  temp_knots <- calculate_temperature_knots(training_data = training_data, has_temp_knots_defined = has_temp_knots_defined,
+                                            temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
+                                            equal_temp_segment_points = equal_temp_segment_points)
+
+  # run Time-only and TOWT
+
+  reg_out <- fit_TOWT_reg(training_data = training_data,
+                           prediction_data = prediction_data,
+                           temp_knots = temp_knots, train_weight_vec = train_weight_vec,
+                           interval_minutes = interval_minutes,
+                           run_temperature_model = run_temperature_model)
+
 
   # Creating weighting matrices for training and prediction data
 
   train_matrix <- matrix(NA, nrow = num_model_runs,
-                         ncol = length(time_col))
+                           ncol = length(time_col))
   pred_matrix <- matrix(NA, nrow = num_model_runs,
-                        ncol = length(pred_time_col))
-
-  train_weight_matrix <- matrix(NA, nrow = num_model_runs,
-                                ncol = length(time_col))
-  weight_matrix <- matrix(NA, nrow = num_model_runs,
                           ncol = length(pred_time_col))
+  train_weight_matrix <- matrix(NA, nrow = num_model_runs,
+                                  ncol = length(time_col))
+  weight_matrix <- matrix(NA, nrow = num_model_runs,
+                            ncol = length(pred_time_col))
 
-  for (row_index in 1 : num_model_runs) {
 
-    tcenter <- time_col[point_list[row_index]]
-    t_diff <- as.numeric(difftime(tcenter, time_col, units = "days"))
-    t_diff_pred <- as.numeric(difftime(tcenter, pred_time_col, units = "days"))
+  train_out <- reg_out$training
+  train_matrix[row_index, ] <- train_out$training_load_pred
+  train_weight_matrix[row_index, ] <- weight_vec
+  training_model_occ_period <- reg_out$lm_results_occ_period
+  training_model_unocc_period <- reg_out$lm_results_unocc_period
 
-    if (is.null(timescale_days)) {
-      weight_vec <- rep(1, length(eload_col))
-    } else {
-      weight_vec <- timescale_days ^ 2 /
-        (timescale_days ^ 2 + t_diff ^ 2)
-    }
+  pred_out <- reg_out$predictions
+  pred_matrix[row_index, ] <- pred_out$pred_vec
+  weight_matrix[row_index, ] <- weight_vec_pred
 
-    if (is.null(timescale_days)) {
-      weight_vec_pred <- rep(1, length(pred_time_col))
-    } else {
-      weight_vec_pred <- timescale_days ^ 2 /
-        (timescale_days ^ 2 + t_diff_pred ^ 2)
-    }
-
-    # For temperature segments and corresponding knots
-    if (has_temp_knots_defined) {
-      temp_knots <- temp_knots_value
-    }else {
-      temp0 <- min(temp_col, na.rm = TRUE)
-      temp1 <- max(temp_col, na.rm = TRUE)
-      delta_temp <- temp1 - temp0
-
-      if (equal_temp_segment_points) {
-        temp_segment_width <- num_points / temp_segments
-        temp_points <- floor(sort(length(temp_col) - temp_segment_width *
-                                    (0 : temp_segments)) + 0.001)
-        temp_ordered <- sort(temp_col, decreasing = F)
-        temp_knots <- temp_ordered[temp_points]
-      }else {
-        temp_segment_width <- delta_temp / temp_segments
-        temp_knots <- floor(sort(max(temp_col) - temp_segment_width *
-                                   (0 : temp_segments)) + 0.001)
-      }
-    }
-
-    reg_out <- fit_TOWT_reg(time_col, eload_col, temp_col,
-                             pred_time_col, pred_temp_col,
-                             temp_knots = temp_knots, weight_vec = weight_vec,
-                             interval_minutes = interval_minutes,
-                             run_temperature_model = run_temperature_model,
-                             has_operating_modes = has_operating_modes,
-                             train_operating_mode_data = train_operating_mode_data,
-                             pred_operating_mode_data = pred_operating_mode_data,
-                             categories = categories)
-
-    train_out <- reg_out$training
-    train_matrix[row_index, ] <- train_out$training_load_pred
-    train_weight_matrix[row_index, ] <- weight_vec
-    training_model_occ_period <- reg_out$lm_results_occ_period
-    training_model_unocc_period <- reg_out$lm_results_unocc_period
-
-    pred_out <- reg_out$predictions
-    pred_matrix[row_index, ] <- pred_out$pred_vec
-    weight_matrix[row_index, ] <- weight_vec_pred
-  }
 
   # Applying th weighting matrix to baseline and prediction data
 

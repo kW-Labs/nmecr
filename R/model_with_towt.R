@@ -1,10 +1,12 @@
 #' Generate an energy data model using the Time-of-Week and Temperature algorithm.
 #'
+#' TODO: change the term 'prediction' to 'performance'
+#'
 #' \code{This function builds an energy use model using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param training_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
-#' @param prediction_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
+#' @param training_data Training period dataframe, an object that has been created by the function create_dataframe
+#' @param prediction_data Prediction period dataframe,an object that has been created by the function create_dataframe
 #' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
 #' Change to improve accuracy of short term models.
 #' @param interval_minutes Numeric for the interval period. Default: 15.
@@ -38,156 +40,38 @@ model_with_TOWT <- function(training_data = NULL,
                           prediction_data = NULL,
                           timescale_days = NULL,
                           interval_minutes = 15,
-                          has_temp_knots_defined = FALSE,
-                          run_temperature_model = TRUE,
-                          equal_temp_segment_points = T,
+                          has_temp_knots_defined = c(TRUE, FALSE),
+                          equal_temp_segment_points = c(TRUE,FALSE),
                           temp_segments_numeric = 6,
                           temp_knots_value = c(40, 45, 50, 60, 65, 90),
-                          has_operating_modes = FALSE,
-                          train_operating_mode_data = NULL,
-                          pred_operating_mode_data = NULL,
+                          run_temperature_model = c(TRUE, FALSE),
                           data_interval = NULL,
                           data_units = NULL){
 
-  if (! has_operating_modes){
-
-    train <- training_data
-    train <- dplyr::distinct(train)
-
-    train_operating_mode_data <- NULL
-    pred_operating_mode_data <- NULL
-
-    # pred read and preprocessing
-    if (! is.null(prediction_data)) {
-      pred <- prediction_data
-      pred <- dplyr::distinct(pred)
-    } else {
-      pred <- train
-    }
-
-    if (! has_temp_knots_defined) {
-      temp_segments <- temp_segments_numeric
-    } else {
-      temp_segments <- length(temp_knots_value)
-    }
-
-    eload_time <- train$time
-    eload_time_interval <- difftime(eload_time[2], eload_time[1], units = "min")
-
-    if (eload_time_interval > 60 && data_interval == "Hourly") {
-      return(NULL)
-    } else {
-
-      TOWT_model <- create_TOWT_weighted_reg(train$time,
-                                train$eload,
-                                train$temp,
-                                pred$time,
-                                pred$temp,
-                                timescale_days = timescale_days,
-                                interval_minutes = interval_minutes,
-                                has_temp_knots_defined = has_temp_knots_defined,
-                                run_temperature_model = run_temperature_model,
-                                equal_temp_segment_points = equal_temp_segment_points,
-                                temp_segments = temp_segments_numeric,
-                                temp_knots_value = temp_knots_value,
-                                has_operating_modes = has_operating_modes,
-                                train_operating_mode_data = train_operating_mode_data,
-                                pred_operating_mode_data = pred_operating_mode_data,
-                                categories = categories)
-    }
-
+  # pred read and preprocessing
+  if (! is.null(prediction_data)) {
+    pred <- prediction_data %>%
+      dplyr::distinct(pred)
   } else {
-
-    eload_time <- training_data$time
-    op_time <- train_operating_mode_data$time
-
-    eload_time_interval <- difftime(eload_time[2], eload_time[1], units = "min")
-    op_time_interval <- difftime(op_time[2], op_time[1], units = "min")
-
-    if (op_time_interval == 1440 && eload_time_interval == 60 && data_interval == "Hourly" ||
-        op_time_interval > 1440 && eload_time_interval == 60 && data_interval == "Hourly" ||
-        eload_time_interval > 60 && data_interval == "Hourly" ||
-        data_interval == "Monthly") {
-
-      return (NULL)
-
-    } else {
-
-      #categories' names
-
-      categories <- as.vector(colnames(train_operating_mode_data))
-      categories <- categories[-1]
-
-      # train read and preprocess
-
-      train <- dplyr::inner_join(training_data, train_operating_mode_data, by = "time")
-      train <- dplyr::distinct(train)
-
-      if (! is.null(prediction_data)){
-        pred <- dplyr::inner_join(prediction_data, pred_operating_mode_data, by = "time")
-        pred <- dplyr::distinct(pred)
-      } else {
-        pred <- train
-      }
-
-      if (! has_temp_knots_defined) {
-        temp_segments <- temp_segments_numeric
-      } else {
-        temp_segments <- length(temp_knots_value)
-      }
-
-      train_operating_mode_data <- as.data.frame(train[, categories])
-      pred_operating_mode_data <- as.data.frame(pred[, categories])
-
-      TOWT_model <- create_TOWT_weighted_reg(train$time,
-                                train$eload,
-                                train$temp,
-                                pred$time,
-                                pred$temp,
-                                timescale_days = timescale_days,
-                                interval_minutes = interval_minutes,
-                                has_temp_knots_defined = has_temp_knots_defined,
-                                run_temperature_model = run_temperature_model,
-                                equal_temp_segment_points = equal_temp_segment_points,
-                                temp_segments = temp_segments,
-                                temp_knots_value = temp_knots_value,
-                                has_operating_modes = has_operating_modes,
-                                train_operating_mode_data = train_operating_mode_data,
-                                pred_operating_mode_data = pred_operating_mode_data,
-                                categories = categories)
-
-    }
+    pred <- training_data
   }
 
 
-    # Fitting results:
-    if (run_temperature_model == T) {
+  has_temp_knots_defined <- match.arg(has_temp_knots_defined)
+  equal_temp_segment_points <- match.arg(equal_temp_segment_points)
+  run_temperature_model <- match.arg(run_temperature_model)
 
-      if (class(TOWT_model$training_model_occ_period) == "character"){
-        occ_coeff_count <- 0
-      } else {
-        occ_coeff_count <- nrow(TOWT_model$training_model_occ_period)
-      }
+  TOWT_model <- create_TOWT_weighted_reg(training_data = training_data, prediction_data = prediction_data,
+                              timescale_days = timescale_days,
+                              interval_minutes = interval_minutes,
+                              has_temp_knots_defined = has_temp_knots_defined,
+                              equal_temp_segment_points = equal_temp_segment_points,
+                              temp_segments_numeric = temp_segments_numeric,
+                              temp_knots_value = temp_knots_value,
+                              run_temperature_model = run_temperature_model)
 
-      if (class(TOWT_model$training_model_unocc_period) == "character"){
-          unocc_coeff_count <- 0
-      } else {
-      unocc_coeff_count <- nrow(TOWT_model$training_model_unocc_period)
-      }
 
-     nparameter <- occ_coeff_count +  unocc_coeff_count
-
-    } else {
-
-      if (class(TOWT_model$training_model_occ_period)  == "character"){
-      occ_coeff_count <- 0
-      } else {
-      occ_coeff_count <- nrow(TOWT_model$training_model_occ_period)
-      }
-
-      nparameter <- occ_coeff_count
-
-    }
+    # Results' Summary:
 
     yfit <- TOWT_model$final_train_matrix
     train_output <- train$eload
