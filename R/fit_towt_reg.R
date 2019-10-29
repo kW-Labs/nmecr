@@ -23,6 +23,7 @@
 #'
 #' @export
 
+<<<<<<< Updated upstream
 fit_TOWT_reg <- function(time_col, eload_col, temp_col,
                            pred_time_col, pred_temp_col, temp_knots=temp_knots,
                            weight_vec=weight_vec,
@@ -35,42 +36,98 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
 
   minute_of_week <- (lubridate::wday(time_col) - 1) * 24 * 60 +
     lubridate::hour(time_col) * 60 + lubridate::minute(time_col)
+=======
+fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knots = NULL,
+                           train_weight_vec = NULL, interval_minutes = NULL,
+                           run_temperature_model = NULL) {
+
+
+  # interval of week - training data ----
+  minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
+    lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+
+>>>>>>> Stashed changes
   interval_of_week <- 1 + floor(minute_of_week / interval_minutes)
   num_load_time <- as.numeric(time_col)
 
+<<<<<<< Updated upstream
   minute_of_week_pred <- (lubridate::wday(pred_time_col) - 1) * 24 * 60 +
     lubridate::hour(pred_time_col) * 60 + lubridate::minute(pred_time_col)
+=======
+  num_load_time <- as.numeric(training_data$time)
+
+  # interval of week - prediction data ----
+  minute_of_week_pred <- (lubridate::wday(prediction_data$time) - 1) * 24 * 60 +
+    lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
+
+>>>>>>> Stashed changes
   interval_of_week_pred <- 1 + floor(minute_of_week_pred / interval_minutes)
   num_pred_time_col <- as.numeric(pred_time_col)
 
+<<<<<<< Updated upstream
   if (is.null(temp_col) | !run_temperature_model) {
+=======
+  num_pred_time_col <- as.numeric(prediction_data$time)
+
+  # create dataframes of training and prediction period operating mode data ----
+  # TODO  - this will need to be celaned up for hourly vs daily and monthly and moved up
+  training_operating_mode_data <- training_data %>%
+    dplyr::select(-c("time", "eload", "temp", "HDD", "CDD"))
+
+  prediction_operating_mode_data <- prediction_data %>%
+    dplyr::select(-c("time", "eload", "temp", "HDD", "CDD"))
+
+  # run Time-only model
+
+  if (!run_temperature_model) {
+>>>>>>> Stashed changes
 
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow)
 
+<<<<<<< Updated upstream
     if (has_operating_modes) {
+=======
+    if (ncol(training_operating_mode_data) != 0) {
+>>>>>>> Stashed changes
       dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
-    } else {
-      dframe <- dframe
     }
 
+<<<<<<< Updated upstream
     amod <- lm(eload_col ~ . + 0, data = dframe, na.action = na.exclude, weights = weight_vec)
+=======
+    amod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude, weights = train_weight_vec) # simple linear regression - no subsetting by occupancy
+>>>>>>> Stashed changes
     training_load_pred <- predict(amod)
 
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow)
 
+<<<<<<< Updated upstream
     if (has_operating_modes) {
+=======
+    if (ncol(prediction_operating_mode_data) != 0) {
+>>>>>>> Stashed changes
       dframe_pred <- dplyr::bind_cols(dframe_pred, pred_operating_mode_data)
-    } else {
-      dframe_pred <- dframe_pred
     }
 
     ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
+<<<<<<< Updated upstream
     pred_vec <- rep(NA, length(pred_time_col))
     pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
 
   } else {
+=======
+    pred_vec <- rep(NA, length(prediction_data$time))
+    pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
+
+
+  } else { # run TOWT model
+
+    ok_load <- !is.na(training_data$eload)
+
+    # Determine occupancy information
+>>>>>>> Stashed changes
 
     ok_load <- ! is.na(eload_col)
     occ_info <- find_occ_unocc(interval_of_week[ok_load],
@@ -78,13 +135,19 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
     # which time intervals are 'occupied'?
 
+<<<<<<< Updated upstream
     occ_vec <- rep(0, length(eload_col))
+=======
+    occ_vec <- rep(0, length(training_data$eload))
+
+>>>>>>> Stashed changes
     if (length(occ_intervals) > 2) {
       for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
       }
     }
 
+<<<<<<< Updated upstream
     # If there aren't enough temperature data above the highest temp knot,
     # then remove the knot.
     # Repeat until there are sufficient data above the highest
@@ -107,6 +170,11 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
         check_knots <- FALSE
       }
     }
+=======
+    # Remove extra temperature knots
+
+    temp_knots <- remove_extra_temp_knots(training_data = training_data, temp_knots = temp_knots)
+>>>>>>> Stashed changes
 
     # Same principle as above, for aomount of data below the lowest knot.
     check_knots <- TRUE
@@ -143,10 +211,12 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow, temp_mat)
 
+<<<<<<< Updated upstream
     if (has_operating_modes) {
+=======
+    if (ncol(training_operating_mode_data) != 0) {
+>>>>>>> Stashed changes
       dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
-    } else {
-      dframe <- dframe
     }
 
     training_load_pred <- rep(NA, nrow(dframe))
@@ -155,13 +225,19 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow, temp_mat_pred)
 
+<<<<<<< Updated upstream
     if (has_operating_modes) {
+=======
+    if (ncol(prediction_operating_mode_data) != 0) {
+>>>>>>> Stashed changes
       dframe_pred <- bind_cols(dframe_pred, pred_operating_mode_data)
-    } else {
-      dframe_pred <- dframe_pred
     }
 
+<<<<<<< Updated upstream
     pred_vec <- rep(NA, length(pred_time_col))
+=======
+    pred_vec <- rep(NA, length(prediction_data$time))
+>>>>>>> Stashed changes
 
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
@@ -170,8 +246,13 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
     if (sum(ok_occ > 0)) {
 
       # fit model to training data
+<<<<<<< Updated upstream
       amod <- lm(eload_col ~ . + 0, data = dframe,
                  na.action = na.exclude, weights = weight_vec, subset = ok_occ)
+=======
+      amod <- lm(training_data$eload ~ . + 0, data = dframe,
+                 na.action = na.exclude, weights = train_weight_vec, subset = ok_occ) # linear regression - subset for occupied periods
+>>>>>>> Stashed changes
       t_p <- predict(amod, dframe[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
 
@@ -183,8 +264,13 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
 
     if (sum(! ok_occ) > 0) {
 
+<<<<<<< Updated upstream
       bmod <- lm(eload_col ~ . + 0, data = dframe, na.action = na.exclude,
                  weights = weight_vec, subset = ! ok_occ)
+=======
+      bmod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude,
+                 weights = train_weight_vec, subset = ! ok_occ) # linear regression - subset for unoccupied periods
+>>>>>>> Stashed changes
       t_p <- predict(bmod, dframe[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
 
@@ -197,7 +283,10 @@ fit_TOWT_reg <- function(time_col, eload_col, temp_col,
 
   pred_vec[pred_vec < 0] <- 0
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
   output <- NULL
   output$training <- data.frame(time_col, num_load_time, training_load_pred)
   output$predictions <- data.frame(pred_time_col, num_pred_time_col, pred_vec)

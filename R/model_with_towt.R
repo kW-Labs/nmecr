@@ -49,6 +49,7 @@ model_with_TOWT <- function(training_data = NULL,
                           data_interval = NULL,
                           data_units = NULL){
 
+<<<<<<< Updated upstream
   if (! has_operating_modes){
 
     train <- training_data
@@ -157,9 +158,22 @@ model_with_TOWT <- function(training_data = NULL,
                                 categories = categories)
 
     }
+=======
+  # pred read and preprocessing ----
+  if (! is.null(prediction_data)) {
+    prediction_data <- prediction_data %>%
+      dplyr::distinct(pred)
+  } else {
+    prediction_data <- training_data
+>>>>>>> Stashed changes
   }
 
+  # calculate temperature knots ----
+  temp_knots <- calculate_temperature_knots(training_data = training_data, has_temp_knots_defined = has_temp_knots_defined,
+                                            temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
+                                            equal_temp_segment_points = equal_temp_segment_points)
 
+<<<<<<< Updated upstream
     # Fitting results:
     if (run_temperature_model == T) {
 
@@ -168,6 +182,13 @@ model_with_TOWT <- function(training_data = NULL,
       } else {
         occ_coeff_count <- nrow(TOWT_model$training_model_occ_period)
       }
+=======
+  # create and extract weighting vectors for training and prediction dataframes as per timescale_days ----
+  weighted_regressions <- create_weighted_regressions(training_data = training_data, prediction_data = prediction_data,
+                                                      timescale_days = timescale_days, interval_minutes = interval_minutes,
+                                                      run_temperature_model = run_temperature_model, temp_knots = temp_knots)
+
+>>>>>>> Stashed changes
 
       if (class(TOWT_model$training_model_unocc_period) == "character"){
           unocc_coeff_count <- 0
@@ -175,6 +196,7 @@ model_with_TOWT <- function(training_data = NULL,
       unocc_coeff_count <- nrow(TOWT_model$training_model_unocc_period)
       }
 
+<<<<<<< Updated upstream
      nparameter <- occ_coeff_count +  unocc_coeff_count
 
     } else {
@@ -284,4 +306,6 @@ model_with_TOWT <- function(training_data = NULL,
     }
 
     return(res)
+=======
+>>>>>>> Stashed changes
 }

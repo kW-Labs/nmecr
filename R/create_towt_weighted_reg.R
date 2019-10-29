@@ -27,6 +27,7 @@
 #' @export
 
 
+<<<<<<< Updated upstream
 create_TOWT_weighted_reg <- function(time_col, eload_col, temp_col,
                           pred_time_col, pred_temp_col,
                           timescale_days = timescale_days,
@@ -57,6 +58,46 @@ create_TOWT_weighted_reg <- function(time_col, eload_col, temp_col,
   } else {
     num_model_runs <- max(1, length(point_list))
   }
+=======
+create_TOWT_weighted_reg <- function(training_data = NULL, prediction_data = NULL,
+                          timescale_days = NULL,
+                          interval_minutes = NULL,
+                          has_temp_knots_defined = c(TRUE, FALSE)
+                          equal_temp_segment_points = c(TRUE, FALSE),
+                          temp_segments_numeric = NULL,
+                          temp_knots_value = NULL,
+                          run_temperature_model = c(TRUE, FALSE)) {
+
+  # Determine num_model_runs
+  # TODO: move to model_with_TOWT
+
+
+
+  num_model_runs <- weighted_dataframes$num_model_runs
+  train_weight_vec <- weighted_dataframes$train_weight_vec
+  pred_weight_vec <- weighted_dataframes$pred_weight_vec
+
+
+  # For temperature segments and corresponding knots
+  # TODO: move to model_with_TOWT
+
+  has_temp_knots_defined <- match.arg(has_temp_knots_defined)
+  equal_temp_segment_points <- match.arg(equal_temp_segment_points)
+  run_temperature_model <- match.arg(run_temperature_model)
+
+  temp_knots <- calculate_temperature_knots(training_data = training_data, has_temp_knots_defined = has_temp_knots_defined,
+                                            temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
+                                            equal_temp_segment_points = equal_temp_segment_points)
+
+  # run Time-only and TOWT
+
+  reg_out <- fit_TOWT_reg(training_data = training_data,
+                           prediction_data = prediction_data,
+                           temp_knots = temp_knots, train_weight_vec = train_weight_vec,
+                           interval_minutes = interval_minutes,
+                           run_temperature_model = run_temperature_model)
+
+>>>>>>> Stashed changes
 
   # Creating weighting matrices for training and prediction data
 
