@@ -82,7 +82,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
 
   # Remove duplicate values
 
-  dataframe <- distinct(dataframe)
+  dataframe <- dplyr::distinct(dataframe)
 
   # Filter dataframe based on start and end dates
 

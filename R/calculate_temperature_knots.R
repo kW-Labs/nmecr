@@ -1,4 +1,4 @@
-#' Calculate temperature knots 
+#' Calculate temperature knots
 #'
 #' \code{This function determines temperature knots in the training dataset.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
@@ -6,7 +6,7 @@
 #' @param dataframe Training or Performance period dataframe, an object that has been created by the function create_dataframe() and add_operating_mode_data()
 #' @param num_model_runs a numeric object created by determine_count_of_model_runs()
 #' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
-#' Change to improve accuracy of short term models. 
+#' Change to improve accuracy of short term models.
 #'
 #' @return a numeric corresponding to the number of model runs to be computed for TOWT
 #'
@@ -15,47 +15,41 @@
 #'
 #'
 
-calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_defined = c(TRUE, FALSE), 
-                                           temp_knots_value = NULL, temp_segments_numeric = NULL
+calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_defined = c(TRUE, FALSE),
+                                           temp_knots_value = NULL, temp_segments_numeric = 6,
                                            equal_temp_segment_points = c(TRUE, FALSE)) {
-  
+
   num_points <- length(training_data$time)
-  
-  has_temp_knots_defined <- match.arg(has_temp_knots_defined)
-  
-  equal_temp_segment_points <- match.arg(equal_temp_segment_points)
-  
+
   if (has_temp_knots_defined) {
+
     temp_knots <- temp_knots_value
-    
+
   } else {
-    
+
     temp0 <- min(training_data$temp, na.rm = TRUE)
     temp1 <- max(training_data$temp, na.rm = TRUE)
-    
+
     delta_temp <- temp1 - temp0
-    
+
     if (equal_temp_segment_points) {
-      
+
       temp_segment_width <- num_points / temp_segments_numeric
-      
-      temp_points <- floor(sort(length(training_data$temp) - temp_segment_width *
-                                  (0 : temp_segments_numeric)) + 0.001)
-      
+
+      temp_points <- floor(sort(length(training_data$temp) - temp_segment_width * (0 : temp_segments_numeric)) + 0.001)
+
       temp_ordered <- sort(training_data$temp, decreasing = F)
-      
+
       temp_knots <- temp_ordered[temp_points]
-      
-    }else {
-      
+
+    } else {
+
       temp_segment_width <- delta_temp / temp_segments_numeric
-      
-      temp_knots <- floor(sort(max(training_data$temp) - temp_segment_width *
-                                 (0 : temp_segments_numeric)) + 0.001)
+
+      temp_knots <- floor(sort(max(training_data$temp) - temp_segment_width *  (0 : temp_segments_numeric)) + 0.001)
     }
-    
+
+    return(temp_knots)
   }
-  
-  return(temp_knots)
-  
+
 }

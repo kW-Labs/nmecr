@@ -1,4 +1,4 @@
-#' Remove temp knots if enough temperature datapoints are not found above the highest knot and/or below the lowest knot 
+#' Remove temp knots if enough temperature datapoints are not found above the highest knot and/or below the lowest knot
 #'
 #' \code{This function determines temperature knots in the training dataset.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
@@ -6,7 +6,7 @@
 #' @param dataframe Training or Performance period dataframe, an object that has been created by the function create_dataframe() and add_operating_mode_data()
 #' @param num_model_runs a numeric object created by determine_count_of_model_runs()
 #' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
-#' Change to improve accuracy of short term models. 
+#' Change to improve accuracy of short term models.
 #'
 #' @return a numeric corresponding to the number of model runs to be computed for TOWT
 #'
@@ -15,11 +15,11 @@
 #'
 #'
 remove_extra_temp_knots <- function(training_data = NULL, temp_knots = NULL) {
-  
+
   ok_load <- ! is.na(training_data$eload)
-  
+
   num_temp_knots <- length(temp_knots)
-  
+
   check_knots <- TRUE
   while (check_knots) {
     if (sum(training_data$temp[ok_load] > temp_knots[num_temp_knots],
@@ -35,7 +35,7 @@ remove_extra_temp_knots <- function(training_data = NULL, temp_knots = NULL) {
       check_knots <- FALSE
     }
   }
-  
+
   # Same principle as above, for aomount of data below the lowest knot.
   check_knots <- TRUE
   while (check_knots) {
@@ -51,7 +51,7 @@ remove_extra_temp_knots <- function(training_data = NULL, temp_knots = NULL) {
       check_knots <- FALSE # we have sufficient data below the lowest knot
     }
   }
-  
-  return(num_temp_knots)
-  
+
+  return(temp_knots)
+
 }

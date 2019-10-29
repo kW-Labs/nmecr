@@ -39,7 +39,7 @@ create_TOWT_weighted_reg <- function(training_data = NULL, prediction_data = NUL
   # Determine num_model_runs
   # TODO: move to model_with_TOWT
 
-  weighted_dataframes <- create_weighted_dataframes(training_data = training_data, prediction_data = prediction_data, timescale_days = timescale_days)
+
 
   num_model_runs <- weighted_dataframes$num_model_runs
   train_weight_vec <- weighted_dataframes$train_weight_vec
