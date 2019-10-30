@@ -12,7 +12,10 @@
 #'
 
 create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = NULL, end_date = NULL,
-                             convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65) {
+                             convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65,
+                             operating_mode_data = NULL) {
+
+  # create dataframe ----
 
   # convert timestamps to time objects, if originally found to be of class, 'character
   if (is.character(eload_data$time)) {
@@ -107,5 +110,55 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
       dplyr::filter(time >= lubridate::mdy_hm(start_date)) %>%
       dplyr::filter(time <= lubridate::mdy_hm(end_date))
   }
+
+  # Add operating mode data ----
+
+  # if no operating mode data provided, return dataframe
+  if(is.null(operating_mode_data)){
+    return(dataframe)
+  } else {
+
+    # check data intervals of the datasets
+    nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
+
+
+    if (nterval_operating_mode < 60) {
+      data_interval_operating_mode <- "less than 60-min"
+    } else if (nterval_operating_mode == 60) {
+      data_interval_operating_mode <- "Hourly"
+    } else if (nterval_operating_mode == 1440) {
+      data_interval_operating_mode <- "Daily"
+    } else if (nterval_operating_mode > 2880) {
+      data_interval_operating_mode <- "Monthly"
+    }
+
+
+    if (convert_to_data_interval != data_interval_operating_mode){
+      stop("Please upload the operating mode dataset with the same time interval as that intended for modeling")
+    }
+
+    # operating mode data is joined here and removed later to ensure that the operating mode
+    # indicator variables line up with their intended timestamps
+
+    data_with_operating_mode <- dplyr::inner_join(dataframe, operating_mode_data, by = "time")
+    data_with_operating_mode <- distinct(data_with_operating_mode)
+
+    out <- list()
+    out$dataframe <- dataframe
+
+    if(convert_to_data_interval == "Hourly") {
+      out$operating_mode_data <- data_with_operating_mode %>%
+        select(-c("time", "eload", "temp"))
+    } else if (convert_to_data_interval == "Daily") {
+      out$operating_mode_data <- data_with_operating_mode %>%
+        select(-c("time", "eload", "temp", "HDD", "CDD"))
+    } else if (convert_to_data_interval == "Monthly") {
+      out$operating_mode_data <- data_with_operating_mode %>%
+        select(-c("time", "temp", "HDD", "CDD", "HDDperday", "CDDperday", "eload", "days", "eloadperday"))
+    }
+
+    return(out)
+  }
+
 
 }
