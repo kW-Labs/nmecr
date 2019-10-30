@@ -115,7 +115,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
 
   # if no operating mode data provided, return dataframe
   if(is.null(operating_mode_data)){
-    return(dataframe)
+    return(list(dataframe = dataframe))
   } else {
 
     # check data intervals of the datasets
