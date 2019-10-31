@@ -95,7 +95,7 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
       apply(train_weight_matrix, 2, sum)
 
     final_pred_matrix <- apply(pred_matrix * pred_weight_matrix, 2, sum) /
-      apply(weight_matrix, 2, sum)
+      apply(pred_weight_matrix, 2, sum)
 
     }
   }
