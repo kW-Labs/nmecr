@@ -89,10 +89,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
 
   # Filter dataframe based on start and end dates
 
-  if(is.null(start_date) | is.null(end_date)) {
-    dataframe <- dataframe
-
-  } else if (is.null(start_date) & !is.null(end_date)) {
+  if (is.null(start_date) & !is.null(end_date)) {
 
     dataframe <- dataframe %>%
       dplyr::filter(time >= min(dataframe$time)) %>%
@@ -104,11 +101,15 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
       dplyr::filter(time >= lubridate::mdy_hm(start_date)) %>%
       dplyr::filter(time <= max(dataframe$time))
 
-  } else {
+  } else if (!is.null(start_date) & !is.null(end_date)) {
 
     dataframe <- dataframe %>%
       dplyr::filter(time >= lubridate::mdy_hm(start_date)) %>%
       dplyr::filter(time <= lubridate::mdy_hm(end_date))
+
+  } else if (is.null(start_date) | is.null(end_date)) {
+
+    dataframe <- dataframe
   }
 
   # Add operating mode data ----

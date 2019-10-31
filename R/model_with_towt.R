@@ -46,13 +46,23 @@ model_with_TOWT <- function(training_list = NULL,
                           temp_knots_value = c(40, 45, 50, 60, 65, 90),
                           run_temperature_model = c(TRUE, FALSE)){
 
+
+  training_data <- training_list$dataframe
+  training_operating_mode_data <- training_list$operating_mode_data
+
   # pred read and preprocessing ----
-  if (! is.null(prediction_list)) {
-    prediction_list <- prediction_list %>%
-      dplyr::distinct(prediction_list)
+
+  if(!is.null(prediction_list)) {
+    prediction_list <- prediction_list
   } else {
     prediction_list <- training_list
   }
+
+  prediction_data <- prediction_list$dataframe
+  prediction_operating_mode_data <- prediction_list$operating_mode_data
+
+  # pred read and preprocessing ----
+
 
   training_data <- training_list$dataframe
   training_operating_mode_data <- training_list$operating_mode_data
