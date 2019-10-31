@@ -18,7 +18,7 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
                                         training_operating_mode_data = NULL,
                                         prediction_operating_mode_data = NULL) {
 
-  if (is.null(timescale_days)) {
+  if (timescale_days == "NA") {
 
     num_model_runs <- 1
 

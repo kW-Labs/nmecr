@@ -35,15 +35,7 @@
 #' }
 #' @export
 
-model_with_TOWT <- function(training_list = NULL,
-                          prediction_list = NULL,
-                          timescale_days = NULL,
-                          interval_minutes = 15,
-                          has_temp_knots_defined = c(TRUE, FALSE),
-                          equal_temp_segment_points = c(TRUE,FALSE),
-                          temp_segments_numeric = 6,
-                          temp_knots_value = c(40, 45, 50, 60, 65, 90),
-                          regression_type = c("TOWT", "Time-only")){
+model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 
 
 
@@ -55,7 +47,14 @@ model_with_TOWT <- function(training_list = NULL,
     prediction_list <- training_list
   }
 
-  regression_type <- match.arg(regression_type)
+  timescale_days <- model_input_options$timescale_days
+  interval_minutes <- model_input_options$interval_minutes
+  regression_type <- model_input_options$regression_type
+  has_temp_knots_defined = model_input_options$has_temp_knots_defined
+  equal_temp_segment_points = model_input_options$equal_temp_segment_points
+  temp_segments_numeric = model_input_options$temp_segments_numeric
+  temp_knots_value = model_input_options$temp_knots_value
+
 
   # calculate temperature knots ----
   temp_knots <- calculate_temperature_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
