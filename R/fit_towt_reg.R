@@ -27,7 +27,7 @@
 
 fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knots = NULL,
                            train_weight_vec = NULL, interval_minutes = NULL,
-                           run_temperature_model = NULL) {
+                         regression_type = NULL) {
 
 
   # interval of week - training data ----
@@ -48,7 +48,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
 
   # run Time-only model
 
-  if (!run_temperature_model) {
+  if (regression_type == "Time-only") {
 
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow)

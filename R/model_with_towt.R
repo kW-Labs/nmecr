@@ -1,6 +1,5 @@
 #' Generate an energy data model using the Time-of-Week and Temperature algorithm.
 #'
-#' TODO: change the term 'prediction' to 'performance'
 #'
 #' \code{This function builds an energy use model using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
@@ -44,7 +43,7 @@ model_with_TOWT <- function(training_list = NULL,
                           equal_temp_segment_points = c(TRUE,FALSE),
                           temp_segments_numeric = 6,
                           temp_knots_value = c(40, 45, 50, 60, 65, 90),
-                          run_temperature_model = c(TRUE, FALSE)){
+                          regression_type = c("TOWT", "Time-only")){
 
 
 
@@ -56,6 +55,8 @@ model_with_TOWT <- function(training_list = NULL,
     prediction_list <- training_list
   }
 
+  regression_type <- match.arg(regression_type)
+
   # calculate temperature knots ----
   temp_knots <- calculate_temperature_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
                                             temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
@@ -64,7 +65,7 @@ model_with_TOWT <- function(training_list = NULL,
   # create weighted regressions as per timescale_days ----
   weighted_regressions <- create_weighted_regressions(training_list = training_list, prediction_list = prediction_list,
                                                       timescale_days = timescale_days, interval_minutes = interval_minutes,
-                                                      run_temperature_model = run_temperature_model, temp_knots = temp_knots,
+                                                      regression_type = regression_type, temp_knots = temp_knots,
                                                       training_operating_mode_data = training_operating_mode_data,
                                                       prediction_operating_mode_data = prediction_operating_mode_data)
 
