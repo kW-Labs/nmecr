@@ -15,9 +15,9 @@
 #'
 #'
 
-calculate_temperature_knots <- function(training_list = NULL, has_temp_knots_defined = c(TRUE, FALSE),
+calculate_temperature_knots <- function(training_list = NULL, has_temp_knots_defined = FALSE,
                                            temp_knots_value = NULL, temp_segments_numeric = 6,
-                                           equal_temp_segment_points = c(TRUE, FALSE)) {
+                                           equal_temp_segment_points = TRUE) {
 
   num_points <- length(training_list$dataframe$time)
 
