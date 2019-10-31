@@ -19,7 +19,7 @@ calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_def
                                            temp_knots_value = NULL, temp_segments_numeric = 6,
                                            equal_temp_segment_points = c(TRUE, FALSE)) {
 
-  num_points <- length(training_data$time)
+  num_points <- length(training_data$dataframe$time)
 
   if (has_temp_knots_defined) {
 
@@ -27,8 +27,8 @@ calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_def
 
   } else {
 
-    temp0 <- min(training_data$temp, na.rm = TRUE)
-    temp1 <- max(training_data$temp, na.rm = TRUE)
+    temp0 <- min(training_data$dataframe$temp, na.rm = TRUE)
+    temp1 <- max(training_data$dataframe$temp, na.rm = TRUE)
 
     delta_temp <- temp1 - temp0
 
@@ -36,9 +36,9 @@ calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_def
 
       temp_segment_width <- num_points / temp_segments_numeric
 
-      temp_points <- floor(sort(length(training_data$temp) - temp_segment_width * (0 : temp_segments_numeric)) + 0.001)
+      temp_points <- floor(sort(length(training_data$dataframe$temp) - temp_segment_width * (0 : temp_segments_numeric)) + 0.001)
 
-      temp_ordered <- sort(training_data$temp, decreasing = F)
+      temp_ordered <- sort(training_data$dataframe$temp, decreasing = F)
 
       temp_knots <- temp_ordered[temp_points]
 
@@ -46,7 +46,7 @@ calculate_temperature_knots <- function(training_data = NULL, has_temp_knots_def
 
       temp_segment_width <- delta_temp / temp_segments_numeric
 
-      temp_knots <- floor(sort(max(training_data$temp) - temp_segment_width *  (0 : temp_segments_numeric)) + 0.001)
+      temp_knots <- floor(sort(max(training_data$dataframe$temp) - temp_segment_width *  (0 : temp_segments_numeric)) + 0.001)
     }
 
     return(temp_knots)
