@@ -25,27 +25,26 @@
 #'
 #' @export
 
-fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knots = NULL,
+fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knots = NULL,
                            train_weight_vec = NULL, interval_minutes = NULL,
-                           run_temperature_model = NULL,  training_operating_mode_data = NULL,
-                         prediction_operating_mode_data = NULL) {
+                           run_temperature_model = NULL) {
 
 
   # interval of week - training data ----
-  minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
-    lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+  minute_of_week <- (lubridate::wday(training_list$dataframe$time) - 1) * 24 * 60 +
+    lubridate::hour(training_list$dataframe$time) * 60 + lubridate::minute(training_list$dataframe$time)
 
   interval_of_week <- 1 + floor(minute_of_week / interval_minutes)
 
-  num_load_time <- as.numeric(training_data$time)
+  num_load_time <- as.numeric(training_list$dataframe$time)
 
   # interval of week - prediction data ----
-  minute_of_week_pred <- (lubridate::wday(prediction_data$time) - 1) * 24 * 60 +
-    lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
+  minute_of_week_pred <- (lubridate::wday(prediction_list$dataframe$time) - 1) * 24 * 60 +
+    lubridate::hour(prediction_list$dataframe$time) * 60 + lubridate::minute(prediction_list$dataframe$time)
 
   interval_of_week_pred <- 1 + floor(minute_of_week_pred / interval_minutes)
 
-  num_pred_time_col <- as.numeric(prediction_data$time)
+  num_pred_time_col <- as.numeric(prediction_list$dataframe$time)
 
   # run Time-only model
 
@@ -54,38 +53,38 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow)
 
-    if (ncol(training_operating_mode_data) != 0) {
-      dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
+    if (! is.null(training_list$operating_mode_data)) {
+      dframe <- dplyr::bind_cols(dframe, training_list$operating_mode_data)
     }
 
-    amod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude, weights = train_weight_vec) # simple linear regression - no subsetting by occupancy
+    amod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe, na.action = na.exclude, weights = train_weight_vec) # simple linear regression - no subsetting by occupancy
     training_load_pred <- predict(amod)
 
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow)
 
-    if (ncol(prediction_operating_mode_data) != 0) {
-      dframe_pred <- dplyr::bind_cols(dframe_pred, pred_operating_mode_data)
+    if (! is.null(prediction_list$operating_mode_data)) {
+      dframe_pred <- dplyr::bind_cols(dframe_pred, prediction_list$operating_mode_data)
     }
 
     ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
-    pred_vec <- rep(NA, length(prediction_data$time))
+    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
     pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
 
 
   } else { # run TOWT model
 
-    ok_load <- !is.na(training_data$eload)
+    ok_load <- !is.na(training_list$dataframe$eload)
 
     # Determine occupancy information
 
     occ_info <- find_occ_unocc(interval_of_week[ok_load],
-                               training_data$eload[ok_load], training_data$temp[ok_load])
+                               training_list$dataframe$eload[ok_load], training_list$dataframe$temp[ok_load])
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 
     # which time intervals are 'occupied'?
 
-    occ_vec <- rep(0, length(training_data$eload))
+    occ_vec <- rep(0, length(training_list$dataframe$eload))
 
     if (length(occ_intervals) > 2) {
       for (i in 1 : length(occ_intervals)) {
@@ -95,12 +94,12 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
 
     # Remove extra temperature knots
 
-    temp_knots <- remove_extra_temp_knots(training_data = training_data, temp_knots = temp_knots)
+    temp_knots <- remove_extra_temp_knots(training_list = training_list, temp_knots = temp_knots)
 
     # Create temperature matrix
 
-    temp_mat <- create_temp_matrix(training_data$temp, temp_knots)
-    temp_mat_pred <- create_temp_matrix(prediction_data$temp, temp_knots)
+    temp_mat <- create_temp_matrix(training_list$dataframe$temp, temp_knots)
+    temp_mat_pred <- create_temp_matrix(prediction_list$dataframe$temp, temp_knots)
     temp_m_name <- rep(NA, ncol(temp_mat))
 
     for (i in 1 : ncol(temp_mat)) {
@@ -118,8 +117,8 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
     ftow <- factor(interval_of_week)
     dframe <- data.frame(ftow, temp_mat)
 
-    if (! is.null(training_operating_mode_data)) {
-      dframe <- dplyr::bind_cols(dframe, train_operating_mode_data)
+    if (! is.null(training_list$operating_mode_data)) {
+      dframe <- dplyr::bind_cols(dframe, training_list$operating_mode_data)
     }
 
     training_load_pred <- rep(NA, nrow(dframe))
@@ -128,11 +127,11 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
     ftow <- factor(interval_of_week_pred)
     dframe_pred <- data.frame(ftow, temp_mat_pred)
 
-    if (! is.null(prediction_operating_mode_data)) {
-      dframe_pred <- bind_cols(dframe_pred, pred_operating_mode_data)
+    if (! is.null(prediction_list$operating_mode_data)) {
+      dframe_pred <- bind_cols(dframe_pred, prediction_list$operating_mode_data)
     }
 
-    pred_vec <- rep(NA, length(prediction_data$time))
+    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
 
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
@@ -141,7 +140,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
     if (sum(ok_occ > 0)) {
 
       # fit model to training data
-      amod <- lm(training_data$eload ~ . + 0, data = dframe,
+      amod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe,
                  na.action = na.exclude, weights = train_weight_vec, subset = ok_occ) # linear regression - subset for occupied periods
       t_p <- predict(amod, dframe[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
@@ -154,7 +153,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
 
     if (sum(! ok_occ) > 0) {
 
-      bmod <- lm(training_data$eload ~ . + 0, data = dframe, na.action = na.exclude,
+      bmod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe, na.action = na.exclude,
                  weights = train_weight_vec, subset = ! ok_occ) # linear regression - subset for unoccupied periods
       t_p <- predict(bmod, dframe[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
@@ -171,8 +170,8 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, temp_knot
   pred_vec[pred_vec < 0] <- 0
 
   output <- NULL
-  output$training <- data.frame(training_data$time, num_load_time, training_load_pred)
-  output$predictions <- data.frame(prediction_data$time, num_pred_time_col, pred_vec)
+  output$training <- data.frame(training_list$dataframe, training_load_pred)
+  output$predictions <- data.frame(prediction_list$dataframe, pred_vec)
 
   return(output)
 

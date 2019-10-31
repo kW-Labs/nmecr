@@ -13,7 +13,7 @@
 #'
 
 
-create_weighted_regressions <- function(training_data = NULL, prediction_data = NULL,
+create_weighted_regressions <- function(training_list = NULL, prediction_list = NULL,
                                         timescale_days = NULL, interval_minutes = NULL, run_temperature_model = NULL, temp_knots = NULL,
                                         training_operating_mode_data = NULL,
                                         prediction_operating_mode_data = NULL) {
@@ -22,12 +22,12 @@ create_weighted_regressions <- function(training_data = NULL, prediction_data = 
 
     num_model_runs <- 1
 
-    train_weight_vec <- rep(1, length(training_data$time))
+    train_weight_vec <- rep(1, length(training_list$dataframe$time))
 
-    pred_weight_vec <- rep(1, length(prediction_data$time))
+    pred_weight_vec <- rep(1, length(prediction_list$dataframe$time))
 
     # fit linear regression
-    reg_out <- fit_TOWT_reg(training_data = training_data, prediction_data = prediction_data,
+    reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
                             temp_knots = temp_knots, train_weight_vec = train_weight_vec,
                             interval_minutes = interval_minutes,
                             run_temperature_model = run_temperature_model)
@@ -42,9 +42,9 @@ create_weighted_regressions <- function(training_data = NULL, prediction_data = 
 
   } else {
 
-    num_points <- length(training_data$time)
-    t0 <- min(training_data$time, na.rm = TRUE)
-    t1 <- max(training_data$time, na.rm = TRUE)
+    num_points <- length(training_list$dataframe$time)
+    t0 <- min(training_list$dataframe$time, na.rm = TRUE)
+    t1 <- max(training_list$dataframe$time, na.rm = TRUE)
 
     delta_t <- as.numeric(difftime(t1, t0, units = "days"))
     num_segments <- max(1, ceiling(delta_t / timescale_days))
@@ -55,18 +55,18 @@ create_weighted_regressions <- function(training_data = NULL, prediction_data = 
     num_model_runs <- max(1, length(point_list))
 
     # Creating weighting matrices for training and prediction data
-    train_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_data$time))
+    train_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_list$dataframe$time))
 
-    train_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_data$time))
+    train_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_list$dataframe$time))
 
-    pred_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_data$time))
+    pred_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
 
-    pred_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_data$time))
+    pred_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
 
     for (row_index in 1 : num_model_runs) {
-      tcenter <- training_data$time[point_list[row_index]]
-      t_diff <- as.numeric(difftime(tcenter, training_data$time, units = "days"))
-      t_diff_pred <- as.numeric(difftime(tcenter, prediction_data$time, units = "days"))
+      tcenter <- training_list$dataframe$time[point_list[row_index]]
+      t_diff <- as.numeric(difftime(tcenter, training_list$dataframe$time, units = "days"))
+      t_diff_pred <- as.numeric(difftime(tcenter, prediction_list$dataframe$time, units = "days"))
 
     train_weight_vec <- timescale_days ^ 2 /
       (timescale_days ^ 2 + t_diff ^ 2)
@@ -75,11 +75,10 @@ create_weighted_regressions <- function(training_data = NULL, prediction_data = 
       (timescale_days ^ 2 + t_diff_pred ^ 2)
 
     # fit linear regression
-    reg_out <- fit_TOWT_reg(training_data = training_data, prediction_data = prediction_data,
+    reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
                             temp_knots = temp_knots, train_weight_vec = train_weight_vec,
                             interval_minutes = interval_minutes,
-                            run_temperature_model = run_temperature_model,  training_operating_mode_data = training_operating_mode_data,
-                            prediction_operating_mode_data = prediction_operating_mode_data)
+                            run_temperature_model = run_temperature_model)
 
     train_out <- reg_out$training
 

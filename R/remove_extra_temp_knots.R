@@ -14,18 +14,15 @@
 #'
 #'
 #'
+remove_extra_temp_knots <- function(training_list = NULL, temp_knots = NULL) {
 
-# TODO: confirm that this is working correctly
-
-remove_extra_temp_knots <- function(training_data = NULL, temp_knots = NULL) {
-
-  ok_load <- ! is.na(training_data$eload)
+  ok_load <- ! is.na(training_list$dataframe$eload)
 
   num_temp_knots <- length(temp_knots)
 
   check_knots <- TRUE
   while (check_knots) {
-    if (sum(training_data$temp[ok_load] > temp_knots[num_temp_knots],
+    if (sum(training_list$dataframe$temp[ok_load] > temp_knots[num_temp_knots],
             na.rm = TRUE) < 20) {
       # not enough data above upper knot; throw away that upper knot
       temp_knots <- temp_knots[- num_temp_knots]
@@ -42,7 +39,7 @@ remove_extra_temp_knots <- function(training_data = NULL, temp_knots = NULL) {
   # Same principle as above, for aomount of data below the lowest knot.
   check_knots <- TRUE
   while (check_knots) {
-    if (sum(training_data$temp[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
+    if (sum(training_list$dataframe$temp[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
       # not enough data below lower knot; throw away that lower knot
       temp_knots <- temp_knots[- 1]
       num_temp_knots <- num_temp_knots - 1

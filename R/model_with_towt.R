@@ -47,8 +47,6 @@ model_with_TOWT <- function(training_list = NULL,
                           run_temperature_model = c(TRUE, FALSE)){
 
 
-  training_data <- training_list$dataframe
-  training_operating_mode_data <- training_list$operating_mode_data
 
   # pred read and preprocessing ----
 
@@ -58,33 +56,31 @@ model_with_TOWT <- function(training_list = NULL,
     prediction_list <- training_list
   }
 
-  prediction_data <- prediction_list$dataframe
-  prediction_operating_mode_data <- prediction_list$operating_mode_data
-
-  # pred read and preprocessing ----
-
-
-  training_data <- training_list$dataframe
-  training_operating_mode_data <- training_list$operating_mode_data
-
-  prediction_data <- prediction_list$dataframe
-  prediction_operating_mode_data <- prediction_list$operating_mode_data
-
   # calculate temperature knots ----
-  temp_knots <- calculate_temperature_knots(training_data = training_data, has_temp_knots_defined = has_temp_knots_defined,
+  temp_knots <- calculate_temperature_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
                                             temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
                                             equal_temp_segment_points = equal_temp_segment_points)
 
-  # create and extract weighting vectors for training and prediction dataframes as per timescale_days ----
-  weighted_regressions <- create_weighted_regressions(training_data = training_data, prediction_data = prediction_data,
+  # create weighted regressions as per timescale_days ----
+  weighted_regressions <- create_weighted_regressions(training_list = training_list, prediction_list = prediction_list,
                                                       timescale_days = timescale_days, interval_minutes = interval_minutes,
                                                       run_temperature_model = run_temperature_model, temp_knots = temp_knots,
                                                       training_operating_mode_data = training_operating_mode_data,
                                                       prediction_operating_mode_data = prediction_operating_mode_data)
 
   results <- list()
-  results$training_data <- cbind(training_data, "model_fit" = weighted_regressions$final_train_matrix)
-  results$prediction_data <- cbind(prediction_data, "model_predictions" = weighted_regressions$final_pred_matrix)
+
+  if(! is.null(training_list$operating_mode_data)){
+    results$training_data <- cbind(training_list$dataframe, training_list$operating_mode_data, "model_fit" = weighted_regressions$final_train_matrix)
+  } else {
+    results$training_data <- cbind(training_list$dataframe, "model_fit" = weighted_regressions$final_train_matrix)
+  }
+
+  if(! is.null(prediction_list$operating_mode_data)){
+    results$prediction_data <- cbind(prediction_list$dataframe, prediction_list$operating_mode_data, "model_predictions" = weighted_regressions$final_pred_matrix)
+  } else {
+    results$prediction_data <- cbind(prediction_list$dataframe, "model_predictions" = weighted_regressions$final_pred_matrix)
+  }
 
   return(results)
 
