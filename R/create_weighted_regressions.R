@@ -14,7 +14,9 @@
 
 
 create_weighted_regressions <- function(training_data = NULL, prediction_data = NULL,
-                                        timescale_days = NULL, interval_minutes = NULL, run_temperature_model = NULL, temp_knots = NULL) {
+                                        timescale_days = NULL, interval_minutes = NULL, run_temperature_model = NULL, temp_knots = NULL,
+                                        training_operating_mode_data = NULL,
+                                        prediction_operating_mode_data = NULL) {
 
   if (is.null(timescale_days)) {
 
@@ -76,7 +78,8 @@ create_weighted_regressions <- function(training_data = NULL, prediction_data = 
     reg_out <- fit_TOWT_reg(training_data = training_data, prediction_data = prediction_data,
                             temp_knots = temp_knots, train_weight_vec = train_weight_vec,
                             interval_minutes = interval_minutes,
-                            run_temperature_model = run_temperature_model)
+                            run_temperature_model = run_temperature_model,  training_operating_mode_data = training_operating_mode_data,
+                            prediction_operating_mode_data = prediction_operating_mode_data)
 
     train_out <- reg_out$training
 

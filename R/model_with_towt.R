@@ -36,25 +36,29 @@
 #' }
 #' @export
 
-model_with_TOWT <- function(training_data = NULL,
-                          prediction_data = NULL,
+model_with_TOWT <- function(training_list = NULL,
+                          prediction_list = NULL,
                           timescale_days = NULL,
                           interval_minutes = 15,
                           has_temp_knots_defined = c(TRUE, FALSE),
                           equal_temp_segment_points = c(TRUE,FALSE),
                           temp_segments_numeric = 6,
                           temp_knots_value = c(40, 45, 50, 60, 65, 90),
-                          run_temperature_model = c(TRUE, FALSE),
-                          data_interval = NULL,
-                          data_units = NULL){
+                          run_temperature_model = c(TRUE, FALSE)){
 
   # pred read and preprocessing ----
-  if (! is.null(prediction_data)) {
-    prediction_data <- prediction_data %>%
-      dplyr::distinct(pred)
+  if (! is.null(prediction_list)) {
+    prediction_list <- prediction_list %>%
+      dplyr::distinct(prediction_list)
   } else {
-    prediction_data <- training_data
+    prediction_list <- training_list
   }
+
+  training_data <- training_list$dataframe
+  training_operating_mode_data <- training_list$operating_mode_data
+
+  prediction_data <- prediction_list$dataframe
+  prediction_operating_mode_data <- prediction_list$operating_mode_data
 
   # calculate temperature knots ----
   temp_knots <- calculate_temperature_knots(training_data = training_data, has_temp_knots_defined = has_temp_knots_defined,
@@ -64,7 +68,15 @@ model_with_TOWT <- function(training_data = NULL,
   # create and extract weighting vectors for training and prediction dataframes as per timescale_days ----
   weighted_regressions <- create_weighted_regressions(training_data = training_data, prediction_data = prediction_data,
                                                       timescale_days = timescale_days, interval_minutes = interval_minutes,
-                                                      run_temperature_model = run_temperature_model, temp_knots = temp_knots)
+                                                      run_temperature_model = run_temperature_model, temp_knots = temp_knots,
+                                                      training_operating_mode_data = training_operating_mode_data,
+                                                      prediction_operating_mode_data = prediction_operating_mode_data)
+
+  results <- list()
+  results$training_data <- cbind(training_data, "model_fit" = weighted_regressions$final_train_matrix)
+  results$prediction_data <- cbind(prediction_data, "model_predictions" = weighted_regressions$final_pred_matrix)
+
+  return(results)
 
 
 
