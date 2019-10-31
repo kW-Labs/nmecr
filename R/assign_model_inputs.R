@@ -3,7 +3,7 @@
 
 
 
-assign_model_inputs <- function(timescale_days = NULL,
+assign_model_inputs <- function(timescale_days = "NA",
                              interval_minutes = 15,
                              has_temp_knots_defined = FALSE,
                              equal_temp_segment_points = TRUE,
