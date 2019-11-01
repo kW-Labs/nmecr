@@ -148,6 +148,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
   results <- list()
 
+  # training data and model fit
   if(! is.null(training_list$operating_mode_data)){
     results$training_data <- cbind(training_list$dataframe, training_list$operating_mode_data, "model_fit" = final_train_matrix)
   } else {
@@ -163,7 +164,19 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     }
   }
 
-  results$nparameter <- reg_out$nparameter
+  # model fits and coefficient counts for models
+  if(model_input_options$regression_type == "Time-only") {
+    results$model <- reg_out$model
+    results$nparameter <- length(reg_out$model$coefficients)
+  } else {
+      results$model_occupied <- reg_out$model_occupied
+      results$model_unoccupied <- reg_out$model_unoccupied
+      if(! is.null(ncol(reg_out$model_unoccupied))){
+        results$nparameter <- length(reg_out$model_occupied$coefficients) + length(reg_out$model_unoccupied$coefficients)
+      } else {
+        results$nparameter <- length(reg_out$model_occupied$coefficients)
+      }
+  }
 
   return(results)
 
