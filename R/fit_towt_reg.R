@@ -58,9 +58,8 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
     }
 
     # simple linear regression - no subsetting by occupancy
-    amod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe, na.action = na.exclude, weights = train_weight_vec)
+    amod <- lm(training_list$dataframe$eload ~ . , data = dframe, na.action = na.exclude, weights = train_weight_vec)
     training_load_pred <- predict(amod)
-    nparameter_time_only <- length(amod$coefficients)
 
     # make predictions
     if(! is.null(prediction_list)) {
@@ -147,11 +146,10 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
     if (sum(ok_occ > 0)) {
 
       # linear regression - subset for occupied periods
-      amod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe,
+      amod <- lm(training_list$dataframe$eload ~ . , data = dframe,
                  na.action = na.exclude, weights = train_weight_vec, subset = ok_occ)
       t_p <- predict(amod, dframe[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
-      nparameter_towt_a <- length(amod$coefficients)
 
       # filter out times of week that are not in occupied training period.
       if(! is.null(prediction_list)) {
@@ -164,11 +162,10 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
     if (sum(! ok_occ) > 0) {
 
       # linear regression - subset for unoccupied periods
-      bmod <- lm(training_list$dataframe$eload ~ . + 0, data = dframe, na.action = na.exclude,
+      bmod <- lm(training_list$dataframe$eload ~ . , data = dframe, na.action = na.exclude,
                  weights = train_weight_vec, subset = ! ok_occ)
       t_p <- predict(bmod, dframe[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
-      nparameter_towt_b <- length(bmod$coefficients)
 
       # filter out times of week that are not in unoccupied training period.
       if(! is.null(prediction_list)) {
@@ -189,12 +186,13 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
   }
 
   if(regression_type == "Time-only") {
-    output$nparameter <- nparameter_time_only
+    output$model <- amod
   } else {
     if(sum(! ok_occ) > 0) {
-      output$nparameter <- nparameter_towt_a  + nparameter_towt_b
+      output$model_occupied <- amod
+      output$model_unoccupied <- bmod
     } else {
-      output$nparameter <- nparameter_towt_a
+      output$model_occupied <- amod
 
     }
   }
