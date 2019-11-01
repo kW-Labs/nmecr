@@ -23,9 +23,10 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
 
     num_model_runs <- 1
 
+    # train_weight_vec not essentially needed for energy modeling.
+    # it is needed for fit_TOWT_reg however
+    # therefore, keeping it as 1 for energy modeling
     train_weight_vec <- rep(1, length(training_list$dataframe$time))
-
-    pred_weight_vec <- rep(1, length(prediction_list$dataframe$time))
 
     # fit linear regression
     reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
