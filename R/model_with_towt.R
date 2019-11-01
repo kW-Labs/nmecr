@@ -163,6 +163,8 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     }
   }
 
+  results$nparameter <- reg_out$nparameter
+
   return(results)
 
 
