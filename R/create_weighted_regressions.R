@@ -57,25 +57,34 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
 
     num_model_runs <- max(1, length(point_list))
 
-    # Creating weighting matrices for training and prediction data
+    # Creating weighting matrices for training data
     train_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_list$dataframe$time))
 
     train_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(training_list$dataframe$time))
 
-    pred_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
+    # Creating weighting matrices for prediction data as needed
+    if(! is.null(prediction_list)) {
 
-    pred_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
+      pred_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
+      pred_weight_matrix <- matrix(NA, nrow = num_model_runs, ncol = length(prediction_list$dataframe$time))
+
+    }
 
     for (row_index in 1 : num_model_runs) {
       tcenter <- training_list$dataframe$time[point_list[row_index]]
       t_diff <- as.numeric(difftime(tcenter, training_list$dataframe$time, units = "days"))
-      t_diff_pred <- as.numeric(difftime(tcenter, prediction_list$dataframe$time, units = "days"))
 
     train_weight_vec <- timescale_days ^ 2 /
       (timescale_days ^ 2 + t_diff ^ 2)
 
-    pred_weight_vec <- timescale_days ^ 2 /
-      (timescale_days ^ 2 + t_diff_pred ^ 2)
+    # Run only if prediction list is available
+    if(! is.null(prediction_list)) {
+
+      t_diff_pred <- as.numeric(difftime(tcenter, prediction_list$dataframe$time, units = "days"))
+
+      pred_weight_vec <- timescale_days ^ 2 /
+        (timescale_days ^ 2 + t_diff_pred ^ 2)
+    }
 
     # fit linear regression
     reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
@@ -91,14 +100,18 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
     train_matrix[row_index, ] <- train_out$training_load_pred
     train_weight_matrix[row_index, ] <- train_weight_vec
 
-    pred_matrix[row_index, ] <- pred_out$pred_vec
-    pred_weight_matrix[row_index, ] <- pred_weight_vec
-
     final_train_matrix <- apply(train_matrix * train_weight_matrix, 2, sum) /
       apply(train_weight_matrix, 2, sum)
 
-    final_pred_matrix <- apply(pred_matrix * pred_weight_matrix, 2, sum) /
-      apply(pred_weight_matrix, 2, sum)
+    # Run only if prediction list is available
+    if(! is.null(prediction_list)) {
+
+      pred_matrix[row_index, ] <- pred_out$pred_vec
+      pred_weight_matrix[row_index, ] <- pred_weight_vec
+
+      final_pred_matrix <- apply(pred_matrix * pred_weight_matrix, 2, sum) /
+        apply(pred_weight_matrix, 2, sum)
+    }
 
     }
   }

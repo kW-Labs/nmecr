@@ -39,14 +39,6 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
 
 
-  # pred read and preprocessing ----
-
-  if(!is.null(prediction_list)) {
-    prediction_list <- prediction_list
-  } else {
-    prediction_list <- training_list
-  }
-
   timescale_days <- model_input_options$timescale_days
   interval_minutes <- model_input_options$interval_minutes
   regression_type <- model_input_options$regression_type
@@ -76,10 +68,13 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     results$training_data <- cbind(training_list$dataframe, "model_fit" = weighted_regressions$final_train_matrix)
   }
 
-  if(! is.null(prediction_list$operating_mode_data)){
-    results$prediction_data <- cbind(prediction_list$dataframe, prediction_list$operating_mode_data, "model_predictions" = weighted_regressions$final_pred_matrix)
-  } else {
-    results$prediction_data <- cbind(prediction_list$dataframe, "model_predictions" = weighted_regressions$final_pred_matrix)
+
+  if(! is.null(prediction_list)){
+    if(! is.null(prediction_list$operating_mode_data)){
+      results$prediction_data <- cbind(prediction_list$dataframe, prediction_list$operating_mode_data, "model_predictions" = weighted_regressions$final_pred_matrix)
+    } else {
+      results$prediction_data <- cbind(prediction_list$dataframe, "model_predictions" = weighted_regressions$final_pred_matrix)
+    }
   }
 
   return(results)
