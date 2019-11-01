@@ -18,6 +18,7 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
                                         training_operating_mode_data = NULL,
                                         prediction_operating_mode_data = NULL) {
 
+  # Run for energy modeling - timescale_days not used
   if (timescale_days == "NA") {
 
     num_model_runs <- 1
@@ -40,6 +41,7 @@ create_weighted_regressions <- function(training_list = NULL, prediction_list = 
 
     final_pred_matrix <- pred_out$pred_vec
 
+    # Run for demand modeling - timescale_days used
   } else {
 
     num_points <- length(training_list$dataframe$time)
