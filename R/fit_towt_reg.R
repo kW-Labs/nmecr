@@ -36,15 +36,11 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
 
   interval_of_week <- 1 + floor(minute_of_week / interval_minutes)
 
-  num_load_time <- as.numeric(training_list$dataframe$time)
-
   # interval of week - prediction data ----
   minute_of_week_pred <- (lubridate::wday(prediction_list$dataframe$time) - 1) * 24 * 60 +
     lubridate::hour(prediction_list$dataframe$time) * 60 + lubridate::minute(prediction_list$dataframe$time)
 
   interval_of_week_pred <- 1 + floor(minute_of_week_pred / interval_minutes)
-
-  num_pred_time_col <- as.numeric(prediction_list$dataframe$time)
 
   # run Time-only model
 
