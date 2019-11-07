@@ -4,7 +4,13 @@ calculate_summary_statistics <- function(model_results) {
   model_fit <- model_results$training_data$model_fit
   eload <- model_results$training_data$eload
   fit_residuals_numeric <- eload - model_fit
-  nparameter <- model_results$nparameter
+
+  nparameter <- length(model_results$model_occupied$coefficients)
+
+  if(exists("model_unoccupied", where = model_results)){
+    nparameter <- nparameter + length(model_results$model_unoccupied$coefficients)
+  }
+
   effective_parameters <- length(fit_residuals_numeric) %>%
     magrittr::subtract(nparameter)
 

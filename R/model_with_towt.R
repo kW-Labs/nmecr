@@ -101,15 +101,9 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   # model fits and coefficient counts for models
   if(model_input_options$regression_type == "Time-only") {
     results$model <- reg_out$model
-    results$nparameter <- length(reg_out$model$coefficients)
   } else {
       results$model_occupied <- reg_out$model_occupied
       results$model_unoccupied <- reg_out$model_unoccupied
-      if(exists("model_unoccupied", where = reg_out)){
-        results$nparameter <- length(reg_out$model_occupied$coefficients) + length(reg_out$model_unoccupied$coefficients)
-      } else {
-        results$nparameter <- length(reg_out$model_occupied$coefficients)
-      }
   }
 
   return(results)
