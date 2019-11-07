@@ -46,8 +46,6 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   # Run for energy modeling - timescale_days not used
   if (model_input_options$timescale_days == "NA") {
 
-    num_model_runs <- 1
-
     # train_weight_vec not essentially needed for energy modeling.
     # it is needed for fit_TOWT_reg however
     # therefore, keeping it as 1 for energy modeling
