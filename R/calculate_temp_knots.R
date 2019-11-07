@@ -21,7 +21,7 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
 
   if (model_input_options$has_temp_knots_defined) {
 
-    temp_knots <- temp_knots_value
+    temp_knots <- model_input_options$temp_knots_value
 
   } else {
 
