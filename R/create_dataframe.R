@@ -15,7 +15,15 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
                              convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65,
                              operating_mode_data = NULL) {
 
-  # create dataframe ----
+  convert_to_data_interval <- match.arg(convert_to_data_interval)
+
+  if(convert_to_data_interval == "Hourly") {
+    nterval <- 60
+  } else if (convert_to_data_interval == "Daily"){
+    nterval <- 1440
+  } else if (convert_to_data_interval == "Monthly") {
+    nterval <- 40320 # using 28 days
+  }
 
   # convert timestamps to time objects, if originally found to be of class, 'character
   if (is.character(eload_data$time)) {
@@ -26,90 +34,30 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
     temp_data$time <- lubridate::mdy_hm(temp_data$time)
   }
 
-  # remove incomplete observations from eload and temp datasets
-  eload_data <- eload_data[complete.cases(eload_data), ]
-  temp_data <- temp_data[complete.cases(temp_data), ]
-
-  # Assign the data interval to which the training dataframe should be aggregated to
-  convert_to_data_interval <- match.arg(convert_to_data_interval)
-
-  # Evaluate time interval of eload data
+# determine data intervals of eload, temp, and operating mode data ----
   nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
 
-  if (nterval_eload < 60) {
-    data_interval_eload <- "less than 60-min"
-  } else if (nterval_eload == 60) {
-    data_interval_eload <- "Hourly"
-  } else if (nterval_eload == 1440) {
-    data_interval_eload <- "Daily"
-  } else if (nterval_eload > 2880) {
-    data_interval_eload <- "Monthly"
-  }
-
-  # Evaluate time interval of temp data
   nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
 
-  if (nterval_temp < 60) {
-    data_interval_temp <- "less than 60-min"
-  } else if (nterval_temp == 60) {
-    data_interval_temp <- "Hourly"
-  } else if (nterval_temp == 1440) {
-    data_interval_temp <- "Daily"
-  } else if (nterval_temp > 2880) {
-    data_interval_temp <- "Monthly"
+  # Aggregation ----
+  if (nterval_temp > nterval | nterval_eload > nterval) {
+    stop(paste0("Error: Uploaded datasets' intervals bigger than ", convert_to_data_interval))
   }
 
-  # Aggregation
-  if (convert_to_data_interval == "Hourly") {
+  dataframe <- aggregate(eload_data = eload_data, temp_data = temp_data,
+                         convert_to_data_interval = convert_to_data_interval,
+                         temp_balancepoint = temp_balancepoint)
 
-    if(data_interval_eload == "Daily" | data_interval_eload == "Monthly" |
-       data_interval_temp == "Daily" | data_interval_temp == "Monthly") {
-      stop("The uploaded datasets have a time interval of greater than 1 hour, so cannot be aggregated to hourly")
-    }
+  # Filter dataframe based on start and end dates ----
 
-    dataframe <- agg_to_hourly(eload_data, temp_data)
-
-  } else if (convert_to_data_interval == "Daily") {
-
-    if(data_interval_eload == "Monthly" |
-       data_interval_temp == "Monthly") {
-      stop("The uploaded datasets have a time interval of greater than 1 day, so cannot be aggregated to daily.")
-    }
-
-    dataframe <- agg_to_daily(eload_data, temp_data, temp_balancepoint)
-
-  } else if (convert_to_data_interval == "Monthly") {
-
-    dataframe <- agg_to_monthly(eload_data, temp_data, temp_balancepoint, data_interval_eload)
+  if(! is.null(start_date)) {
+  dataframe <- dataframe %>%
+    dplyr::filter(time >= mdy_hm(start_date))
   }
 
-  # Remove duplicate values
-
-  dataframe <- dplyr::distinct(dataframe)
-
-  # Filter dataframe based on start and end dates
-
-  if (is.null(start_date) & !is.null(end_date)) {
-
+  if(! is.null(end_date)) {
     dataframe <- dataframe %>%
-      dplyr::filter(time >= min(dataframe$time)) %>%
-      dplyr::filter(time <= lubridate::mdy_hm(end_date))
-
-  } else if (!is.null(start_date) & is.null(end_date)) {
-
-    dataframe <- dataframe %>%
-      dplyr::filter(time >= lubridate::mdy_hm(start_date)) %>%
-      dplyr::filter(time <= max(dataframe$time))
-
-  } else if (!is.null(start_date) & !is.null(end_date)) {
-
-    dataframe <- dataframe %>%
-      dplyr::filter(time >= lubridate::mdy_hm(start_date)) %>%
-      dplyr::filter(time <= lubridate::mdy_hm(end_date))
-
-  } else if (is.null(start_date) | is.null(end_date)) {
-
-    dataframe <- dataframe
+      dplyr::filter(time <= mdy_hm(end_date))
   }
 
   # Add operating mode data ----
@@ -119,44 +67,19 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
     return(list(dataframe = dataframe))
   } else {
 
-    # check data intervals of the datasets
     nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
+    #TODO: move up
+    # should not be moved up. this block is only evaluated if operating mode data is provided. Moving these
+    # commands up will require multiple if (! is.null()) statements
 
-
-    if (nterval_operating_mode < 60) {
-      data_interval_operating_mode <- "less than 60-min"
-    } else if (nterval_operating_mode == 60) {
-      data_interval_operating_mode <- "Hourly"
-    } else if (nterval_operating_mode == 1440) {
-      data_interval_operating_mode <- "Daily"
-    } else if (nterval_operating_mode > 2880) {
-      data_interval_operating_mode <- "Monthly"
-    }
-
-
-    if (convert_to_data_interval != data_interval_operating_mode){
+    # check data intervals of the datasets
+    if (convert_to_data_interval != nterval_operating_mode){
       stop("Please upload the operating mode dataset with the same time interval as that intended for modeling")
     }
 
-    # operating mode data is joined here and removed later to ensure that the operating mode
-    # indicator variables line up with their intended timestamps
-
-    data_with_operating_mode <- dplyr::inner_join(dataframe, operating_mode_data, by = "time")
-    data_with_operating_mode <- distinct(data_with_operating_mode)
-
     out <- list()
     out$dataframe <- dataframe
-
-    if(convert_to_data_interval == "Hourly") {
-      out$operating_mode_data <- data_with_operating_mode %>%
-        select(-c("time", "eload", "temp"))
-    } else if (convert_to_data_interval == "Daily") {
-      out$operating_mode_data <- data_with_operating_mode %>%
-        select(-c("time", "eload", "temp", "HDD", "CDD"))
-    } else if (convert_to_data_interval == "Monthly") {
-      out$operating_mode_data <- data_with_operating_mode %>%
-        select(-c("time", "temp", "HDD", "CDD", "HDDperday", "CDDperday", "eload", "days", "eloadperday"))
-    }
+    out$operating_mode_data <- operating_mode_data %>%
 
     return(out)
   }
