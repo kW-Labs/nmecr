@@ -84,7 +84,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
   results <- list()
 
-  # training data and model fit #SEQUENCE OF PIPED CALLS BASED ON CONDITIONS
+  # training data and model fit
   results$training_data <- dplyr::bind_cols(training_list$dataframe, "model_fit" = final_train_matrix)
 
   if(! is.null(training_list$operating_mode_data)) {
