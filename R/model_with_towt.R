@@ -85,18 +85,18 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   results <- list()
 
   # training data and model fit #SEQUENCE OF PIPED CALLS BASED ON CONDITIONS
-  if(! is.null(training_list$operating_mode_data)){
-    results$training_data <- cbind(training_list$dataframe, training_list$operating_mode_data, "model_fit" = final_train_matrix)
-  } else {
-    results$training_data <- cbind(training_list$dataframe, "model_fit" = final_train_matrix)
+  results$training_data <- dplyr::bind_cols(training_list$dataframe, "model_fit" = final_train_matrix)
+
+  if(! is.null(training_list$operating_mode_data)) {
+    results$training_data <- dplyr::inner_join(results$training_data, training_list$operating_mode_data, by = "time")
+
   }
 
   # Run only if prediction list is available
   if(! is.null(prediction_list)){
+    results$prediction_data <- dplyr::bind_cols(prediction_list$dataframe, "model_predictions" = final_pred_matrix)
     if(! is.null(prediction_list$operating_mode_data)){
-      results$prediction_data <- cbind(prediction_list$dataframe, prediction_list$operating_mode_data, "model_predictions" = final_pred_matrix)
-    } else {
-      results$prediction_data <- cbind(prediction_list$dataframe, "model_predictions" = final_pred_matrix)
+      results$prediction_data <- dplyr::inner_join(results$prediction_data, prediction_list$operating_mode_data, by = "time")
     }
   }
 
