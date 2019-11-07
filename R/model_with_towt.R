@@ -74,6 +74,8 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
     final_train_matrix <- modeled_demand$final_train_matrix
 
+    reg_out <- modeled_demand$reg_out
+
     # Run only if prediction list is available
     if(! is.null(prediction_list)) {
       pred_out <- reg_out$predictions

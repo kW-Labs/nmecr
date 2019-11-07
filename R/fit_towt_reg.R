@@ -52,10 +52,11 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
 
     # add training operating mode data if available
     if (! is.null(training_list$operating_mode_data)) {
-      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
-        select(-"time")
-
+      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time")
     }
+
+    dframe <- dframe %>%
+      select(-"time")
 
     # simple linear regression - no subsetting by occupancy
     amod <- lm(training_list$dataframe$eload ~ . , data = dframe, na.action = na.exclude, weights = model_input_options$train_weight_vec)
@@ -69,9 +70,11 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
 
       # add prediction operating mode data if available
       if (! is.null(prediction_list$operating_mode_data)) {
-        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time") %>%
-          select(-"time")
+        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
       }
+
+      dframe_pred <- dframe_pred %>%
+        select(-"time")
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
       pred_vec <- rep(NA, length(prediction_list$dataframe$time))
@@ -113,9 +116,11 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
 
     # add training operating mode data if available
     if (! is.null(training_list$operating_mode_data)) {
-      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
-        select(-"time")
+      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time")
     }
+
+    dframe <- dframe %>%
+      select(-"time")
 
     training_load_pred <- rep(NA, nrow(dframe))
 
@@ -135,9 +140,11 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
 
       # add prediction operating mode data if available
       if (! is.null(prediction_list$operating_mode_data)) {
-        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time") %>%
-          select(-"time")
+        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
       }
+
+      dframe_pred <- dframe_pred %>%
+        select(-"time")
 
       pred_vec <- rep(NA, length(prediction_list$dataframe$time))
 
