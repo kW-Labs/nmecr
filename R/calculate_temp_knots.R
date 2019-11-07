@@ -17,6 +17,8 @@
 
 calculate_temp_knots <- function(training_list = NULL, model_input_options = NULL) {
 
+  # Calculate temperature knots ----
+
   num_points <- length(training_list$dataframe$time)
 
   if (model_input_options$has_temp_knots_defined) {
@@ -47,7 +49,45 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
       temp_knots <- floor(sort(max(training_list$dataframe$temp) - temp_segment_width *  (0 : model_input_options$temp_segments_numeric)) + 0.001)
     }
 
-    return(temp_knots)
   }
+
+  # Remove extra temperature knots ----
+  ok_load <- ! is.na(training_list$dataframe$eload)
+
+  num_temp_knots <- length(temp_knots)
+
+  check_knots <- TRUE
+  while (check_knots) {
+    if (sum(training_list$dataframe$temp[ok_load] > temp_knots[num_temp_knots],
+            na.rm = TRUE) < 20) {
+      # not enough data above upper knot; throw away that upper knot
+      temp_knots <- temp_knots[- num_temp_knots]
+      num_temp_knots <- num_temp_knots - 1
+      if (num_temp_knots == 1) {
+        check_knots <- FALSE
+      }
+    } else {
+      # We have enough data above the upper knot, so need to keep checking
+      check_knots <- FALSE
+    }
+  }
+
+  # Same principle as above, for aomount of data below the lowest knot.
+  check_knots <- TRUE
+  while (check_knots) {
+    if (sum(training_list$dataframe$temp[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
+      # not enough data below lower knot; throw away that lower knot
+      temp_knots <- temp_knots[- 1]
+      num_temp_knots <- num_temp_knots - 1
+      if (num_temp_knots == 1) {
+        # We have to keep one knot, even though we have no data below it.
+        check_knots <- FALSE
+      }
+    } else {
+      check_knots <- FALSE # we have sufficient data below the lowest knot
+    }
+  }
+
+  return(temp_knots)
 
 }
