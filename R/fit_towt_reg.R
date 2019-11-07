@@ -48,11 +48,13 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
   if (model_input_options$regression_type == "Time-only") {
 
     ftow <- factor(interval_of_week)
-    dframe <- data.frame(ftow)
+    dframe <- data.frame("time" = training_list$dataframe$time, ftow)
 
     # add training operating mode data if available
     if (! is.null(training_list$operating_mode_data)) {
-      dframe <- dplyr::bind_cols(dframe, training_list$operating_mode_data)
+      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
+        select(-"time")
+
     }
 
     # simple linear regression - no subsetting by occupancy
@@ -63,11 +65,12 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     if(! is.null(prediction_list)) {
 
       ftow <- factor(interval_of_week_pred)
-      dframe_pred <- data.frame(ftow)
+      dframe_pred <- data.frame("time" = prediction_list$dataframe$time, ftow)
 
       # add prediction operating mode data if available
       if (! is.null(prediction_list$operating_mode_data)) {
-        dframe_pred <- dplyr::bind_cols(dframe_pred, prediction_list$operating_mode_data)
+        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time") %>%
+          select(-"time")
       }
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
@@ -106,11 +109,12 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     names(temp_mat) <- temp_m_name
 
     ftow <- factor(interval_of_week)
-    dframe <- data.frame(ftow, temp_mat)
+    dframe <- data.frame("time" = training_list$dataframe$time, ftow, temp_mat)
 
     # add training operating mode data if available
     if (! is.null(training_list$operating_mode_data)) {
-      dframe <- dplyr::bind_cols(dframe, training_list$operating_mode_data)
+      dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
+        select(-"time")
     }
 
     training_load_pred <- rep(NA, nrow(dframe))
@@ -127,11 +131,12 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
       # should the temperature knots be recalculated for the prediction dataframe?
 
       ftow <- factor(interval_of_week_pred)
-      dframe_pred <- data.frame(ftow, temp_mat_pred)
+      dframe_pred <- data.frame("time" = prediction_list$dataframe$time, ftow, temp_mat_pred)
 
       # add prediction operating mode data if available
       if (! is.null(prediction_list$operating_mode_data)) {
-        dframe_pred <- bind_cols(dframe_pred, prediction_list$operating_mode_data)
+        dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time") %>%
+          select(-"time")
       }
 
       pred_vec <- rep(NA, length(prediction_list$dataframe$time))
