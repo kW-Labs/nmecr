@@ -15,13 +15,11 @@
 #'
 #'
 
-calculate_temp_knots <- function(training_list = NULL, has_temp_knots_defined = FALSE,
-                                           temp_knots_value = NULL, temp_segments_numeric = 6,
-                                           equal_temp_segment_points = TRUE) {
+calculate_temp_knots <- function(training_list = NULL, model_input_options = NULL) {
 
   num_points <- length(training_list$dataframe$time)
 
-  if (has_temp_knots_defined) {
+  if (model_input_options$has_temp_knots_defined) {
 
     temp_knots <- temp_knots_value
 
@@ -32,11 +30,11 @@ calculate_temp_knots <- function(training_list = NULL, has_temp_knots_defined = 
 
     delta_temp <- temp1 - temp0
 
-    if (equal_temp_segment_points) {
+    if (model_input_options$equal_temp_segment_points) {
 
-      temp_segment_width <- num_points / temp_segments_numeric
+      temp_segment_width <- num_points / model_input_options$temp_segments_numeric
 
-      temp_points <- floor(sort(length(training_list$dataframe$temp) - temp_segment_width * (0 : temp_segments_numeric)) + 0.001)
+      temp_points <- floor(sort(length(training_list$dataframe$temp) - temp_segment_width * (0 : model_input_options$temp_segments_numeric)) + 0.001)
 
       temp_ordered <- sort(training_list$dataframe$temp, decreasing = F)
 
@@ -44,9 +42,9 @@ calculate_temp_knots <- function(training_list = NULL, has_temp_knots_defined = 
 
     } else {
 
-      temp_segment_width <- delta_temp / temp_segments_numeric
+      temp_segment_width <- delta_temp / model_input_options$temp_segments_numeric
 
-      temp_knots <- floor(sort(max(training_list$dataframe$temp) - temp_segment_width *  (0 : temp_segments_numeric)) + 0.001)
+      temp_knots <- floor(sort(max(training_list$dataframe$temp) - temp_segment_width *  (0 : model_input_options$temp_segments_numeric)) + 0.001)
     }
 
     return(temp_knots)
