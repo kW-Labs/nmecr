@@ -15,8 +15,9 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
                              convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65,
                              operating_mode_data = NULL) {
 
-  convert_to_data_interval <- match.arg(convert_to_data_interval)
+  out <- list()
 
+  # allocate ntervals as per intended interval for modeling
   if(convert_to_data_interval == "Hourly") {
     nterval <- 60
   } else if (convert_to_data_interval == "Daily"){
@@ -25,24 +26,42 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
     nterval <- 40320 # using 28 days
   }
 
-  # convert timestamps to time objects, if originally found to be of class, 'character
-  if (is.character(eload_data$time)) {
-    eload_data$time <- lubridate::mdy_hm(eload_data$time)
+  # convert timestamps to time objects, if originally found to be of class, 'character'
+  lubridate_timestamp <- function(time_col) {
+    if(is.character(time_col)) {
+      time_col <- lubridate::mdy_hm(time_col)
+    } else {
+      return(time_col)
+    }
   }
 
-  if (is.character(temp_data$time)) {
-    temp_data$time <- lubridate::mdy_hm(temp_data$time)
-  }
+  eload_data$time <- lubridate_timestamp(eload_data$time)
+  temp_data$time <- lubridate_timestamp(temp_data$time)
+  operating_mode_data$time <- lubridate_timestamp(operating_mode_data$time)
 
-# determine data intervals of eload, temp, and operating mode data ----
+  # determine data intervals of eload, temp, and operating mode data
+  # add operating mode data to the return list if available ----
+
   nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
-
   nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
+
+  if (! is.null(operating_mode_data)){
+
+    nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
+
+    if (nterval != nterval_operating_mode){
+      stop("Please upload the operating mode dataset with the same time interval as that intended for modeling")
+    }
+
+    out$operating_mode_data <- operating_mode_data
+  }
 
   # Aggregation ----
   if (nterval_temp > nterval | nterval_eload > nterval) {
     stop(paste0("Error: Uploaded datasets' intervals bigger than ", convert_to_data_interval))
   }
+
+  convert_to_data_interval <- match.arg(convert_to_data_interval)
 
   dataframe <- aggregate(eload_data = eload_data, temp_data = temp_data,
                          convert_to_data_interval = convert_to_data_interval,
@@ -52,37 +71,16 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = N
 
   if(! is.null(start_date)) {
   dataframe <- dataframe %>%
-    dplyr::filter(time >= mdy_hm(start_date))
+    dplyr::filter(time >= lubridate::mdy_hm(start_date))
   }
 
   if(! is.null(end_date)) {
     dataframe <- dataframe %>%
-      dplyr::filter(time <= mdy_hm(end_date))
+      dplyr::filter(time <= lubridate::mdy_hm(end_date))
   }
 
-  # Add operating mode data ----
+  out$dataframe <- dataframe
 
-  # if no operating mode data provided, return dataframe
-  if(is.null(operating_mode_data)){
-    return(list(dataframe = dataframe))
-  } else {
-
-    nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
-    #TODO: move up
-    # should not be moved up. this block is only evaluated if operating mode data is provided. Moving these
-    # commands up will require multiple if (! is.null()) statements
-
-    # check data intervals of the datasets
-    if (convert_to_data_interval != nterval_operating_mode){
-      stop("Please upload the operating mode dataset with the same time interval as that intended for modeling")
-    }
-
-    out <- list()
-    out$dataframe <- dataframe
-    out$operating_mode_data <- operating_mode_data %>%
-
-    return(out)
-  }
-
+  return(out)
 
 }
