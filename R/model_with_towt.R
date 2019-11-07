@@ -37,40 +37,26 @@
 
 model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 
-  # model inputs
-  # TODO: reassigning model inputs not needed - can be passed directly
-  timescale_days <- model_input_options$timescale_days
-  interval_minutes <- model_input_options$interval_minutes
-  regression_type <- model_input_options$regression_type
-  has_temp_knots_defined = model_input_options$has_temp_knots_defined
-  equal_temp_segment_points = model_input_options$equal_temp_segment_points
-  temp_segments_numeric = model_input_options$temp_segments_numeric
-  temp_knots_value = model_input_options$temp_knots_value
-
 
   # calculate temperature knots
-  temp_knots <- calculate_temp_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
-                                            temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
-                                            equal_temp_segment_points = equal_temp_segment_points)
+  model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
+
 
   # create weighted regressions as per timescale_days
 
   # Run for energy modeling - timescale_days not used
-  if (timescale_days == "NA") {
+  if (model_input_options$timescale_days == "NA") {
 
     num_model_runs <- 1
 
     # train_weight_vec not essentially needed for energy modeling.
     # it is needed for fit_TOWT_reg however
     # therefore, keeping it as 1 for energy modeling
-    train_weight_vec <- rep(1, length(training_list$dataframe$time))
+    model_input_options$train_weight_vec <- rep(1, length(training_list$dataframe$time))
 
     # fit linear regression
-    #TODO: pass in model_input options directly
     reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
-                            temp_knots = temp_knots, train_weight_vec = train_weight_vec,
-                            interval_minutes = interval_minutes,
-                            regression_type = regression_type)
+                            model_input_options = model_input_options)
 
     train_out <- reg_out$training
 
@@ -90,7 +76,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     t1 <- max(training_list$dataframe$time, na.rm = TRUE)
 
     delta_t <- as.numeric(difftime(t1, t0, units = "days"))
-    num_segments <- max(1, ceiling(delta_t / timescale_days))
+    num_segments <- max(1, ceiling(delta_t / model_input_options$timescale_days))
     segment_width <- (num_points - 1) / num_segments
     point_list <- floor(sort(num_points - segment_width * (0 : num_segments)) +
                           0.001)
@@ -113,19 +99,17 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
       tcenter <- training_list$dataframe$time[point_list[row_index]]
       t_diff <- as.numeric(difftime(tcenter, training_list$dataframe$time, units = "days"))
 
-      train_weight_vec <- timescale_days ^ 2 /
-        (timescale_days ^ 2 + t_diff ^ 2)
+      model_input_options$train_weight_vec <- model_input_options$timescale_days ^ 2 /
+        (model_input_options$timescale_days ^ 2 + t_diff ^ 2)
 
       # fit linear regression
       reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
-                              temp_knots = temp_knots, train_weight_vec = train_weight_vec,
-                              interval_minutes = interval_minutes,
-                              regression_type = regression_type)
+                              model_input_options = model_input_options)
 
       train_out <- reg_out$training
 
       train_matrix[row_index, ] <- train_out$training_load_pred
-      train_weight_matrix[row_index, ] <- train_weight_vec
+      train_weight_matrix[row_index, ] <- model_input_options$train_weight_vec
 
       final_train_matrix <- apply(train_matrix * train_weight_matrix, 2, sum) /
         apply(train_weight_matrix, 2, sum)
@@ -133,8 +117,10 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
       # Run only if prediction list is available
       if(! is.null(prediction_list)) {
 
-        pred_weight_vec <- timescale_days ^ 2 /
-          (timescale_days ^ 2 + t_diff_pred ^ 2)
+        t_diff_pred <- as.numeric(difftime(tcenter, prediction_list$dataframe$time, units = "days"))
+
+        model_input_options$pred_weight_vec <- model_input_options$timescale_days ^ 2 /
+          (model_input_options$timescale_days ^ 2 + t_diff_pred ^ 2)
 
         pred_out <- reg_out$predictions
 
