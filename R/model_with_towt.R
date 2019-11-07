@@ -41,8 +41,6 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   # calculate temperature knots
   model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
 
-  # create weighted regressions as per timescale_days
-
   # Run for energy modeling - timescale_days not used
   if (model_input_options$timescale_days == "NA") {
 
@@ -68,7 +66,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     # Run for demand modeling - timescale_days used
   } else {
 
-    modeled_demand <- model_demand_with_TOWT(training_list = training_list, prediction_list = prediction_list, model_input_options = model_input_options)
+    modeled_demand <- model_demand_with_towt(training_list = training_list, prediction_list = prediction_list, model_input_options = model_input_options)
 
     final_train_matrix <- modeled_demand$final_train_matrix
 

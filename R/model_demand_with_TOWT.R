@@ -1,7 +1,7 @@
 
 
 
-model_demand_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
+model_demand_with_towt <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 
   num_points <- length(training_list$dataframe$time)
   t0 <- min(training_list$dataframe$time, na.rm = TRUE)
@@ -71,9 +71,6 @@ model_demand_with_TOWT <- function(training_list = NULL, prediction_list = NULL,
     }
 
   }
-
-
-
 
   return(results)
 
