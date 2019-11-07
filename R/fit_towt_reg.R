@@ -100,7 +100,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, temp_knot
     }
 
     # Remove extra temperature knots
-    temp_knots <- remove_extra_temp_knots(training_list = training_list, temp_knots = temp_knots)
+    temp_knots <- remove_extra_temp_knots(training_list = training_list, temp_knots = temp_knots) #TODO: move one level up
 
     # Create temperature matrix
     temp_mat <- create_temp_matrix(training_list$dataframe$temp, temp_knots)

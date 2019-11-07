@@ -38,6 +38,7 @@
 model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 
   # model inputs
+  # TODO: reassigning model inputs not needed - can be passed directly
   timescale_days <- model_input_options$timescale_days
   interval_minutes <- model_input_options$interval_minutes
   regression_type <- model_input_options$regression_type
@@ -48,7 +49,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
 
   # calculate temperature knots
-  temp_knots <- calculate_temperature_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
+  temp_knots <- calculate_temp_knots(training_list = training_list, has_temp_knots_defined = has_temp_knots_defined,
                                             temp_knots_value = temp_knots_value, temp_segments_numeric = temp_segments_numeric,
                                             equal_temp_segment_points = equal_temp_segment_points)
 
@@ -65,6 +66,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     train_weight_vec <- rep(1, length(training_list$dataframe$time))
 
     # fit linear regression
+    #TODO: pass in model_input options directly
     reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
                             temp_knots = temp_knots, train_weight_vec = train_weight_vec,
                             interval_minutes = interval_minutes,
@@ -81,7 +83,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     }
 
     # Run for demand modeling - timescale_days used
-  } else {
+  } else { #TODO: move to a different function
 
     num_points <- length(training_list$dataframe$time)
     t0 <- min(training_list$dataframe$time, na.rm = TRUE)
@@ -148,7 +150,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
   results <- list()
 
-  # training data and model fit
+  # training data and model fit #SEQUENCE OF PIPED CALLS BASED ON CONDITIONS
   if(! is.null(training_list$operating_mode_data)){
     results$training_data <- cbind(training_list$dataframe, training_list$operating_mode_data, "model_fit" = final_train_matrix)
   } else {
