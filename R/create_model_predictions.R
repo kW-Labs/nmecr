@@ -1,0 +1,98 @@
+
+
+
+create_model_predictions <- function(model_object, training_list, prediction_list, model_input_options){
+  
+  if (model_input_options$regression_type == "Time-only") { 
+    
+    ftow <- factor(interval_of_week_pred)
+    
+    dframe_pred <- data.frame("time" = prediction_list$dataframe$time, ftow)
+    if (! is.null(prediction_list$operating_mode_data)) {
+      dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
+    }
+    dframe_pred <- dframe_pred %>%
+      select(-"time")
+    
+    ok_tow_pred <- factor(ftow) %in% model_object$model_occupied$xlevels$ftow
+    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
+    pred_vec[ok_tow_pred] <- predict(model_object$model_occupied, dframe_pred)
+    
+  } else {
+    
+    # prepare information from training_dataframe ----
+    
+    ok_load <- !is.na(training_list$dataframe$eload)
+    
+    minute_of_week <- (lubridate::wday(training_list$dataframe$time) - 1) * 24 * 60 +
+      lubridate::hour(training_list$dataframe$time) * 60 + lubridate::minute(training_list$dataframe$time)
+    
+    interval_of_week <- 1 + floor(minute_of_week / model_input_options$interval_minutes)
+    
+    # Determine occupancy information
+    occ_info <- find_occ_unocc(interval_of_week[ok_load],
+                               training_list$dataframe$eload[ok_load], training_list$dataframe$temp[ok_load])
+    occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
+    
+    # which time intervals are 'occupied'?
+    
+    occ_vec <- rep(0, length(training_list$dataframe$eload))
+    
+    if (length(occ_intervals) > 2) {
+      for (i in 1 : length(occ_intervals)) {
+        occ_vec[interval_of_week == occ_intervals[i]] <- 1
+      }
+    }
+    
+    # Create temperature matrix
+    temp_mat <- create_temp_matrix(training_list$dataframe$temp, model_input_options$calculated_temp_knots)
+    temp_m_name <- rep(NA, ncol(temp_mat))
+    for (i in 1 : ncol(temp_mat)) {
+      temp_m_name[i] <- paste("temp_mat", i, sep = "")
+    }
+    names(temp_mat) <- temp_m_name
+    
+    # predictions ----
+    
+    temp_mat_pred <- create_temp_matrix(prediction_list$dataframe$temp, model_input_options$calculated_temp_knots)
+    names(temp_mat_pred) <- temp_m_name
+    
+    minute_of_week_pred <- (lubridate::wday(prediction_list$dataframe$time) - 1) * 24 * 60 +
+      lubridate::hour(prediction_list$dataframe$time) * 60 + lubridate::minute(prediction_list$dataframe$time)
+    
+    interval_of_week_pred <- 1 + floor(minute_of_week_pred / model_input_options$interval_minutes)
+    
+    ftow <- factor(interval_of_week_pred)
+    
+    dframe_pred <- data.frame("time" = prediction_list$dataframe$time, ftow, temp_mat_pred)
+    if (! is.null(prediction_list$operating_mode_data)) {
+      dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
+    }
+    dframe_pred <- dframe_pred %>%
+      select(-"time")
+    
+    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
+    
+    # create subsets by occupancy
+    ok_occ <- occ_vec == 1
+    ok_occ[is.na(ok_occ)] <- TRUE
+    
+    if (sum(ok_occ > 0)) {
+      ok_tow_pred <- dframe_pred$ftow %in% model_object$model_occupied$xlevels$ftow
+      pred_vec[ok_tow_pred] <- predict(model_object$model_occupied, dframe_pred[ok_tow_pred, ])
+    }
+    
+    if (sum(! ok_occ) > 0) {
+      ok_tow_pred <- dframe_pred$ftow %in% model_object$model_unoccupied$xlevels$ftow
+      pred_vec[ok_tow_pred] <- predict(model_object$model_unoccupied, dframe_pred[ok_tow_pred, ])
+    }
+    
+  }
+  
+  output <- NULL
+  pred_vec[pred_vec < 0] <- 0
+  output <- data.frame(prediction_list$dataframe, pred_vec)
+  
+  return(output)
+  
+}
