@@ -1,4 +1,3 @@
-#' TODO: return model fit and model form only.
 #' TODO: create new prediction function - common to all modeled objects
 #' Develop linear regression models for energy use data using time-of-week and outside air temperature as independent variables.
 #'
