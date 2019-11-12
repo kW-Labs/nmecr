@@ -25,14 +25,11 @@
 #' @export
 #'
 
-model_with_HDD_CDD <- function(training_data, prediction_data = NULL,
-                          regression_type = NULL,
-                          data_interval = NULL,
-                          data_units = NULL){
+model_with_HDD_CDD <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL){
+
+  #TODO: there has to be a message here that warns the user if using hourly data
 
   if (regression_type == "HDD-CDD Multivariate Regression") {
-
-    data_time_interval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
     if (data_interval == "Monthly") {
 
