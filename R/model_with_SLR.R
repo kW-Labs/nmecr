@@ -28,159 +28,26 @@
 #' @export
 
 
-model_with_SLR <- function(training_data, prediction_data = NULL,
-                                       data_interval = NULL,
-                                       has_operating_modes = FALSE,
-                                       train_operating_mode_data = NULL,
-                                       pred_operating_mode_data = NULL,
-                                       data_units = NULL){
+model_with_SLR <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 
-  data_time_interval <- difftime(training_data$time[2], training_data$time[1], units = "min")
+  dframe <- training_list$dataframe
 
-  if (data_time_interval > 60 && data_interval == "Hourly"){
-    return(NULL)
-  } else {
-
-  if (is.null(train_operating_mode_data)) {
-    training_data <- training_data
-    training_data <- dplyr::distinct(training_data)
-
-    if (is.null(prediction_data)) {
-      prediction_data <- NULL
-    } else {
-      prediction_data <- prediction_data
-    }
-
-    if (data_interval == "Hourly") {
-      linregress <- lm(eload ~ . - time, training_data)
-    } else if (data_interval == "Daily") {
-      linregress <- lm(eload ~ . - time - HDD - CDD, training_data)
-    } else if (data_interval == "Monthly") {
-      linregress <- lm(eload ~ . - time - HDD - CDD - days - HDDperday - CDDperday - eloadperday, training_data)
-    }
-
-  } else {
-
-    training_data <- dplyr::inner_join(training_data, train_operating_mode_data, by = "time")
-    training_data <- dplyr::distinct(training_data)
-
-    # pred read and preprocessing
-
-    if (! is.null(prediction_data)){
-      prediction_data <- dplyr::inner_join(prediction_data, pred_operating_mode_data, by = "time")
-      prediction_data <- dplyr::distinct(prediction_data)
-    } else {
-      prediction_data <- training_data
-    }
-
-    if (data_interval == "Hourly") {
-      linregress <- lm(eload ~ . - time, training_data)
-    } else if (data_interval == "Daily") {
-      linregress <- lm(eload ~ . - time - HDD - CDD, training_data)
-    } else if (data_interval == "Monthly") {
-      if (has_operating_modes) {
-        return(NULL)
-      } else {
-      linregress <- lm(eload ~ . - time - HDD - CDD - days - HDDperday - CDDperday - eloadperday, training_data)
-      }
-    }
+  if(! is.null(training_list$operating_mode_data)){
+    dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time")
   }
 
-  intercept <- linregress[[1]][[1]]
-  m_temp <- linregress[[1]][[2]]
-  r_value <- summary(linregress)$r.squared
-  nparameter <- nrow(as.data.frame(linregress$coefficients))
+  dframe <- dframe %>%
+    dplyr::select(-"time")
 
-  training_data <- training_data %>%
-    mutate(yfit = predict(linregress, training_data)) %>%
-    mutate(resi = eload - yfit) %>%
-    mutate(resi_sq = resi ^ 2)
+  linregress <- lm(eload ~ ., dframe)
 
-  training_data <- training_data[complete.cases(training_data), ]
-
-  MBE <- sum(training_data[['resi']]) / nrow(training_data)
-  NDBE <- 100 * (sum(training_data[['resi']] / sum(training_data[['eload']])))
-  CVRMSE <- ((sqrt(sum(training_data[['resi_sq']]) / (nrow(training_data) - nparameter))) / mean(training_data[['eload']]))
-  CVMAE <- (sum(abs(training_data[['resi']])) / (nrow(training_data) - nparameter)) / mean(training_data[['eload']])
-
-  goodness_of_fit <- data.frame()
-  goodness_of_fit[1, 1] <- r_value
-  goodness_of_fit[1, 2] <- CVRMSE
-  goodness_of_fit[1, 3] <- paste(formatC(NDBE, format = "e", digits = 2), "%", sep = "")
-  goodness_of_fit[1, 4] <- nparameter
-
-  colnames(goodness_of_fit) <- c("fit_R2", "fit_CVRMSE", "fit_NDBE", "#Parameters")
-
-  parameters <- as.data.frame(rownames(summary(linregress)$coefficients))
-  coefficients <- as.data.frame(summary(linregress)$coefficients[, 1])
-  p_values <- as.data.frame(summary(linregress)$coefficients[, 4])
-
-  SLR_model <- dplyr::bind_cols(parameters, coefficients, p_values)
-  names(SLR_model) <- c("Parameters", "Coefficients", "p-values")
-
-  out <- NULL
-  out$goodness_of_fit <- goodness_of_fit
-  out$training_data <- training_data
-  out$SLR_model <- SLR_model
-
-  skewness_rsdl <- moments::skewness(training_data$resi)
-  excess_kurtosis_rsdl <- moments::kurtosis(training_data$resi)
-
-  if (skewness_rsdl > - 0.5 && skewness_rsdl < 0.5) {
-    skewness_rsdl_meaning <- "Fairly Symmetrical"
-  } else if (skewness_rsdl > - 1 && skewness_rsdl < - 0.5 || skewness_rsdl > 0.5 && skewness_rsdl < 1) {
-    skewness_rsdl_meaning <- "Moderately Skewed"
-  } else {
-    skewness_rsdl_meaning <- "Highly Skewed"
-  }
-
-  if (excess_kurtosis_rsdl == 0) {
-    excess_kurtosis_rsdl_meaning <- "Data has no outliers"
-  } else if (excess_kurtosis_rsdl > 0) {
-    excess_kurtosis_rsdl_meaning <- "Profusion of outliers"
-  } else {
-    excess_kurtosis_rsdl_meaning <- "Lack of outliers"
-  }
-
-  normality_metrics <- as.data.frame(matrix(nr = 1, nc = 4))
-  names(normality_metrics) <- c("Skewness Value", "Skewness",
-                                    "Excess Kurtosis Value", "Excess Kurtosis")
-  normality_metrics$'Skewness Value' <-  formatC(skewness_rsdl, big.mark = ",")
-  normality_metrics$'Skewness' <- skewness_rsdl_meaning
-  normality_metrics$'Excess Kurtosis Value' <-  formatC(excess_kurtosis_rsdl, big.mark = ",")
-  normality_metrics$'Excess Kurtosis' <- excess_kurtosis_rsdl_meaning
-
-  out$normality_metrics <- normality_metrics
-
-  energy_use_summary <- as.data.frame(matrix(nr = 1, nc = 1))
-  names(energy_use_summary) <- c("Baseline Energy Use")
-  energy_use_summary$'Baseline Energy Use' <- paste(format(sum(training_data$eload, na.rm = T),
-                                                             scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
-
-  out$energy_use_summary <- energy_use_summary
-
+  out <- list()
   out$model <- linregress
-
-  if (! is.null(prediction_data)) {
-    predicted_data <- prediction_data %>%
-      mutate(pred_eload =  predict(linregress, prediction_data))
-
-    predicted_data <- predicted_data[complete.cases(predicted_data), ]
-    out$post_implementation_data <- predicted_data
-
-    energy_use_summary <- as.data.frame(matrix(nr = 1, nc = 3))
-    names(energy_use_summary) <- c("Baseline Energy Use", "Adjusted Baseline Energy Use", "Post Implementation Energy Use")
-
-    energy_use_summary$'Baseline Energy Use' <- paste(format(sum(training_data$eload, na.rm = T),
-                                                               scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
-    energy_use_summary$'Adjusted Baseline Energy Use' <- paste(format(sum(predicted_data$pred_eload, na.rm = T),
-                                                                        scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
-    energy_use_summary$'Post Implementation Energy Use' <- paste(format(sum(prediction_data$eload, na.rm = T),
-                                                                          scientific = FALSE, big.mark = ",", digits = 2), as.character(data_units))
-
-    out$energy_use_summary <- energy_use_summary
-  }
-    }
+  out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
 
   return(out)
-  }
+}
+
+
+
+
