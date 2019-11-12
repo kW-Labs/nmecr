@@ -87,6 +87,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
 
     aggregated_data <- monthly_temp %>%
       dplyr::inner_join(monthly_eload, by = "time") %>%
+      dplyr::mutate(eloadperday = eload/days) %>%
       dplyr::distinct()
 
 
