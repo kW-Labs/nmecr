@@ -25,7 +25,7 @@
 #' }
 #' @export
 
-model_with_CP <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
+model_with_CP <- function(training_list = NULL, model_input_options = NULL){
 
   dependent_variable <- training_list$dataframe$eload
   independent_variable <- training_list$dataframe$temp
