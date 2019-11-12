@@ -11,9 +11,9 @@
 #' @export
 #'
 
-create_dataframe <- function(eload_data = NULL, temp_data = NULL, start_date = NULL, end_date = NULL,
-                             convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65,
-                             operating_mode_data = NULL) {
+create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode_data = NULL,
+                             start_date = NULL, end_date = NULL,
+                             convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65) {
 
   out <- list()
 
