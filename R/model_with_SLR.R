@@ -39,7 +39,7 @@ model_with_SLR <- function(training_list = NULL, prediction_list = NULL, model_i
   dframe <- dframe %>%
     dplyr::select(-"time")
 
-  linregress <- lm(eload ~ ., dframe)
+  linregress <- lm(eload ~ temp, dframe)
 
   out <- list()
   out$model <- linregress
