@@ -1,14 +1,22 @@
 
-calculate_summary_statistics <- function(model_results) {
+calculate_summary_statistics <- function(model_results = NULL, model_input_options = NULL) {
 
   model_fit <- model_results$training_data$model_fit
   eload <- model_results$training_data$eload
   fit_residuals_numeric <- eload - model_fit
 
-  nparameter <- length(model_results$model_occupied$coefficients)
+  if(model_input_options$regression_type == "TOWT" | model_input_options$regression_type == "Time-only") {
 
-  if(exists("model_unoccupied", where = model_results)){
-    nparameter <- nparameter + length(model_results$model_unoccupied$coefficients)
+    nparameter <- length(model_results$model_occupied$coefficients)
+
+    if(exists("model_unoccupied", where = model_results)){
+      nparameter <- nparameter + length(model_results$model_unoccupied$coefficients)
+    }
+
+  } else {
+
+    nparameter <- length(model_results$model$coefficients)
+
   }
 
   effective_parameters <- length(fit_residuals_numeric) %>%
@@ -19,7 +27,7 @@ calculate_summary_statistics <- function(model_results) {
   SSR_over_SST <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
     mean(.) %>%
-    magrittr::divide_by(var(eload))
+    magrittr::divide_by(var(model_results$training_data$eload))
 
   R_squared <- 1 - SSR_over_SST
 
