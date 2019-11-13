@@ -30,7 +30,7 @@ model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL)
   if(exists("eloadperday", where = training_list$dataframe)) {
       data_interval <- "Monthly"
   } else {
-    data_intercal <- "Daily"
+    data_interval <- "Daily"
   }
 
   if (model_input_options$regression_type == "HDD-CDD Multivariate Regression") {
