@@ -13,7 +13,7 @@
 #' @export
 
 
-find_occ_unocc <- function(interval_of_week, eload_col, temp_col,
+find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col = NULL,
                            interval_minutes=15) {
 
   uniq_time_of_week <- unique(interval_of_week)

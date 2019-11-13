@@ -11,7 +11,7 @@
 #'
 #' @export
 
-create_temp_matrix <- function(temp_col, temp_knots) {
+create_temp_matrix <- function(temp_col = NULL, temp_knots = NULL) {
   temp_rows <- length(temp_col)
   temp_knot_rows <- length(temp_knots) + 1
   # lower than lowest; in between; and higher than highest
