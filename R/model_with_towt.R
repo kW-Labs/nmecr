@@ -100,7 +100,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
 
   # model fits and coefficient counts for models
   if(model_input_options$regression_type == "Time-only") {
-    results$model <- reg_out$model
+    results$model_occupied <- reg_out$model
   } else {
       results$model_occupied <- reg_out$model_occupied
       results$model_unoccupied <- reg_out$model_unoccupied
