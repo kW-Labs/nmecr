@@ -1,4 +1,4 @@
-
+# TODO:  further refactoring needed
 
 
 calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_list = NULL, modeled_object = NULL, model_input_options = NULL){
@@ -9,6 +9,13 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
   if (model_input_options$regression_type == "Time-only") {
 
     temp_mat_pred <- create_temp_matrix(prediction_list$dataframe$temp, model_input_options$calculated_temp_knots)
+
+    temp_mat <- create_temp_matrix(training_list$dataframe$temp, model_input_options$calculated_temp_knots)
+    temp_m_name <- rep(NA, ncol(temp_mat))
+    for (i in 1 : ncol(temp_mat)) {
+      temp_m_name[i] <- paste("temp_mat", i, sep = "")
+    }
+
     names(temp_mat_pred) <- temp_m_name
 
     minute_of_week_pred <- (lubridate::wday(prediction_list$dataframe$time) - 1) * 24 * 60 +
@@ -19,6 +26,7 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
     ftow <- factor(interval_of_week_pred)
 
     dframe_pred <- data.frame("time" = prediction_list$dataframe$time, ftow)
+
     if (! is.null(prediction_list$operating_mode_data)) {
       dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
     }
