@@ -17,6 +17,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   out <- list()
 
+  convert_to_data_interval <- match.arg(convert_to_data_interval)
+
   # allocate ntervals as per intended interval for modeling
   if(convert_to_data_interval == "Hourly") {
     nterval <- 60
