@@ -1,3 +1,4 @@
+#'TODO: Error message for when used with monthly data
 #' Generate an energy data model using the Time-of-Week and Temperature algorithm.
 #'
 #'
@@ -36,8 +37,6 @@
 #' @export
 
 model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
-
-  #TODO: add a message for the user if using monthly data
 
   # calculate temperature knots
   model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
@@ -108,7 +107,5 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   }
 
   return(results)
-
-
 
 }

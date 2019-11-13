@@ -1,3 +1,4 @@
+#' TODO: Error message for when used with hourly data
 #' Generate an energy data model using HDD and CDD models with outside air temperature.
 #'
 #' \code{This function builds an energy use model using linear regression on computed heating degree days, or cooling degree days, or a combination of the two.}
