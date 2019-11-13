@@ -1,11 +1,11 @@
 
-calculate_summary_statistics <- function(model_results = NULL, model_input_options = NULL) {
+calculate_summary_statistics <- function(model_results = NULL) {
 
   model_fit <- model_results$training_data$model_fit
   eload <- model_results$training_data$eload
   fit_residuals_numeric <- eload - model_fit
 
-  if(model_input_options$regression_type == "TOWT" | model_input_options$regression_type == "Time-only") {
+  if(model_results$model_input_options$regression_type == "TOWT" | model_results$model_input_options$regression_type == "Time-only") {
 
     nparameter <- length(model_results$model_occupied$coefficients)
 
