@@ -106,6 +106,8 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
       results$model_unoccupied <- reg_out$model_unoccupied
   }
 
+  results$model_input_options <- model_input_options
+
   return(results)
 
 }

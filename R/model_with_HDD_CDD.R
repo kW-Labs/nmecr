@@ -43,6 +43,7 @@ model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL)
     out <- list()
     out$model <- linregress
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
+    out$model_input_options <- model_input_options
 
     } else if (data_interval == "Daily") {
 
@@ -51,6 +52,7 @@ model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL)
     out <- list()
     out$model <- linregress
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
+    out$model_input_options <- model_input_options
 
     }
 
@@ -61,6 +63,7 @@ model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL)
     out <- list()
     out$model <- linregress
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
+    out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "CDD Regression") {
 
@@ -69,6 +72,7 @@ model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL)
     out <- list()
     out$model <- linregress
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
+    out$model_input_options <- model_input_options
 
   }
 

@@ -39,6 +39,7 @@ model_with_CP <- function(training_list = NULL, model_input_options = NULL){
     out <- list()
     out$model <- three_paramter_cooling_model
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = three_paramter_cooling_model$fitted.values)
+    out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Three Parameter Heating") {
 
@@ -48,6 +49,7 @@ model_with_CP <- function(training_list = NULL, model_input_options = NULL){
     out <- list()
     out$model <- three_paramter_heating_model
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = three_paramter_heating_model$fitted.values)
+    out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model"){
 
@@ -57,6 +59,7 @@ model_with_CP <- function(training_list = NULL, model_input_options = NULL){
     out <- list()
     out$model <- four_paramter_linear_model
     out$training_data <- data.frame(training_list$dataframe, "model_fit" = four_paramter_linear_model$fitted.values)
+    out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Five Parameter Linear Model") {
 
@@ -80,6 +83,7 @@ model_with_CP <- function(training_list = NULL, model_input_options = NULL){
    out <- list()
    out$model <- five_paramter_linear_model
    out$training_data <- data.frame(training_list$dataframe, "model_fit" = five_paramter_linear_model$fitted.values)
+   out$model_input_options <- model_input_options
 
   }
 
