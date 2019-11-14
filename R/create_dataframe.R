@@ -19,12 +19,16 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     stop("Error: temp_balancepoint needs to be a numeric input between")
   }
 
-  if(! assertive::is_character(start_date)){
-    stop("Error: Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
+  if(! is.null(start_date)) {
+    if(! is.character(start_date)){
+      stop("Error: Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
+    }
   }
 
-  if(! assertive::is_character(end_date)){
-    stop("Error: Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
+  if(! is.null(end_date)) {
+    if(! is.character(end_date)){
+      stop("Error: Enter the end date as a character string in 'mm/dd/yyyy hh:mm' format.")
+    }
   }
 
 
