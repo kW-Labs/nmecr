@@ -47,7 +47,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
 
   # Run for energy modeling - timescale_days not used
-  if (model_input_options$timescale_days == "NA") {
+  if (is.null(model_input_options$timescale_days)) {
 
     # train_weight_vec not essentially needed for energy modeling.
     # it is needed for fit_TOWT_reg however

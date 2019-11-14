@@ -3,7 +3,7 @@
 
 
 
-assign_model_inputs <- function(timescale_days = "NA",
+assign_model_inputs <- function(timescale_days = NULL,
                              interval_minutes = 15,
                              has_temp_knots_defined = FALSE,
                              equal_temp_segment_points = TRUE,
@@ -14,8 +14,10 @@ assign_model_inputs <- function(timescale_days = "NA",
                                                  "Three Parameter Cooling", "Three Parameter Heating", "Four Parameter Linear Model",
                                                  "Five Parameter Linear Model")){
 
-  if (timescale_days != "NA" | ! assertive::is_numeric(timescale_days)) {
-    stop("Error: timescale_days should either be "NA" or a numeric input. Default value: "NA"")
+  if (! is.null(timescale_days)) {
+    if(! assertive::is_numeric(timescale_days)) {
+      stop("Error: timescale_days should either be NULL or a numeric input. Default value: NULL")
+    }
   }
 
   if (! assertive::is_numeric(interval_minutes)) {
