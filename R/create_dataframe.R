@@ -15,6 +15,10 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
                              start_date = NULL, end_date = NULL,
                              convert_to_data_interval = c("Hourly", "Daily", "Monthly"), temp_balancepoint = 65) {
 
+  if(! assertive::is_numeric(temp_balancepoint)) {
+    stop("Error: temp_balancepoint needs to be a numeric input between")
+  }
+
   out <- list()
 
   convert_to_data_interval <- match.arg(convert_to_data_interval)

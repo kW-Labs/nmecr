@@ -1,4 +1,3 @@
-#'TODO: Error message for when used with monthly data
 #' Generate an energy data model using the Time-of-Week and Temperature algorithm.
 #'
 #'
@@ -37,6 +36,10 @@
 #' @export
 
 model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
+
+  if(training_list$chosen_modeling_interval == "Monthly") {
+    stop("Error: model_with_TOWT cannot be used with Monthly data.")
+  }
 
   model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
 

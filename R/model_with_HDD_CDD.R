@@ -1,4 +1,3 @@
-#' TODO: Error message for when used with hourly data
 #' Generate an energy data model using HDD and CDD models with outside air temperature.
 #'
 #' \code{This function builds an energy use model using linear regression on computed heating degree days, or cooling degree days, or a combination of the two.}
@@ -27,6 +26,10 @@
 #'
 
 model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL){
+
+  if(training_list$chosen_modeling_interval == "Hourly") {
+    stop("Error: model_with_HDD_CDD cannot be used with Hourly data.")
+  }
 
   model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
 
