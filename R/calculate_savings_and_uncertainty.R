@@ -18,6 +18,10 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
     stop("Error: confidence level cannot be less than zero or greater than 100")
   }
 
+  if(! assertive::is_numeric(confidence_level)){
+    stop("Error: confidence level needs to be a numeric input between 0 and 100")
+  }
+
   correlation_df <- as.data.frame(matrix(nrow = length(modeled_object$training_data$eload), ncol = 2))
   names(correlation_df) <- c("residuals", "residuals_shifted")
 
