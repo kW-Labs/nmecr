@@ -14,6 +14,10 @@
 
 calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
 
+  if(confidence_level < 0 | confidence_level > 100){
+    stop("Error: confidence level cannot be less than zero or greater than 100")
+  }
+
   correlation_df <- as.data.frame(matrix(nrow = length(modeled_object$training_data$eload), ncol = 2))
   names(correlation_df) <- c("residuals", "residuals_shifted")
 
