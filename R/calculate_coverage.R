@@ -22,35 +22,50 @@
 
 
 
-calculate_coverage <- function(site_temp_data, ref_temp_data,
-                               outlier_threshold = NULL, extrapolation_limit = NULL,
-                               site_temp_start = NULL, site_temp_end = NULL, data_interval = NULL) {
+calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
+                               outlier_threshold = NULL, extrapolation_limit = NULL) {
 
-  site_temp_data <- site_temp_data[complete.cases(site_temp_data), ]
-  ref_temp_data <- ref_temp_data[complete.cases(ref_temp_data), ]
-
-  site_temp_data_nterval <- difftime(site_temp_data$time[2],
-                                     site_temp_data$time[1], units = "min")
-
-  if (site_temp_data_nterval == 15) {
-    site_temp_data_interval <- "15-min"
-  } else if (site_temp_data_nterval < 60) {
-    site_temp_data_interval <- "less than 60-min"
-  } else if (site_temp_data_nterval == 60) {
-    site_temp_data_interval <- "Hourly"
-  } else if (site_temp_data_nterval == 1440) {
-    site_temp_data_interval <- "Daily"
+  if(! assertive::is_numeric(outlier_threshold)){
+    stop("Error: outlier_threshold must be a numeric input")
   }
 
-  if (site_temp_data_interval == "15-min" | site_temp_data_interval == "less than 60-min"){
-    site_temp_data <- agg_to_hourly(site_temp_data, "Mean")
-    colnames(site_temp_data) <- c("time", "temp")
+  if(extrapolation_limit < 0 | extrapolation_limit > 1 | ! assertive::is_numeric(extrapolation_limit)){
+    stop("Error: extrapolation_limit must be a numeric input between 0 and 1. Default: 0.05")
   }
 
-  site_temp_data <- site_temp_data %>%
-    filter(time > site_temp_start - 1 &
-             time < site_temp_end + 1 )
+  # ref_temp_data time interval
+  nterval <- difftime(ref_temp_data$time[2], ref_temp_data$time[1], units = "mins")
 
+  if (nterval == 60) {
+    ref_temp_interval <- "Hourly"
+  } else if (nterval == 1440) {
+    ref_temp_interval <- "Daily"
+  } else {
+    stop("Please upload ref_temp_data in hourly or daily time data intervals")
+  }
+
+  if(dataframe$chosen_modeling_interval == "Monthly") {
+    stop("Please upload a dataframe in hourlt or daily time data intervals")
+  }
+
+  site_temp_data <- dataframe$dataframe[, c("time", "temp")]
+
+  if(ref_temp_interval == "Daily" | dataframe$chosen_modeling_interval == "Daily") {
+
+    ref_temp_data <- ref_temp_data %>%
+      mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
+      group_by("time" = day) %>%
+      summarize("temp" = mean(temp, na.rm = T)) %>%
+      na.omit()
+
+    site_temp_data <- site_temp_data %>%
+      mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
+      group_by("time" = day) %>%
+      summarize("temp" = mean(temp, na.rm = T)) %>%
+      na.omit()
+  }
+
+  # bin size: 2
   mround <- function(number, multiple=2) {
     n <- number / multiple
     if (abs(n - trunc(n)) == 0.5) {
@@ -61,42 +76,22 @@ calculate_coverage <- function(site_temp_data, ref_temp_data,
     round(n) * multiple
   }
 
-  if (site_temp_data_interval == "15-min" && data_interval == "Hourly" |
-      site_temp_data_interval == "Hourly" && data_interval == "Hourly"){
-
-    ref_temp_data <- ref_temp_data
-    site_temp_data <- site_temp_data
-
-  } else if (site_temp_data_interval == "Hourly" && data_interval == "Daily" |
-             site_temp_data_interval == "15-min" && data_interval == "Daily") {
-
-    site_temp_data <- agg_to_daily(site_temp_data, "Mean")
-    colnames(site_temp_data) <- c("time", "temp")
-
-    ref_temp_data <- agg_to_daily(ref_temp_data, "Mean")
-    colnames(ref_temp_data) <- c("time", "temp")
-
-  } else if (site_temp_data_interval == "Daily" && data_interval == "Daily") {
-
-    ref_temp_data <- ref_temp_data
-    site_temp_data <- site_temp_data
-  }
-
   # Creating an empty temperature bin matrix
   bins <- seq(0, 120, by = 2)
-  bins <- as.factor(bins)
+
   temp_data <- as.data.frame(bins)
   colnames(temp_data) <- c("bins")
 
   # Binning site temperature data
 
-  site_temp_bins <- sapply(site_temp_data$temp, mround)
-  site_temp_bins <- as.data.frame(site_temp_bins)
+  site_temp_bins <- sapply(site_temp_data$temp, mround) %>%
+    as.data.frame()
+
   colnames(site_temp_bins) <- c("bins")
 
   count_site_bins <- as.data.frame(table(site_temp_bins))
-  count_site_bins <- as.data.frame(count_site_bins)
   colnames(count_site_bins) <- c("bins", "frequency")
+  count_site_bins$bins <- as.numeric(count_site_bins$bins)
 
   # Populating the temperature bin matrix created above
 
