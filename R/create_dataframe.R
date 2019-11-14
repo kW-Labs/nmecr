@@ -19,6 +19,15 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     stop("Error: temp_balancepoint needs to be a numeric input between")
   }
 
+  if(! assertive::is_character(start_date)){
+    stop("Error: Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
+  }
+
+  if(! assertive::is_character(end_date)){
+    stop("Error: Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
+  }
+
+
   out <- list()
 
   convert_to_data_interval <- match.arg(convert_to_data_interval)
