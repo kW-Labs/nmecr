@@ -38,7 +38,7 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
   if(! is.null(prediction_results_list)) {
 
     savings_df <- prediction_results_list$predictions[, c("time", "eload", "predictions")] %>%
-      mutate(savings = predictions - eload)
+      dplyr::mutate(savings = predictions - eload)
 
     savings_summary_df <- as.data.frame(matrix(nrow = 1, ncol = 4))
     names(savings_summary_df) <- c("performance_period_use", "adjusted_baseline_use", "savings", "savings_pct")
@@ -64,7 +64,7 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
 
   uncertainty_50 <- 0.5
 
-  t_stat <- stats::qt(1 - (1 - (confidence_level/100)) / 2, 100000)
+  t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, 100000)
 
   if (modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
 
@@ -97,9 +97,9 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
   }
 
   savings_summary_df <- savings_summary_df %>%
-    mutate(savings_uncertainty = savings_uncertainty) %>%
-    mutate(savings_pct_for_50pct_uncertainty = savings_pct_for_50pct_uncertainty) %>%
-    mutate(confidence_level = confidence_level)
+    dplyr::mutate(savings_uncertainty = savings_uncertainty) %>%
+    dplyr::mutate(savings_pct_for_50pct_uncertainty = savings_pct_for_50pct_uncertainty) %>%
+    dplyr::mutate(confidence_level = confidence_level)
 
   results$savings_summary_df <- savings_summary_df
 

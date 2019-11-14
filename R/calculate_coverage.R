@@ -53,15 +53,15 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   if(ref_temp_interval == "Daily" | dataframe$chosen_modeling_interval == "Daily") {
 
     ref_temp_data <- ref_temp_data %>%
-      mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
-      group_by("time" = day) %>%
-      summarize("temp" = mean(temp, na.rm = T)) %>%
+      dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
+      dplyr::group_by("time" = day) %>%
+      dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
       na.omit()
 
     site_temp_data <- site_temp_data %>%
-      mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
-      group_by("time" = day) %>%
-      summarize("temp" = mean(temp, na.rm = T)) %>%
+      dplyr::mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
+      dplyr::group_by("time" = day) %>%
+      dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
       na.omit()
   }
 
@@ -85,22 +85,22 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   # Binning site temperature data
 
   site_temp_data <- site_temp_data %>%
-    mutate("bins" = sapply(temp, mround))
+    dplyr::mutate("bins" = sapply(temp, mround))
 
   site_temp_bins <- site_temp_data$bins
   count_site_bins <- as.data.frame(table(site_temp_bins))
   colnames(count_site_bins) <- c("bins", "frequency")
-  count_site_bins$bins <-as.character(count_site_bins$bins)
+  count_site_bins$bins <- as.character(count_site_bins$bins)
 
   # Binning reference temperature data
 
   ref_temp_data <- ref_temp_data %>%
-    mutate("bins" = sapply(temp, mround))
+    dplyr::mutate("bins" = sapply(temp, mround))
 
   ref_data_bins <- ref_temp_data$bins
   count_ref_data_bins <- as.data.frame(table(ref_data_bins))
   colnames(count_ref_data_bins) <- c("bins", "frequency")
-  count_ref_data_bins$bins <-as.character(count_ref_data_bins$bins)
+  count_ref_data_bins$bins <- as.character(count_ref_data_bins$bins)
 
   # Populating the temperature bin
 
@@ -137,7 +137,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     peak_bin_daily <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
 
     days_covered <- temp_coverage %>%
-      filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
+      dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
 
     days_covered <- sum(days_covered$n_ref_data)
 
@@ -150,7 +150,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     peak_bin_hourly <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
 
     hours_covered <- temp_coverage %>%
-      filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
+      dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
 
     hours_covered <- sum(hours_covered$n_ref_data)
 
