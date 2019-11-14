@@ -82,6 +82,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   }
 
   out$dataframe <- dataframe
+  out$chosen_modeling_interval <- convert_to_data_interval
 
   return(out)
 
