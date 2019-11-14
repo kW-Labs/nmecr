@@ -26,7 +26,7 @@ calculate_model_predictions <- function(training_list = NULL, prediction_list = 
     }
 
     predictions <- calculate_TOWT_model_predictions(training_list = training_list, prediction_list = prediction_list,
-                                                    modeled_object = modeled_object$model_input_options)
+                                                    modeled_object = modeled_object)
 
     out <- NULL
     out$predictions <- data.frame(prediction_list$dataframe, predictions)
