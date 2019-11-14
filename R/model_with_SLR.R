@@ -30,6 +30,8 @@
 
 model_with_SLR <- function(training_list = NULL, model_input_options = NULL){
 
+  model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
+
   dframe <- training_list$dataframe
 
   if(! is.null(training_list$operating_mode_data)){

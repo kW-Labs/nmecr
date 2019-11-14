@@ -28,6 +28,8 @@
 
 model_with_CP <- function(training_list = NULL, model_input_options = NULL){
 
+  model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
+
   dependent_variable <- training_list$dataframe$eload
   independent_variable <- training_list$dataframe$temp
 

@@ -28,6 +28,8 @@
 
 model_with_HDD_CDD <- function(training_list = NULL, model_input_options = NULL){
 
+  model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
+
   if(exists("eloadperday", where = training_list$dataframe)) {
       data_interval <- "Monthly"
   } else {
