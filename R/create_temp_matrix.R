@@ -1,15 +1,11 @@
-#' Create temperture bins for use in the TOWT algorithm.
+#' Temperature matrix for model_with_TOWT.
 #'
-#' \code{This function generates temperature changepoints for subsequent use in energy data fitting.
-#' This function, along with the function 'find_occ_unocc', is a utility function for another kWMV function: 'fit_TOWT_reg'.
-#' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+#' \code{This function generates temperature changepoints for subsequent use in energy data fitting}
 #'
 #' @param temp_col A vector containing temperature data
 #' @param temp_knot A vector specifying temperature knots to create temperature data segments
 #'
 #' @return A matrix with component temperatures
-#'
-#' @export
 
 create_temp_matrix <- function(temp_col = NULL, temp_knots = NULL) {
   temp_rows <- length(temp_col)

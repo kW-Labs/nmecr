@@ -1,5 +1,20 @@
-
-
+#' Modeling electric demand Time-of-Week and Temperature.
+#'
+#' \code{This function builds an electric demand models using two algorithms: TOWT and MW.
+#' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+#'
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
+#'
+#' @return a list with the following components:
+#' \describe{
+#'   \item{final_train_matrix} {training data matrix weighted according to timescale_days}
+#'   \item{reg_out} {an lm object generated from fit_TOWT_reg}
+#'   \item{final_pred_matrix} {prediction data matrix weighted according to timescale_days}
+#' }
+#'
+#' @export
 
 model_demand_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
 

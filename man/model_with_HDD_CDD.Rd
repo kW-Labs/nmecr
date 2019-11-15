@@ -2,37 +2,24 @@
 % Please edit documentation in R/model_with_HDD_CDD.R
 \name{model_with_HDD_CDD}
 \alias{model_with_HDD_CDD}
-\title{Generate an energy data model using HDD and CDD models with outside air temperature.}
+\title{Heating/Cooling Degree Days algorithms using outside air temperature.}
 \usage{
-model_with_HDD_CDD(training_data, prediction_data = NULL,
-  regression_type = NULL, data_interval = NULL, data_units = NULL)
+model_with_HDD_CDD(training_list = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{training_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
+\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{prediction_data}{Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
-
-\item{regression_type}{Character string indictating the modeling algorithm to run: "Three Parameter Heating", "Three Parameter Cooling",
-"Four Parameter Linear Model", "Five Parameter Linear Model",}
-
-\item{data_interval}{Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".}
-
-\item{data_units}{energy data's units}
+\item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }
 \value{
 a list with the following components:
 \describe{
-  \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-  \item{training_data}{a dataframe corresponding to the training data after the
-  cleaning and filtering function were applied, fitted values, and residuls.}
-  \item{HDD_CDD_model}{an object with parameter coefficients and associated p-values resulting from the HDD_CDD model.}
-  \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
-  \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
-  energy project's baseline energy dataset.}
-  \item{model}{the lm object created within 'model_with_CP'.}
-  \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
+  \item{model} {an lm object}
+  \item{training_data} {training dataframe along with the model_fit values}
+  \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
 }
 }
 \description{
-\code{This function builds an energy use model using linear regression on computed heating degree days, or cooling degree days, or a combination of the two.}
+\code{This function builds an energy use model using one of three algorithms: HDD-CDD Multivariate Regression, HDD Regression,
+CDD Regression.}#'
 }

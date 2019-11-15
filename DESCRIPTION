@@ -11,7 +11,15 @@ Description: nmecr builds statistical energy data models and provides a comprehe
 License: Refer to License.txt file
 BugReports: https://github.com/kW-Labs/nmecr/issues
 Depends: R (>= 3.5.0),
-    dplyr 
+    dplyr,
+    tidyverse,
+    dplyr,
+    lubridate,
+    readxl,
+    openxlsx,
+    segmented,
+    moments,
+    magrittr
 Imports: 
     tidyverse,
     dplyr,
@@ -19,7 +27,8 @@ Imports:
     readxl,
     openxlsx,
     segmented,
-    moments
+    moments,
+    magrittr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1

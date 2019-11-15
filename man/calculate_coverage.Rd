@@ -4,25 +4,18 @@
 \alias{calculate_coverage}
 \title{Calculate coverage of independent variables in the normalized conditions dataset.}
 \usage{
-calculate_coverage(site_temp_data, ref_temp_data,
-  outlier_threshold = NULL, extrapolation_limit = NULL,
-  site_temp_start = NULL, site_temp_end = NULL, data_interval = NULL)
+calculate_coverage(data_list = NULL, ref_temp_data = NULL,
+  outlier_threshold = NULL, extrapolation_limit = NULL)
 }
 \arguments{
-\item{site_temp_data}{An nx2 dataframe with the temperature data of the facility. Colnames: time and temp.}
+\item{data_list}{Training or Prediction data_list from create_dataframe}
 
 \item{ref_temp_data}{An nx2 dataframe with the hourly normalized temperature data corresponding to the facility's location. Colnames: time and temp.}
 
 \item{outlier_threshold}{a numeric indicating the number of datapoints (hours or days, depending on the data interval) below which the temperature observation occurences will be considered an outlier.
 Default values: 1 for daily data, up to 10 for hourly data.}
 
-\item{extrapolation_limit}{A numeric indicating the percentage, beyond the minimum and maximum observed temperatures, up to which the data range may be extrapolated for model prediction.}
-
-\item{site_temp_start}{a Date object indicating the baseline start date.}
-
-\item{site_temp_end}{A Date object indicating the baseline end date.}
-
-\item{data_interval}{Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".}
+\item{extrapolation_limit}{A numeric, beyond the minimum and maximum observed temperatures, up to which the data range may be extrapolated for model prediction. Default: 0.05}
 }
 \value{
 a list with the following components:

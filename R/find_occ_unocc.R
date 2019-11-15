@@ -1,8 +1,6 @@
-#' Divide time-of-energy-use into occupied and unoccupied modes for use TOWT algorithm.
+#' Occupancy detection algorithm for model_with_TOWT.
 #'
-#' \code{This function generates occupancy schedules for subsequent use in energy data fitting.
-#' This function, along with the function 'create_temp_matrix', is a utility function for another kWMV function: 'fit_towt_reg'.
-#' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+#' \code{This function generates occupancy schedules for subsequent use in energy data fitting.}
 #'
 #' @param interval_of_week Unique indicator for each 15-min interval of the week.
 #' @param eload_col eload column of training data.
@@ -10,8 +8,6 @@
 #' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Deafult: 15.
 #' @return A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
 #'
-#' @export
-
 
 find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col = NULL,
                            interval_minutes=15) {

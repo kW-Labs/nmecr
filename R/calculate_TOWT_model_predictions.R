@@ -1,3 +1,16 @@
+#' Calculate TOWT model predictions
+#'
+#' \code{This function calculates predictions from model_with_TOWT}
+#'
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
+#'
+#' @return a list with the following components:
+#' \describe{
+#'   \item{predictions} {dataframe with model predictions}
+#' }
+#'
 
 calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_list = NULL, modeled_object = NULL){
 
@@ -35,8 +48,8 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
   if (modeled_object$model_input_options$regression_type == "Time-only") {
 
     ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
-    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
-    pred_vec[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
+    predictions <- rep(NA, length(prediction_list$dataframe$time))
+    predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
 
   } else {
 
@@ -65,7 +78,7 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
     # Add temperature matrix information to the prediction dataframe
     dframe_pred <- data.frame(dframe_pred, temp_mat_pred)
 
-    pred_vec <- rep(NA, length(prediction_list$dataframe$time))
+    predictions <- rep(NA, length(prediction_list$dataframe$time))
 
     # create subsets by occupancy - predict for each subset
     ok_occ <- occ_vec == 1
@@ -73,19 +86,19 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
 
     if (sum(ok_occ > 0)) {
       ok_tow_pred <- dframe_pred$ftow %in% modeled_object$model_occupied$xlevels$ftow
-      pred_vec[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_tow_pred, ])
+      predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_tow_pred, ])
     }
 
     if (sum(! ok_occ) > 0) {
       ok_tow_pred <- dframe_pred$ftow %in% modeled_object$model_unoccupied$xlevels$ftow
-      pred_vec[ok_tow_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[ok_tow_pred, ])
+      predictions[ok_tow_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[ok_tow_pred, ])
     }
 
   }
 
   output <- NULL
-  pred_vec[pred_vec < 0] <- 0
-  output <-  pred_vec
+  predictions[predictions < 0] <- 0
+  output <-  predictions
 
   return(output)
 

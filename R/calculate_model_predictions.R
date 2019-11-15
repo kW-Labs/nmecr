@@ -1,4 +1,17 @@
-
+#' Calculate model predictions
+#'
+#' \code{This function calculates predictions from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT}
+#'
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
+#'
+#' @return a list with the following components:
+#' \describe{
+#'   \item{predictions} {dataframe with model predictions}
+#' }
+#'
+#' @export
 
 calculate_model_predictions <- function(training_list = NULL, prediction_list = NULL, modeled_object = NULL) {
 

@@ -2,9 +2,9 @@
 % Please edit documentation in R/create_temp_matrix.R
 \name{create_temp_matrix}
 \alias{create_temp_matrix}
-\title{Create temperture bins for use in the TOWT algorithm.}
+\title{Temperature matrix for model_with_TOWT.}
 \usage{
-create_temp_matrix(temp_col, temp_knots)
+create_temp_matrix(temp_col = NULL, temp_knots = NULL)
 }
 \arguments{
 \item{temp_col}{A vector containing temperature data}
@@ -15,7 +15,5 @@ create_temp_matrix(temp_col, temp_knots)
 A matrix with component temperatures
 }
 \description{
-\code{This function generates temperature changepoints for subsequent use in energy data fitting.
-This function, along with the function 'find_occ_unocc', is a utility function for another kWMV function: 'fit_TOWT_reg'.
-This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+\code{This function generates temperature changepoints for subsequent use in energy data fitting}
 }

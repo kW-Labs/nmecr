@@ -1,21 +1,28 @@
+#' Calculate model summary statistics.
+#'
+#' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
+#'
+#' @return a dataframe with five model statistics: "R_squared", "CVRMSE", "NDBE", "MBE", "#Parameters"
+#'
+#' @export
+#'
+calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
-calculate_summary_statistics <- function(model_results = NULL) {
-
-  model_fit <- model_results$training_data$model_fit
-  eload <- model_results$training_data$eload
+  model_fit <- modeled_data_obj$training_data$model_fit
+  eload <- modeled_data_obj$training_data$eload
   fit_residuals_numeric <- eload - model_fit
 
-  if(model_results$model_input_options$regression_type == "TOWT" | model_results$model_input_options$regression_type == "Time-only") {
+  if(modeled_data_obj$model_input_options$regression_type == "TOWT" | modeled_data_obj$model_input_options$regression_type == "Time-only") {
 
-    nparameter <- length(model_results$model_occupied$coefficients)
+    nparameter <- length(modeled_data_obj$model_occupied$coefficients)
 
-    if(exists("model_unoccupied", where = model_results)){
-      nparameter <- nparameter + length(model_results$model_unoccupied$coefficients)
+    if(exists("model_unoccupied", where = modeled_data_obj)){
+      nparameter <- nparameter + length(modeled_data_obj$model_unoccupied$coefficients)
     }
 
   } else {
 
-    nparameter <- length(model_results$model$coefficients)
+    nparameter <- length(modeled_data_obj$model$coefficients)
 
   }
 
@@ -27,7 +34,7 @@ calculate_summary_statistics <- function(model_results = NULL) {
   SSR_over_SST <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
     mean(.) %>%
-    magrittr::divide_by(var(model_results$training_data$eload))
+    magrittr::divide_by(var(modeled_data_obj$training_data$eload))
 
   R_squared <- 1 - SSR_over_SST
 

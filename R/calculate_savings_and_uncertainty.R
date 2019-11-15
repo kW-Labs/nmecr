@@ -1,15 +1,19 @@
-#' Calculate energy use avoided in the post-implementation period.
+#' Calculate meter-based savings and associated uncertainty.
 #'
-#' \code{This function computes the estimated avoided energy use using the predicted data of the post-implementation period.}
+#' \code{This function calculates meter-based savings achieved and the associated uncertainty.}
 #'
-#' @param modeled_data_obj  An object with modeled data results. For example, the output from 'model_with_TOWT' function.
+#' @param prediction_results_list List with model predictions. Output from calculate_model_predictions
+#' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
+#' @param model_summary_statistics Dataframe with model statistics. Output from calculate_summary_statistics.
+#' @param confidence_level Numeric corresponding to the confidence level to be used for savings uncertainty calculation
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{savings_summary}{a dataframe with absolute savings value and the savings pct value.}
-#'   \item{savings_df}{a dataframe with the savings achieved per time interval.}
-#'   \item{pct_savings}{a numeric indicating the percent savings achieved.}
+#'   \item{savings_df}{a dataframe with savings achieved for each timestamp.}
+#'   \item{savings_summary_df}{a dataframe with total performance perioenergy use, total adjusted baseline use, total savingsachieved , savings percentage,
+#'   savings uncertainty, savings percentage using 50 percent uncertainty, and the specified confidence level}
 #' }
+#'
 #' @export
 
 calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){

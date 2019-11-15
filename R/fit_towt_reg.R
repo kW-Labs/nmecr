@@ -1,28 +1,19 @@
-#' TODO: create new prediction function - common to all modeled objects
-#' Develop linear regression models for energy use data using time-of-week and outside air temperature as independent variables.
+#' Utility function for model_with_TOWT
 #'
-#' \code{This function generates linear regressions for energy use data using the temperature changepoints and occupancy schedules determined
-#' by two other kWMV functions: 'find_occ_unocc' and 'create_temp_matrix'.
-#' It is a utility function for another kWMV function: 'create_TOWT_weighted_reg'.
-#' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+#' \code{This function builds an energy use/demand models separated by occupancy and temperature regimens.}
 #'
-#' @param time_col time column of training data.
-#' @param eload_col eload column of training data.
-#' @param temp_col temp column of training data.
-#' @param pred_time_col time column of prediction data.
-#' @param pred_temp_col temp column of prediction data.
-#' @param temp_knots vector specifying temperture knots for linear regression.
-#' @param weight_vec vector specifying the weighting factor of time intervals. Default: 1*length of training data.
-#' Change to improve accuracy of short term models.
-#' @param interval_minutes value defining the interval period. Default: 15.
-#' @param run_temperature_model Boolean specifying whether temperature should or should not be used in regression modeling.
-#' @param has_operating_modes Boolean specifying whether the energy use profile has varying operating modes.
-#' @param train_operating_mode_data dataframe with indicator variables for the various operating modes present in the model training period.
-#' @param pred_operating_mode_data dataframe with indicator variables for the various operating modes present in the mdoel prediction period.
-#' @param categories vector specifying names of the operating modes present.
-#' @return A list of dataframes - training data, predictions, and model coefficients with their statistical significance values
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
-#' @export
+#'
+#' @return a list with the following components:
+#' \describe{
+#'   \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+#'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
+#'   \item{training_data} {training dataframe along with the model_fit values}
+#'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
+#' }
 
 fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL) {
 

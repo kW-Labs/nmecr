@@ -1,7 +1,16 @@
-
-
-
-
+#' Assign inputs for various modeling algorithms within nmecr.
+#'
+#'
+#' @param timescale_days Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.
+#' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Default: 15
+#' @param has_temp_knots_defined Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE
+#' @param equal_temp_segment_points  Logical specifying structure of temperature segments: equal number of points vs. equal segment length. Default: TRUE
+#' @param temp_segments_numeric Numeric specifying number of temperature segments. Default: 6
+#' @param temp_knots_value Vector specifying manually defined temperature knots.
+#' @param initial_breakpoints Vector indicating the initial breakpoints (changepoints) to regress over.
+#' @param regression_type Character string indictating the modeling algorithm to run:
+#'
+#' @return a list specifying the chosen algorithm inputs
 
 assign_model_inputs <- function(timescale_days = NULL,
                              interval_minutes = 15,

@@ -2,42 +2,21 @@
 % Please edit documentation in R/model_with_SLR.R
 \name{model_with_SLR}
 \alias{model_with_SLR}
-\title{Generate an energy data model using simple linear regression with outside air temperature.}
+\title{Simple Linear Regression using outside air temperature.}
 \usage{
-model_with_SLR(training_data, prediction_data = NULL,
-  data_interval = NULL, has_operating_modes = FALSE,
-  train_operating_mode_data = NULL, pred_operating_mode_data = NULL,
-  data_units = NULL)
+model_with_SLR(training_list = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{training_data}{Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
+\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{prediction_data}{Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).}
-
-\item{data_interval}{Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".}
-
-\item{has_operating_modes}{Boolean specifying whether the energy use profile has varying operating modes. Only used with 'Simple Linear Regression with OAT'.}
-
-\item{train_operating_mode_data}{dataframe with indicator variables for the various operating modes present in the model training period.
-Only used with 'Simple Linear Regression with OAT'.}
-
-\item{pred_operating_mode_data}{dataframe with indicator variables for the various operating modes present in the mdoel prediction period.
-Only used with 'Simple Linear Regression with OAT'.}
-
-\item{data_units}{energy data's units}
+\item{model_input_options}{List with model inputs specified using assign_model_inputs#'}
 }
 \value{
 a list with the following components:
 \describe{
-  \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-  \item{training_data}{a dataframe corresponding to the training data after the
-  cleaning and filtering function were applied, fitted values, and residuls.}
-  \item{SLR_model}{an object with parameter coefficients and associated p-values resulting from the SLR model.}
-  \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
-  \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
-  energy project's baseline energy dataset.}
-  \item{model}{the lm object created within 'model_with_SLR'.}
-  \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
+  \item{model} {an lm object}
+  \item{training_data} {training dataframe along with the model_fit values}
+  \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
 }
 }
 \description{

@@ -1,18 +1,11 @@
-#' Calculate temperature knots
+#' Temperature knots calculation for model_with_TOWT
 #'
-#' \code{This function determines temperature knots in the training dataset.
-#' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+#' \code{This function determines temperature knots in the training dataset.}
 #'
-#' @param dataframe Training or Performance period dataframe, an object that has been created by the function create_dataframe() and add_operating_mode_data()
-#' @param num_model_runs a numeric object created by determine_count_of_model_runs()
-#' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
-#' Change to improve accuracy of short term models.
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
-#' @return a numeric corresponding to the number of model runs to be computed for TOWT
-#'
-#' @export
-#'
-#'
+#' @return a vector with calculated temperature knots
 #'
 
 calculate_temp_knots <- function(training_list = NULL, model_input_options = NULL) {

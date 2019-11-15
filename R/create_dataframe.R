@@ -1,15 +1,17 @@
 #' Generate training or prediction dataframe.
 #'
 #'
-#' @param eload_data A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
+#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily
-#' @param training_start_datetime  A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the training dataframe
-#' @param training_end_datetime A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the training dataframe
-#' @param convert_to_data_interval A character string indicating the time interval to which the training dataframe should be aggregated
+#' @param operating_mode_data A dataframe with indicator variables for different energy use profiles withtin the stated time period.
+#' A time column, corresponding to eload_data and/or temp_data must be included.
+#' @param start_date  A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe
+#' @param end_date A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the intended dataframe
+#' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'
+#' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #'
-#' @return a dataframe with energy consumption data and corresponding temperature data
+#' @return a list with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
 #' @export
-#'
 
 create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode_data = NULL,
                              start_date = NULL, end_date = NULL,

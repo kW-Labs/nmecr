@@ -2,51 +2,27 @@
 % Please edit documentation in R/fit_TOWT_reg.R
 \name{fit_TOWT_reg}
 \alias{fit_TOWT_reg}
-\title{Develop linear regression models for energy use data using time-of-week and outside air temperature as independent variables.}
+\title{Utility function for model_with_TOWT}
 \usage{
-fit_TOWT_reg(time_col, eload_col, temp_col, pred_time_col, pred_temp_col,
-  temp_knots = temp_knots, weight_vec = weight_vec,
-  interval_minutes = interval_minutes,
-  run_temperature_model = run_temperature_model,
-  has_operating_modes = has_operating_modes,
-  train_operating_mode_data = train_operating_mode_data,
-  pred_operating_mode_data = pred_operating_mode_data,
-  categories = categories)
+fit_TOWT_reg(training_list = NULL, prediction_list = NULL,
+  model_input_options = NULL)
 }
 \arguments{
-\item{time_col}{time column of training data.}
+\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{eload_col}{eload column of training data.}
+\item{prediction_list}{List with prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{temp_col}{temp column of training data.}
-
-\item{pred_time_col}{time column of prediction data.}
-
-\item{pred_temp_col}{temp column of prediction data.}
-
-\item{temp_knots}{vector specifying temperture knots for linear regression.}
-
-\item{weight_vec}{vector specifying the weighting factor of time intervals. Default: 1*length of training data.
-Change to improve accuracy of short term models.}
-
-\item{interval_minutes}{value defining the interval period. Default: 15.}
-
-\item{run_temperature_model}{Boolean specifying whether temperature should or should not be used in regression modeling.}
-
-\item{has_operating_modes}{Boolean specifying whether the energy use profile has varying operating modes.}
-
-\item{train_operating_mode_data}{dataframe with indicator variables for the various operating modes present in the model training period.}
-
-\item{pred_operating_mode_data}{dataframe with indicator variables for the various operating modes present in the mdoel prediction period.}
-
-\item{categories}{vector specifying names of the operating modes present.}
+\item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }
 \value{
-A list of dataframes - training data, predictions, and model coefficients with their statistical significance values
+a list with the following components:
+\describe{
+  \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+  \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
+  \item{training_data} {training dataframe along with the model_fit values}
+  \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
+}
 }
 \description{
-\code{This function generates linear regressions for energy use data using the temperature changepoints and occupancy schedules determined
-by two other kWMV functions: 'find_occ_unocc' and 'create_temp_matrix'.
-It is a utility function for another kWMV function: 'create_TOWT_weighted_reg'.
-This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
+\code{This function builds an energy use/demand models separated by occupancy and temperature regimens.}
 }

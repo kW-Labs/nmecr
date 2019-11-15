@@ -1,38 +1,21 @@
-#' Generate an energy data model using the Time-of-Week and Temperature algorithm.
+#' Time-of-Week and Temperature.
 #'
-#'
-#' \code{This function builds an energy use model using two algorithms: TOWT and MW.
+#' \code{This function builds an energy use/demand models using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param training_data Training period dataframe, an object that has been created by the function create_dataframe
-#' @param prediction_data Prediction period dataframe,an object that has been created by the function create_dataframe
-#' @param timescale_days Numeric correspond to the timescale for weighting function.Default: NULL.
-#' Change to improve accuracy of short term models.
-#' @param interval_minutes Numeric for the interval period. Default: 15.
-#' @param has_temp_knots_defined Boolean specifying whether the temp_knots are pre-defined or will be calculated by the algorithm
-#' @param run_temperature_model Boolean specifying whether temperature should or should not be used in regression modeling.
-#' @param equal_temp_segment_points Boolean specifying structure of temperature segments: equal number of points vs. equal segment length
-#' @param temp_segments_numeric Numeric for number of temperature segments. Default: 6
-#' @param temp_knots_value Vector specifying manually defined temperature knots.
-#' @param has_operating_modes Boolean specifying whether the energy use profile has varying operating modes.
-#' @param train_operating_mode_data dataframe with indicator variables for the various operating modes present in the model training period.
-#' @param pred_operating_mode_data dataframe with indicator variables for the various operating modes present in the mdoel prediction period.
-#' @param data_interval Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".
-#' @param data_units energy data's units
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
-#' @return a TOWT_baseline object, which is a list with the following components:
+#' @return a list with the following components:
 #' \describe{
-#'   \item{TOWT_model}{an object that has been created by the function create_TOWT_weighted_reg,
-#'    and which correspond to the TOWT model.}
-#'   \item{training_data}{a dataframe corresponding to the training data after the
-#'   cleaning and filtering function were applied, fitted values, and residuls}
-#'   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-#'   \item{rsdl}{a data frame containing all residual values}
-#'   \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
-#'   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
-#'   energy project's baseline energy dataset.}
-#'   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
+#'   \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+#'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
+#'   \item{training_data} {training dataframe along with the model_fit values}
+#'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
+#'   \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
 #' }
+#'
 #' @export
 
 model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){

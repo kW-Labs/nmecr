@@ -1,3 +1,13 @@
+#' Aggregate energy/demand consumption and temperature data
+#'
+#' \code{Aggregate energy/demand consumption and temperature data to hourly, daily, or monthly data intervals.}
+#'
+#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
+#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily
+#' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'
+#' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
+#'
+#' @return a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval.
 
 aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
                       temp_balancepoint = 65) {

@@ -1,30 +1,20 @@
-# TODO: Implement a try-catch for errors that are thrown when the energy use profile cannot be modeled using 3PH or 3PC.
-#' Generate an energy data model using change point models with outside air temperature.
+#' Changepoint algorithms using outside air temperature.
 #'
-#' \code{This function builds an energy use model using one of four available change point modeling algorithms.}
+#' \code{This function builds an energy use model using the four changepoint algorithms: Three Parameter Cooling, Three Parameter Heating,
+#' Four Parameter Linear Model, Fice Parameter Linear Model.}
 #'
-#' @param training_data Training period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
-#' @param prediction_data Prediction period dataframe, where the columns correspond to the time steps (time), the energy load (eload), and the temperature (Temp).
-#' @param regression_type Character string indictating the modeling algorithm to run: "Three Parameter Heating", "Three Parameter Cooling",
-#' "Four Parameter Linear Model", "Five Parameter Linear Model",
-#' @param initial_breakpoints vector indicating the initial breakpoints to regress over. Use only with "Five Parameter Linear Model".
-#' @param data_interval Character string specifying the data time interval: "Hourly", "Daily, or "Monthly".
-#' @param data_units energy data's units.
-#'
+#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{goodness_of_fit}{a data frame that contains the goodness of fitting metrics.}
-#'   \item{training_data}{a dataframe corresponding to the training data after the
-#'   cleaning and filtering function were applied, fitted values, and residuls.}
-#'   \item{CP_model}{an object with parameter coefficients and associated p-values resulting from the CP model.}
-#'   \item{normality metrics}{a list with details on residuals' skewness and kurtosis.}
-#'   \item{energy use summary}{Summed baseline, post-implementation, and adjusted baseline energy use values. Assumes training dataset is the
-#'   energy project's baseline energy dataset.}
-#'   \item{model}{the lm object created within 'model_with_CP'.}
-#'   \item{post_implementation_data}{a dataframe corresponding to the post-implementation dataset along with predicted values.}
+#'   \item{model} {an lm object}
+#'   \item{training_data} {training dataframe along with the model_fit values}
+#'   \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
 #' }
+#'
 #' @export
+
 
 model_with_CP <- function(training_list = NULL, model_input_options = NULL){
 
