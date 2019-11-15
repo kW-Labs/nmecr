@@ -21,6 +21,7 @@ Depends: R (>= 3.5.0),
     moments,
     magrittr
 Imports: 
+    dplyr,
     tidyverse,
     dplyr,
     lubridate,
