@@ -23,24 +23,14 @@ model_with_CP <- function(training_list = NULL, model_input_options = NULL){
   dependent_variable <- training_list$dataframe$eload
   independent_variable <- training_list$dataframe$temp
 
-  if (model_input_options$regression_type == "Three Parameter Cooling") {
+  if (model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "Three Parameter Heating") {
 
-    dummy_cooling_model <- lm(dependent_variable  ~ 1)
-    three_paramter_cooling_model <- segmented::segmented(dummy_cooling_model, seg.Z = ~independent_variable)
-
-    out <- list()
-    out$model <- three_paramter_cooling_model
-    out$training_data <- data.frame(training_list$dataframe, "model_fit" = three_paramter_cooling_model$fitted.values)
-    out$model_input_options <- model_input_options
-
-  } else if (model_input_options$regression_type == "Three Parameter Heating") {
-
-    dummy_heating_model <- lm(dependent_variable ~ - 1)
-    three_paramter_heating_model <- segmented::segmented(dummy_heating_model, seg.Z = ~independent_variable)
+    dummy_model <- lm(dependent_variable  ~ 1)
+    three_paramter_model <- segmented::segmented(dummy_model, seg.Z = ~independent_variable)
 
     out <- list()
-    out$model <- three_paramter_heating_model
-    out$training_data <- data.frame(training_list$dataframe, "model_fit" = three_paramter_heating_model$fitted.values)
+    out$model <- three_paramter_model
+    out$training_data <- data.frame(training_list$dataframe, "model_fit" = three_paramter_model$fitted.values)
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model"){
