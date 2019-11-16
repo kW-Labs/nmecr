@@ -96,8 +96,8 @@ head(baseline_df$dataframe, 5)
 # Performance Period Dataframe
 
 performance_df <- create_dataframe(eload_data = eload, temp_data = temp, 
-                                   start_date = "03/01/2013 00:00", 
-                                   end_date = "02/28/2014 23:59", 
+                                   start_date = "03/01/2014 00:00", 
+                                   end_date = "02/28/2015 23:59", 
                                    convert_to_data_interval = "Daily")
 
 head(performance_df$dataframe, 5)
@@ -334,7 +334,7 @@ TOWT_savings <- calculate_savings_and_uncertainty(prediction_results_list =
 TOWT_savings$savings_summary_df
 ```
 
-Savings achieved at the meter for this project amount to ~8% of the Adjusted Baseline Use with an associated savings uncertainty of 13%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 90% confidence level. The 13% uncertainty is well below this threshold. 
+Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 15%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 90% confidence level. The 15% uncertainty is well below this threshold. 
 
 The savings percentage required to meet the threshold of 50% uncertainty is 2.1% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 
