@@ -26,9 +26,9 @@ library(ggplot2)
 library(tidyr)
 ```
 
-The `nmecr` package was written to integrate the past efforts of the energy efficiency industry to streamline meter-based Measurement & Verification of EE projects. It brings together simple linear regression with outside air temperature , the change point models (from ASHARE 1040-RP), and the Time-of-Week and Temperature model (developed by the Lawrence Berkeley National Laboratory) and builds enhancements upon these by accurately predicting the energy use profiles of facilities with multiple operating modes.  
+The `nmecr` package was written to integrate the past efforts of the energy efficiency industry to streamline meter-based Measurement & Verification of EE projects. It brings together simple linear regression with outside air temperature, the change point models (from ASHRAE 1050-RP), and the Time-of-Week and Temperature model (developed by the Lawrence Berkeley National Laboratory) and builds enhancements upon these by accurately predicting the energy use profiles of facilities with multiple operating modes.  
 
-#### Normalized Metered Energy Consumption (NMEC)
+## Normalized Metered Energy Consumption (NMEC)
 
 Meter-based energy efficiency programs are proliferating across the globe. This proliferation is influenced by the widespread availability of high frequency energy use measurements from new metering technology as well as advancements in statistical regression and other empirical energy data modeling methodologies. Program administrators may report savings as the overall reduction in normalized metered energy consumption (NMEC). This method to determine savings is based on analysis of meter data collected prior to and after energy efficiency and conservation measures have been installed. Referred to as advanced measurement and verification (M&V) by the industry, this time-granular data and updated modeling methods provide several advantages over other methods used to quantify the benefits of energy efficiency:
 
@@ -153,6 +153,8 @@ ggplot2::ggplot(baseline_df$dataframe, aes(x = time, y = eload)) +
 
 ```
 
+Figure 1: Baseline Energy Use over Time
+
 ```{r baseline scatter, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
 ggplot2::ggplot(baseline_df$dataframe, aes(x = temp, y = eload)) +
@@ -163,11 +165,13 @@ ggplot2::ggplot(baseline_df$dataframe, aes(x = temp, y = eload)) +
 
 ```
 
+Figure 2: Baseline Energy Use over Temperature
+
 Due to the high dependence on temperature, we can begin the data modeling using Simple Linear Regression and compare that to other modeling algorithms
 
 ### Model Creation
 
-Simple Linear Regression:
+**Simple Linear Regression:**
 
 ```{r SLR_model, results = 'markup'}
 
@@ -176,7 +180,6 @@ SLR_model <- model_with_SLR(training_list = baseline_df,
                               assign_model_inputs(regression_type = "SLR"))
 
 ```
-
 
 ```{r SLR model, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
 
@@ -191,6 +194,8 @@ ggplot2::ggplot(SLR_df, aes(x = time, y = value)) +
   
 ```
 
+Figure 3: Baseline Energy Use modeled with Simple Linear Regression over Time
+
 ``` {r SLR scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
   
  ggplot2::ggplot(SLR_df, aes(x = temp, y = value)) +
@@ -202,7 +207,9 @@ ggplot2::ggplot(SLR_df, aes(x = time, y = value)) +
 
 ```
 
-Three Parameter Heating:
+Figure 4: Baseline Energy Use modeled with Simple Linear Regression over Temperature
+
+**Three Parameter Heating:**
 
 ```{r 3PH_model, results='markup'}
 
@@ -212,6 +219,7 @@ Three_PH_model <- model_with_CP(training_list = baseline_df,
                                                         "Three Parameter Heating"))
 
 ```
+
 
 ```{r 3PH model, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
 
@@ -225,6 +233,8 @@ ggplot2::ggplot(Three_PH_df, aes(x = time, y = value)) +
   theme_minimal()
 ```
 
+Figure 5: Baseline Energy Use modeled with Three Parameter Heating Regression over Time
+
 ```{r 3PH scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
  ggplot2::ggplot(Three_PH_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
@@ -234,7 +244,9 @@ ggplot2::ggplot(Three_PH_df, aes(x = time, y = value)) +
 
 ```
 
-Time of Week and Temperature:
+Figure 6: Baseline Energy Use modeled with Three Parameter Heating Regression over Temperature
+
+**Time of Week and Temperature:**
 
 ```{r TOWT_model, results='markup'}
 
@@ -256,6 +268,8 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   theme_minimal()
 ```
 
+Figure 7: Baseline Energy Use modeled with Time-of-week and Temperature over Time
+
 ```{r TOWT scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
  ggplot2::ggplot(TOWT_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
@@ -264,6 +278,8 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   theme_minimal() 
 
 ```
+
+Figure 8: Baseline Energy Use modeled with Time-of-week and Temperature over Temperature
 
 The plots show that the Time-of-Week and Temperature algorithm models the energy use profile better than the other two. 
 
@@ -287,6 +303,10 @@ all_stats
 
 ```
 
+* CVRMSE: Coefficient of Variation of Root Mean Squared Error 
+* NDBE: Net Determination Bias Error
+* MBE: Mean Bias Error
+* R_squared: Coefficient of Determination
 
 ## Energy Load Prediction
 
@@ -312,6 +332,8 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   theme_minimal()
 ```
 
+Figure 9: Performance period energy use and TOWT model predictions over Time
+
 ```{r TOWT pred scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
  ggplot2::ggplot(TOWT_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
@@ -320,6 +342,10 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   theme_minimal() 
 
 ```
+
+Figure 10: Performance period energy use and TOWT model predictions over Temperature
+
+## Energy Savings and Uncertainity
 
 The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. It includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
 
@@ -337,4 +363,15 @@ TOWT_savings$savings_summary_df
 Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 15%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 90% confidence level. The 15% uncertainty is well below this threshold. 
 
 The savings percentage required to meet the threshold of 50% uncertainty is 2.1% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
+
+## Assessing project fit for NMEC
+
+Using the modeling statistics, savings achieved, and the associated savings uncertainity, we can determine the applicability of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment:
+
+1. CVRMSE: 6.78% (should be < 25%)
+2. NDBE: 0.0000 (should be < 0.005%)
+3. Savings: 7%
+4. Uncertainty at 90% CL: 15% (should be < 50%)
+
+In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above).
 
