@@ -35,7 +35,7 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
 
   rho <- cor(correlation_df[,1], correlation_df[,2])
   n <- length(modeled_object$training_data$time)
-  n_dash <- n*rho
+  n_dash <- n*(1 - rho)/(1+rho)
 
   results <- NULL
 
