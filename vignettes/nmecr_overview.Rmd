@@ -1,16 +1,15 @@
 ---
 title: "Introduction to nmecr"
-author: 
-  - Mrinalini Sharma^[msharma@kw-engineering.com]
-  - David Jump^[djump@kw-engineering.com]
-  - Devan Johnson^[johnson@kw-engineering.com]
-
+author:
+- Mrinalini Sharma^[msharma@kw-engineering.com]
+- David Jump^[djump@kw-engineering.com]
+- Devan Johnson^[johnson@kw-engineering.com]
 date: "November 22, 2019"
-output: pdf_document
-vignette: >
-  %\VignetteIndexEntry{Introduction to nmecr}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  word_document: default
+  pdf_document: default
+vignette: |
+  %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -190,7 +189,9 @@ ggplot2::ggplot(SLR_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
   
 ```
 
@@ -202,45 +203,51 @@ Figure 3: Baseline Energy Use modeled with Simple Linear Regression over Time
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 
 
 ```
 
 Figure 4: Baseline Energy Use modeled with Simple Linear Regression over Temperature
 
-**Three Parameter Heating:**
+**Four Parameter Heating:**
 
-```{r 3PH_model, results='markup'}
+```{r 4P_model, results='markup'}
 
-Three_PH_model <- model_with_CP(training_list = baseline_df, 
+Four_P_model <- model_with_CP(training_list = baseline_df, 
                                 model_input_options = 
                                   assign_model_inputs(regression_type = 
-                                                        "Three Parameter Heating"))
+                                                        "Four Parameter Linear Model"))
 
 ```
 
 
-```{r 3PH model, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
+```{r 4P model, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
 
-Three_PH_df <- Three_PH_model$training_data %>%
+Four_P_df <- Four_P_model$training_data %>%
   tidyr::gather(key = "variable", value = "value", -c("time", "temp", "CDD", "HDD"))
 
-ggplot2::ggplot(Three_PH_df, aes(x = time, y = value)) +
+ggplot2::ggplot(Four_P_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 ```
 
 Figure 5: Baseline Energy Use modeled with Three Parameter Heating Regression over Time
 
 ```{r 3PH scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
- ggplot2::ggplot(Three_PH_df, aes(x = temp, y = value)) +
+ ggplot2::ggplot(Four_P_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 
 ```
 
@@ -265,7 +272,9 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 ```
 
 Figure 7: Baseline Energy Use modeled with Time-of-week and Temperature over Time
@@ -275,7 +284,9 @@ Figure 7: Baseline Energy Use modeled with Time-of-week and Temperature over Tim
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 
 ```
 
@@ -289,13 +300,13 @@ This insight can be confirmed through model statistics by using the `calculate_s
 
 SLR_stats <- calculate_summary_statistics(SLR_model)
 
-Three_PH_stats <- calculate_summary_statistics(Three_PH_model)
+Four_P_stats <- calculate_summary_statistics(Four_P_model)
 
 TOWT_stats <- calculate_summary_statistics(TOWT_model)
 
-all_stats <- bind_rows(SLR_stats, Three_PH_stats, TOWT_stats)
+all_stats <- bind_rows(SLR_stats, Four_P_stats, TOWT_stats)
 
-model_names <- c("SLR", "Three_Parameter_Heating", "TOWT")
+model_names <- c("SLR", "Four Parameter", "TOWT")
 
 all_stats <- bind_cols("Model Name" = model_names, all_stats)
 
@@ -308,9 +319,35 @@ all_stats
 * MBE: Mean Bias Error
 * R_squared: Coefficient of Determination
 
+## Assessing project fit for NMEC
+
+Using the modeling statistics and the savings uncertainity for 10%, we can determine the validity of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment
+
+1. CVRMSE: 6.78% (should be < 25%)
+2. NDBE: 0.0000 (should be < 0.005%)
+
+The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. It includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+
+```{r savings_10 summary, results='markup'}
+
+TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_results_list = NULL, 
+                                                  modeled_object = TOWT_model, 
+                                                  model_summary_statistics = TOWT_stats,
+                                                  confidence_level = 68)
+
+TOWT_savings_10$savings_summary_df
+
+```
+
+3. Savings Uncertainty for 10% savings (at 68% confidence level): 10.1% (shoule be < 50%). 
+
+The savings percentage required to meet the threshold of 50% uncertainty, at the 68% confidence level, is 2% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
+
+In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above).
+
 ## Energy Load Prediction
 
-The energy use models can be used to predict energy use during a different time period. This functionality is central to calculating the Adjusted Baseline Energy Use, which can be further utilized to calculate Avoided Energy Use (or Energy Savings)
+The energy use models can be used to predict energy use during a different time period. Predictions in the reporting period are called the Adjusted Baseline Energy Use. The difference between the Adjusted Baseline Energy Use and reporting period actual energy use is called the Avoided Energy Use.
 
 ```{r model predictions, results='markup'}
 
@@ -329,7 +366,9 @@ ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption and Predictions", labels = scales::comma) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 ```
 
 Figure 9: Performance period energy use and TOWT model predictions over Time
@@ -339,15 +378,16 @@ Figure 9: Performance period energy use and TOWT model predictions over Time
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption and Predictions", labels = scales::comma) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 
 ```
 
 Figure 10: Performance period energy use and TOWT model predictions over Temperature
 
-## Energy Savings and Uncertainity
 
-The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. It includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+## Energy Savings Achieved and Uncertainity
 
 ```{r savings summary, results='markup'}
 
@@ -355,23 +395,14 @@ TOWT_savings <- calculate_savings_and_uncertainty(prediction_results_list =
                                                     TOWT_predictions, 
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
-                                                  confidence_level = 90)
+                                                  confidence_level = 68)
 
 TOWT_savings$savings_summary_df
 ```
 
-Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 15%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 90% confidence level. The 15% uncertainty is well below this threshold. 
+Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 14.5%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 68% confidence level. The 14.5% uncertainty is well below this threshold. 
 
-The savings percentage required to meet the threshold of 50% uncertainty is 2.1% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 
-## Assessing project fit for NMEC
 
-Using the modeling statistics, savings achieved, and the associated savings uncertainity, we can determine the applicability of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment:
 
-1. CVRMSE: 6.78% (should be < 25%)
-2. NDBE: 0.0000 (should be < 0.005%)
-3. Savings: 7%
-4. Uncertainty at 90% CL: 15% (should be < 50%)
-
-In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above).
 
