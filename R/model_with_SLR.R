@@ -22,17 +22,25 @@ model_with_SLR <- function(training_list = NULL, model_input_options = NULL){
   dframe <- training_list$dataframe
 
   if(! is.null(training_list$operating_mode_data)){
-    dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time")
+
+
+    dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
+      select(- c("time", "HDD", "CDD"))
+
+    linregress <- lm(eload ~ ., dframe)
+
+  } else  {
+
+    linregress <- lm(eload ~ temp, dframe)
   }
-
-  dframe <- dframe %>%
-    dplyr::select(-"time")
-
-  linregress <- lm(eload ~ temp, dframe)
 
   out <- list()
   out$model <- linregress
   out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
+  if(! is.null(training_list$operating_mode_data)) {
+    out$training_data <- dplyr::inner_join(out$training_data, training_list$operating_mode_data, by = "time")
+
+  }
   out$model_input_options <- model_input_options
 
   return(out)
