@@ -186,12 +186,12 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
   if(model_input_options$regression_type == "Time-only") {
     output$model_occupied <- amod
   } else {
-    if(sum(! ok_occ) > 0) {
+    if(sum(ok_occ) > 0) {
       output$model_occupied <- amod
-      output$model_unoccupied <- bmod
-    } else {
-      output$model_occupied <- amod
+    }
 
+    if(sum(! ok_occ) > 0) {
+      output$model_unoccupied <- bmod
     }
   }
 
