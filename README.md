@@ -31,6 +31,5 @@ devtools::install_deps(".")
 
 ## Getting help
 
-If you have a question or encounter a bug, please file a minimal reproducible example
-on [github](https://github.com/kW-Labs/nmecr/issues). 
+If you have a question or encounter a bug, please file a minimal reproducible example on [github](https://github.com/kW-Labs/nmecr/issues). 
 
