@@ -21,7 +21,7 @@ Energy Modeling Algorithms available:
 You can nmecr from GitHub.
 
 ``` r
-# install.packages("devtools")
+install.packages("devtools")
 devtools::install_github("kW-Labs/nmecr")
 
 # If a dependecy package is missing, use:
@@ -33,4 +33,4 @@ devtools::install_deps(".")
 
 If you have a question or encounter a bug, please file a minimal reproducible example
 on [github](https://github.com/kW-Labs/nmecr/issues). 
------
+
