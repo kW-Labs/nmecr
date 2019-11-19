@@ -13,23 +13,23 @@ BugReports: https://github.com/kW-Labs/nmecr/issues
 Depends: R (>= 3.5.0),
     dplyr,
     tidyverse,
-    dplyr,
     lubridate,
     readxl,
     openxlsx,
     segmented,
     moments,
-    magrittr
+    magrittr,
+    assertive
 Imports: 
     dplyr,
     tidyverse,
-    dplyr,
     lubridate,
     readxl,
     openxlsx,
     segmented,
     moments,
-    magrittr
+    magrittr,
+    assertive
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
