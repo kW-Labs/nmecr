@@ -9,7 +9,7 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+#'   \item{model_occupied} {an lm object generated when using Time-of-Week and Time-of-Week & Temperature algorithms}
 #'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
 #'   \item{training_data} {training dataframe along with the model_fit values}
 #'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
@@ -33,9 +33,9 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     interval_of_week_pred <- 1 + floor(minute_of_week_pred / model_input_options$interval_minutes)
   }
 
-  # run Time-only model
+  # run Time-of-Week model
 
-  if (model_input_options$regression_type == "Time-only") {
+  if (model_input_options$regression_type == "TOW") {
 
     ftow <- factor(interval_of_week)
     dframe <- data.frame("time" = training_list$dataframe$time, ftow)
@@ -183,7 +183,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     output$predictions <- data.frame(prediction_list$dataframe, pred_vec)
   }
 
-  if(model_input_options$regression_type == "Time-only") {
+  if(model_input_options$regression_type == "TOW") {
     output$model_occupied <- amod
   } else {
     if(sum(ok_occ) > 0) {

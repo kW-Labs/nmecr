@@ -9,7 +9,7 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+#'   \item{model_occupied} {an lm object generated when using Time-of-Week and TIme-of-Week & Temperature algorithms}
 #'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
 #'   \item{training_data} {training dataframe along with the model_fit values}
 #'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
@@ -87,7 +87,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   }
 
   # model fits and coefficient counts for models
-  if(model_input_options$regression_type == "Time-only") {
+  if(model_input_options$regression_type == "TOW") {
     results$model_occupied <- reg_out$model
   } else {
       results$model_occupied <- reg_out$model_occupied

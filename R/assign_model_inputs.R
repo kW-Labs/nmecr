@@ -19,7 +19,7 @@ assign_model_inputs <- function(timescale_days = NULL,
                              temp_segments_numeric = 6,
                              temp_knots_value = c(40, 45, 50, 60, 65, 90),
                              initial_breakpoints = c(50,65),
-                             regression_type = c("TOWT", "Time-only", "SLR", "HDD-CDD Multivariate Regression", "HDD Regression", "CDD Regression",
+                             regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression", "HDD Regression", "CDD Regression",
                                                  "Three Parameter Cooling", "Three Parameter Heating", "Four Parameter Linear Model",
                                                  "Five Parameter Linear Model")){
 

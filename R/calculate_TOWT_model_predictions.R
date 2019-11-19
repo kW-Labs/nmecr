@@ -43,9 +43,9 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
     dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
   }
 
-  # Time-only ----
+  # Time-of-Week ----
 
-  if (modeled_object$model_input_options$regression_type == "Time-only") {
+  if (modeled_object$model_input_options$regression_type == "TOW") {
 
     ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
     predictions <- rep(NA, length(prediction_list$dataframe$time))

@@ -32,7 +32,7 @@ calculate_model_predictions <- function(training_list = NULL, prediction_list = 
     out$predictions <- data.frame(prediction_list$dataframe, predictions)
 
   } else if(modeled_object$model_input_options$regression_type == "TOWT" |
-            modeled_object$model_input_options$regression_type == "Time-only") {
+            modeled_object$model_input_options$regression_type == "TOW") {
 
     if(! is.null(prediction_list$operating_mode_data)){
       dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
