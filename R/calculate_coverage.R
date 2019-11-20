@@ -101,11 +101,11 @@ calculate_coverage <- function(data_list = NULL, ref_temp_data = NULL,
 
   # Populating the temperature bin
 
-  temp_coverage <- left_join(temp_data, count_site_bins, by = "bins")
+  temp_coverage <- dplyr::left_join(temp_data, count_site_bins, by = "bins")
   colnames(temp_coverage) <- c("bins", "site_data")
   temp_coverage$site_data[is.na(temp_coverage$site_data)] <- 0
 
-  temp_coverage <- left_join(temp_coverage, count_ref_data_bins, by = "bins")
+  temp_coverage <- dplyr::left_join(temp_coverage, count_ref_data_bins, by = "bins")
   colnames(temp_coverage) <- c("bins", "n_site_data", "n_ref_data")
   temp_coverage$n_ref_data[is.na(temp_coverage$n_ref_data)] <- 0
 

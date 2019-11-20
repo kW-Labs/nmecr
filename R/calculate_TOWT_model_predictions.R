@@ -15,10 +15,10 @@
 calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_list = NULL, modeled_object = NULL){
 
   # calculate temperature knots ----
-  modeled_object$model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = modeled_object$model_input_options)
+  modeled_object$model_input_options$calculated_temp_knots <- nmecr::calculate_temp_knots(training_list = training_list, model_input_options = modeled_object$model_input_options)
 
   # Create training data temperature matrix
-  temp_mat <- create_temp_matrix(training_list$dataframe$temp, modeled_object$model_input_options$calculated_temp_knots)
+  temp_mat <- nmecr::create_temp_matrix(training_list$dataframe$temp, modeled_object$model_input_options$calculated_temp_knots)
   temp_m_name <- rep(NA, ncol(temp_mat))
   for (i in 1 : ncol(temp_mat)) {
     temp_m_name[i] <- paste("temp_mat", i, sep = "")
@@ -26,7 +26,7 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
   names(temp_mat) <- temp_m_name
 
   # Create prediction data temperature matrix ----
-  temp_mat_pred <- create_temp_matrix(prediction_list$dataframe$temp, modeled_object$model_input_options$calculated_temp_knots)
+  temp_mat_pred <- nmecr::create_temp_matrix(prediction_list$dataframe$temp, modeled_object$model_input_options$calculated_temp_knots)
   names(temp_mat_pred) <- temp_m_name
 
   # Create prediction dataframe based on interval of week ----
@@ -62,7 +62,7 @@ calculate_TOWT_model_predictions <- function(training_list = NULL, prediction_li
 
     interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
 
-    occ_info <- find_occ_unocc(interval_of_week[ok_load],
+    occ_info <- nmecr::find_occ_unocc(interval_of_week[ok_load],
                                training_list$dataframe$eload[ok_load], training_list$dataframe$temp[ok_load])
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 

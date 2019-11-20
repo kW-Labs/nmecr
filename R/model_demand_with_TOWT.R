@@ -52,7 +52,7 @@ model_demand_with_TOWT <- function(training_list = NULL, prediction_list = NULL,
       (model_input_options$timescale_days ^ 2 + t_diff ^ 2)
 
     # fit linear regression
-    reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
+    reg_out <- nmecr::fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
                             model_input_options = model_input_options)
 
     train_out <- reg_out$training

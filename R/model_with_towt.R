@@ -27,7 +27,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
 
   # calculate temperature knots
-  model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
+  model_input_options$calculated_temp_knots <- nmecr::calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
 
   # Run for energy modeling - timescale_days not used
   if (is.null(model_input_options$timescale_days)) {
@@ -38,7 +38,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     model_input_options$train_weight_vec <- rep(1, length(training_list$dataframe$time))
 
     # fit linear regression
-    reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
+    reg_out <- nmecr::fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
                             model_input_options = model_input_options)
 
     train_out <- reg_out$training
@@ -54,7 +54,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     # Run for demand modeling - timescale_days used
   } else {
 
-    modeled_demand <- model_demand_with_TOWT(training_list = training_list, prediction_list = prediction_list, model_input_options = model_input_options)
+    modeled_demand <- nmecr::model_demand_with_TOWT(training_list = training_list, prediction_list = prediction_list, model_input_options = model_input_options)
 
     final_train_matrix <- modeled_demand$final_train_matrix
 

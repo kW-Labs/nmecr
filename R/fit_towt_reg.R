@@ -46,7 +46,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     }
 
     dframe <- dframe %>%
-      select(-"time")
+      dplyr::select(-"time")
 
     # simple linear regression - no subsetting by occupancy
     amod <- lm(training_list$dataframe$eload ~ . , data = dframe, na.action = na.exclude, weights = model_input_options$train_weight_vec)
@@ -64,7 +64,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
       }
 
       dframe_pred <- dframe_pred %>%
-        select(-"time")
+        dplyr::select(-"time")
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
       pred_vec <- rep(NA, length(prediction_list$dataframe$time))
@@ -79,7 +79,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
 
     # Determine occupancy information
 
-    occ_info <- find_occ_unocc(interval_of_week[ok_load],
+    occ_info <- nmecr::find_occ_unocc(interval_of_week[ok_load],
                                training_list$dataframe$eload[ok_load], training_list$dataframe$temp[ok_load])
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 
@@ -94,7 +94,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     }
 
     # Create temperature matrix
-    temp_mat <- create_temp_matrix(training_list$dataframe$temp, model_input_options$calculated_temp_knots)
+    temp_mat <- nmecr::create_temp_matrix(training_list$dataframe$temp, model_input_options$calculated_temp_knots)
     temp_m_name <- rep(NA, ncol(temp_mat))
     for (i in 1 : ncol(temp_mat)) {
       temp_m_name[i] <- paste("temp_mat", i, sep = "")
@@ -110,7 +110,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     }
 
     dframe <- dframe %>%
-      select(-"time")
+      dplyr::select(-"time")
 
     training_load_pred <- rep(NA, nrow(dframe))
 
@@ -121,7 +121,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
     # make data frame for explanatory variables in prediction period
     if(! is.null(prediction_list)) {
 
-      temp_mat_pred <- create_temp_matrix(prediction_list$dataframe$temp, model_input_options$calculated_temp_knots)
+      temp_mat_pred <- nmecr::create_temp_matrix(prediction_list$dataframe$temp, model_input_options$calculated_temp_knots)
       names(temp_mat_pred) <- temp_m_name
       # should the temperature knots be recalculated for the prediction dataframe?
 
@@ -134,7 +134,7 @@ fit_TOWT_reg <- function(training_list = NULL, prediction_list = NULL, model_inp
       }
 
       dframe_pred <- dframe_pred %>%
-        select(-"time")
+        dplyr::select(-"time")
 
       pred_vec <- rep(NA, length(prediction_list$dataframe$time))
 

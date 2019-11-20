@@ -38,7 +38,7 @@ calculate_model_predictions <- function(training_list = NULL, prediction_list = 
       dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
     }
 
-    predictions <- calculate_TOWT_model_predictions(training_list = training_list, prediction_list = prediction_list,
+    predictions <- nmecr::calculate_TOWT_model_predictions(training_list = training_list, prediction_list = prediction_list,
                                                     modeled_object = modeled_object)
 
     out <- NULL
@@ -59,4 +59,3 @@ calculate_model_predictions <- function(training_list = NULL, prediction_list = 
   return(out)
 
 }
-

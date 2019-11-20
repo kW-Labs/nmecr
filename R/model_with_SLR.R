@@ -45,7 +45,3 @@ model_with_SLR <- function(training_list = NULL, model_input_options = NULL){
 
   return(out)
 }
-
-
-
-

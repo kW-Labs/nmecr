@@ -74,7 +74,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   goodness_of_fit$CVRMSE <- CVRMSE
   goodness_of_fit$NDBE <- NDBE
   goodness_of_fit$MBE <- MBE
-  goodness_of_fit$'#Parameters' <- nparameter
+  goodness_of_fit$"#Parameters" <- nparameter
 
   return(goodness_of_fit)
 
