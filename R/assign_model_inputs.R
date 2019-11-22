@@ -11,6 +11,8 @@
 #' @param regression_type Character string indictating the modeling algorithm to run:
 #'
 #' @return a list specifying the chosen algorithm inputs
+#'
+#' @export
 
 assign_model_inputs <- function(timescale_days = NULL,
                              interval_minutes = 15,
