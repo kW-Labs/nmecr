@@ -17,7 +17,7 @@ fit_TOWT_reg(training_list = NULL, prediction_list = NULL,
 \value{
 a list with the following components:
 \describe{
-  \item{model_occupied} {an lm object generated when using Time-only and TOWT algorithms}
+  \item{model_occupied} {an lm object generated when using Time-of-Week and Time-of-Week & Temperature algorithms}
   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
   \item{training_data} {training dataframe along with the model_fit values}
   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
