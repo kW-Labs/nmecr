@@ -162,7 +162,7 @@ calculate_coverage <- function(data_list = NULL, ref_temp_data = NULL,
   coverage_factor_summary[1, 2] <- temp_coverage_factor
 
 
-  if (dataframe$chosen_modeling_interval == "Daily") {
+  if (data_list$chosen_modeling_interval == "Daily") {
 
     coverage_factor_summary[2, 1] <- "Time Coverage"
     coverage_factor_summary[2, 2] <- daily_coverage_factor
