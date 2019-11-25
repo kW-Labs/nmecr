@@ -2,7 +2,7 @@
 #'
 #' \code{This function calculates meter-based savings achieved and the associated uncertainty.}
 #'
-#' @param prediction_results_list List with model predictions. Output from calculate_model_predictions
+#' @param prediction_df Model predictions. Output from calculate_model_predictions
 #' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #' @param model_summary_statistics Dataframe with model statistics. Output from calculate_summary_statistics.
 #' @param confidence_level Numeric corresponding to the confidence level to be used for savings uncertainty calculation
@@ -16,7 +16,7 @@
 #'
 #' @export
 
-calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
+calculate_savings_and_uncertainty <- function(prediction_df = NULL, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
 
   if(confidence_level < 0 | confidence_level > 100){
     stop("Error: confidence level cannot be less than zero or greater than 100")
@@ -39,9 +39,9 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
 
   results <- NULL
 
-  if(! is.null(prediction_results_list)) {
+  if(! is.null(prediction_df)) {
 
-    savings_df <- prediction_results_list$predictions[, c("time", "eload", "predictions")] %>%
+    savings_df <- prediction_df[, c("time", "eload", "predictions")] %>%
       dplyr::mutate(savings = predictions - eload)
 
     savings_summary_df <- as.data.frame(matrix(nrow = 1, ncol = 4))
@@ -51,7 +51,7 @@ calculate_savings_and_uncertainty <- function(prediction_results_list = NULL, mo
     savings_summary_df$savings <- sum(savings_df$savings, na.rm = T)
     savings_summary_df$savings_pct <- round(savings_summary_df$savings/savings_summary_df$adjusted_baseline_use, 2)
 
-    m <- length(prediction_results_list$predictions$time)
+    m <- length(prediction_df$time)
 
     results$savings_df <-  savings_df
 
