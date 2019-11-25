@@ -2,17 +2,17 @@
 #'
 #' \code{This function determines temperature knots in the training dataset.}
 #'
-#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
 #' @return a vector with calculated temperature knots
 #'
 
-calculate_temp_knots <- function(training_list = NULL, model_input_options = NULL) {
+calculate_temp_knots <- function(training_data = NULL, model_input_options = NULL) {
 
   # Calculate temperature knots ----
 
-  num_points <- length(training_list$dataframe$time)
+  num_points <- length(training_data$time)
 
   if (model_input_options$has_temp_knots_defined) {
 
@@ -20,8 +20,8 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
 
   } else {
 
-    temp0 <- min(training_list$dataframe$temp, na.rm = TRUE)
-    temp1 <- max(training_list$dataframe$temp, na.rm = TRUE)
+    temp0 <- min(training_data$temp, na.rm = TRUE)
+    temp1 <- max(training_data$temp, na.rm = TRUE)
 
     delta_temp <- temp1 - temp0
 
@@ -29,9 +29,9 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
 
       temp_segment_width <- num_points / model_input_options$temp_segments_numeric
 
-      temp_points <- floor(sort(length(training_list$dataframe$temp) - temp_segment_width * (0 : model_input_options$temp_segments_numeric)) + 0.001)
+      temp_points <- floor(sort(length(training_data$temp) - temp_segment_width * (0 : model_input_options$temp_segments_numeric)) + 0.001)
 
-      temp_ordered <- sort(training_list$dataframe$temp, decreasing = F)
+      temp_ordered <- sort(training_data$temp, decreasing = F)
 
       temp_knots <- temp_ordered[temp_points]
 
@@ -39,19 +39,19 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
 
       temp_segment_width <- delta_temp / model_input_options$temp_segments_numeric
 
-      temp_knots <- floor(sort(max(training_list$dataframe$temp) - temp_segment_width *  (0 : model_input_options$temp_segments_numeric)) + 0.001)
+      temp_knots <- floor(sort(max(training_data$temp) - temp_segment_width *  (0 : model_input_options$temp_segments_numeric)) + 0.001)
     }
 
   }
 
   # Remove extra temperature knots ----
-  ok_load <- ! is.na(training_list$dataframe$eload)
+  ok_load <- ! is.na(training_data$eload)
 
   num_temp_knots <- length(temp_knots)
 
   check_knots <- TRUE
   while (check_knots) {
-    if (sum(training_list$dataframe$temp[ok_load] > temp_knots[num_temp_knots],
+    if (sum(training_data$temp[ok_load] > temp_knots[num_temp_knots],
             na.rm = TRUE) < 20) {
       # not enough data above upper knot; throw away that upper knot
       temp_knots <- temp_knots[- num_temp_knots]
@@ -68,7 +68,7 @@ calculate_temp_knots <- function(training_list = NULL, model_input_options = NUL
   # Same principle as above, for aomount of data below the lowest knot.
   check_knots <- TRUE
   while (check_knots) {
-    if (sum(training_list$dataframe$temp[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
+    if (sum(training_data$temp[ok_load] < temp_knots[1], na.rm = TRUE) < 20) {
       # not enough data below lower knot; throw away that lower knot
       temp_knots <- temp_knots[- 1]
       num_temp_knots <- num_temp_knots - 1
