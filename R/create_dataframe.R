@@ -77,7 +77,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       nterval_value <- "Hourly"
     } else if (nterval == 1440) {
       nterval_value <- "Daily"
-    } else if (nterval >= 403240) {
+    } else if (nterval >= 40320) {
       nterval_value <- "Monthly"
     }
 
