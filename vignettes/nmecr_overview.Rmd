@@ -86,7 +86,7 @@ baseline_df <- create_dataframe(eload_data = eload, temp_data = temp,
                                 end_date = "02/28/2013 23:59", 
                                 convert_to_data_interval = "Daily")
 
-head(baseline_df$dataframe, 5)
+head(baseline_df, 5)
 
 ```
 
@@ -99,7 +99,7 @@ performance_df <- create_dataframe(eload_data = eload, temp_data = temp,
                                    end_date = "02/28/2015 23:59", 
                                    convert_to_data_interval = "Daily")
 
-head(performance_df$dataframe, 5)
+head(performance_df, 5)
 
 ```
 
@@ -144,7 +144,7 @@ Before creating data models, it is a good practice to visualize the energy use p
 
 ```{r baseline profile, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
-ggplot2::ggplot(baseline_df$dataframe, aes(x = time, y = eload)) +
+ggplot2::ggplot(baseline_df, aes(x = time, y = eload)) +
   geom_line() +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma)+
@@ -156,7 +156,7 @@ Figure 1: Baseline Energy Use over Time
 
 ```{r baseline scatter, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
-ggplot2::ggplot(baseline_df$dataframe, aes(x = temp, y = eload)) +
+ggplot2::ggplot(baseline_df, aes(x = temp, y = eload)) +
   geom_point() +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma)+
@@ -174,7 +174,7 @@ Due to the high dependence on temperature, we can begin the data modeling using 
 
 ```{r SLR_model, results = 'markup'}
 
-SLR_model <- model_with_SLR(training_list = baseline_df, 
+SLR_model <- model_with_SLR(training_data = baseline_df, 
                             model_input_options = 
                               assign_model_inputs(regression_type = "SLR"))
 
@@ -216,7 +216,7 @@ Figure 4: Baseline Energy Use modeled with Simple Linear Regression over Tempera
 
 ```{r 4P_model, results='markup'}
 
-Four_P_model <- model_with_CP(training_list = baseline_df, 
+Four_P_model <- model_with_CP(training_data = baseline_df, 
                                 model_input_options = 
                                   assign_model_inputs(regression_type = 
                                                         "Four Parameter Linear Model"))
@@ -257,7 +257,7 @@ Figure 6: Baseline Energy Use modeled with Three Parameter Heating Regression ov
 
 ```{r TOWT_model, results='markup'}
 
-TOWT_model <- model_with_TOWT(training_list = baseline_df, 
+TOWT_model <- model_with_TOWT(training_data = baseline_df, 
                               model_input_options = 
                                 assign_model_inputs(regression_type = "TOWT"))
 
@@ -330,7 +330,7 @@ The California Public Utilities Commission requires savings to be detectable abo
 
 ```{r savings_10 summary, results='markup'}
 
-TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_results_list = NULL, 
+TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
                                                   confidence_level = 68)
@@ -351,15 +351,15 @@ The energy use models can be used to predict energy use during a different time 
 
 ```{r model predictions, results='markup'}
 
-TOWT_predictions <- calculate_model_predictions(training_list = baseline_df, 
-                                                prediction_list = performance_df, 
+TOWT_predictions <- calculate_model_predictions(training_data = baseline_df, 
+                                                prediction_data = performance_df, 
                                                 modeled_object = TOWT_model)
 
 ```
 
 ```{r TOWT pred, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
 
-TOWT_df <- TOWT_predictions$predictions %>%
+TOWT_df <- TOWT_predictions %>%
   tidyr::gather(key = "variable", value = "value", -c("time", "temp", "CDD", "HDD"))
 
 ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
@@ -391,8 +391,7 @@ Figure 10: Performance period energy use and TOWT model predictions over Tempera
 
 ```{r savings summary, results='markup'}
 
-TOWT_savings <- calculate_savings_and_uncertainty(prediction_results_list = 
-                                                    TOWT_predictions, 
+TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = TOWT_predictions, 
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
                                                   confidence_level = 68)

@@ -4,12 +4,12 @@
 \alias{calculate_savings_and_uncertainty}
 \title{Calculate meter-based savings and associated uncertainty.}
 \usage{
-calculate_savings_and_uncertainty(prediction_results_list = NULL,
+calculate_savings_and_uncertainty(prediction_df = NULL,
   modeled_object = NULL, model_summary_statistics = NULL,
   confidence_level = 90)
 }
 \arguments{
-\item{prediction_results_list}{List with model predictions. Output from calculate_model_predictions}
+\item{prediction_df}{Model predictions. Output from calculate_model_predictions}
 
 \item{model_summary_statistics}{Dataframe with model statistics. Output from calculate_summary_statistics.}
 

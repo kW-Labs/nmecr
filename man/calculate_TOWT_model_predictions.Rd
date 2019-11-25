@@ -4,13 +4,13 @@
 \alias{calculate_TOWT_model_predictions}
 \title{Calculate TOWT model predictions}
 \usage{
-calculate_TOWT_model_predictions(training_list = NULL,
-  prediction_list = NULL, modeled_object = NULL)
+calculate_TOWT_model_predictions(training_data = NULL,
+  prediction_data = NULL, modeled_object = NULL)
 }
 \arguments{
-\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
+\item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{prediction_list}{List with prediction dataframe and operating mode dataframe. Output from create_dataframe}
+\item{prediction_data}{Prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }

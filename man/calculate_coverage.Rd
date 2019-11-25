@@ -4,11 +4,11 @@
 \alias{calculate_coverage}
 \title{Calculate coverage of independent variables in the normalized conditions dataset.}
 \usage{
-calculate_coverage(data_list = NULL, ref_temp_data = NULL,
+calculate_coverage(dataframe = NULL, ref_temp_data = NULL,
   outlier_threshold = NULL, extrapolation_limit = NULL)
 }
 \arguments{
-\item{data_list}{Training or Prediction data_list from create_dataframe}
+\item{dataframe}{Training or Prediction dataframe from create_dataframe}
 
 \item{ref_temp_data}{An nx2 dataframe with the hourly normalized temperature data corresponding to the facility's location. Colnames: time and temp.}
 

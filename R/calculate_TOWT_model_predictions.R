@@ -36,10 +36,10 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
   dframe_pred <- data.frame(prediction_data, ftow)
 
-  if(model_input_options$chosen_modeling_interval == "Hourly") {
+  if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
     dframe_pred <- dframe_pred %>%
       select(-c("time", "temp"))
-  } else if (model_input_options$chosen_modeling_interval == "Daily") {
+  } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
     dframe_pred <- dframe_pred %>%
       select(-c("time", "temp", "HDD", "CDD"))
   }

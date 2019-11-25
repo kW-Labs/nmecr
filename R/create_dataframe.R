@@ -44,14 +44,19 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   eload_data$time <- lubridate_timestamp(eload_data$time)
   temp_data$time <- lubridate_timestamp(temp_data$time)
-  operating_mode_data$time <- lubridate_timestamp(operating_mode_data$time)
+
 
   # determine data intervals of eload, temp, and operating mode data
   nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
   nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
-  nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
 
-  nterval_max <- max(nterval_eload, nterval_temp, nterval_operating_mode)
+  nterval_max <- max(nterval_eload, nterval_temp)
+
+  if(! is.null(operating_mode_data)) {
+    operating_mode_data$time <- lubridate_timestamp(operating_mode_data$time)
+    nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
+    nterval_max <- max(nterval_max, nterval_operating_mode)
+  }
 
   # assign modeling interval
   if (missing(convert_to_data_interval)) {
@@ -67,8 +72,14 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
                 'Hourly', 'Daily', or 'Monthly'."))
   }
 
-  if (nterval_temp > nterval | nterval_eload > nterval | nterval_operating_mode > nterval) {
+  if (nterval_temp > nterval | nterval_eload > nterval) {
     stop(paste0("Uploaded datasets' intervals bigger than ", convert_to_data_interval))
+  }
+
+  if(! is.null(operating_mode_data)) {
+    if (nterval_operating_mode > nterval) {
+      stop(paste0("Uploaded datasets' intervals bigger than ", convert_to_data_interval))
+    }
   }
 
   if(missing(convert_to_data_interval)) {
