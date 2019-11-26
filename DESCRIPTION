@@ -6,8 +6,8 @@ Author: c(person("Sharma", "Mrinalini", email = "msharma@kw-engineering.com", ro
 			 person("Johnson", "Devan", email = "djohnson@kw-engineering.com", role = c("ctb", "cph")),
 			 person("Jump", "David", email = "djump@kw-engineering.com", role = "cph")),
 Description: nmecr builds statistical energy data models and provides a comprehensive assessment of model fit and prediction accuracy.
-  It provides the complete portfolio of the industry standard energy data modeling algorithms and encludes an enhancement that allows 
-  data modeling of energy profiles with distinct energy use regimens for improved predictive accuracies. 
+  It provides the complete portfolio of the industry standard energy data modeling algorithms and includes an enhancement that allows 
+  data modeling of energy profiles with distinct energy use regimens for improved predictive accuracy. 
 License: Refer to License.txt file
 BugReports: https://github.com/kW-Labs/nmecr/issues
 Depends: R (>= 3.5.0),
