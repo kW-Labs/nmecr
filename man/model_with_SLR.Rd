@@ -4,10 +4,10 @@
 \alias{model_with_SLR}
 \title{Simple Linear Regression using outside air temperature.}
 \usage{
-model_with_SLR(training_list = NULL, model_input_options = NULL)
+model_with_SLR(training_data = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
+\item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs#'}
 }

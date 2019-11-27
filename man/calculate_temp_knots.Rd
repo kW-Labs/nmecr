@@ -4,10 +4,10 @@
 \alias{calculate_temp_knots}
 \title{Temperature knots calculation for model_with_TOWT}
 \usage{
-calculate_temp_knots(training_list = NULL, model_input_options = NULL)
+calculate_temp_knots(training_data = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
+\item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }

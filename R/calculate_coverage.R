@@ -3,7 +3,7 @@
 #' \code{This function calculates the coverage of the independent variables in the normalized conditions dataset to
 #' inform the user about the data range within which the model predictions are valid.}
 #'
-#' @param data_list Training or Prediction data_list from create_dataframe
+#' @param dataframe Training or Prediction dataframe from create_dataframe
 #' @param ref_temp_data An nx2 dataframe with the hourly normalized temperature data corresponding to the facility's location. Colnames: time and temp.
 #' @param outlier_threshold a numeric indicating the number of datapoints (hours or days, depending on the data interval) below which the temperature observation occurences will be considered an outlier.
 #' Default values: 1 for daily data, up to 10 for hourly data.
@@ -19,35 +19,45 @@
 
 
 
-calculate_coverage <- function(data_list = NULL, ref_temp_data = NULL,
+calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
                                outlier_threshold = NULL, extrapolation_limit = NULL) {
 
-  if(data_list$chosen_modeling_interval == "Monthly") {
+  nterval <- difftime(dataframe$time[2], dataframe$time[1], units = "min")
+
+  if (nterval == 60){
+    dataframe_interval <- "Hourly"
+  } else if (nterval == 1440) {
+    dataframe_interval <- "Daily"
+  } else if (nterval >= 40320) {
+    dataframe_interval <- "Monthly"
+  }
+
+  if(dataframe_interval == "Monthly") {
     stop("Please upload a dataframe in hourly or daily time data intervals")
   }
 
   if(! assertive::is_numeric(outlier_threshold)){
-    stop("Error: outlier_threshold must be a numeric input")
+    stop("outlier_threshold must be a numeric input")
   }
 
   if(extrapolation_limit < 0 | extrapolation_limit > 1 | ! assertive::is_numeric(extrapolation_limit)){
-    stop("Error: extrapolation_limit must be a numeric input between 0 and 1. Default: 0.05")
+    stop("extrapolation_limit must be a numeric input between 0 and 1. Default: 0.05")
   }
 
   # ref_temp_data time interval
-  nterval <- difftime(ref_temp_data$time[2], ref_temp_data$time[1], units = "mins")
+  nterval_ref_temp <- difftime(ref_temp_data$time[2], ref_temp_data$time[1], units = "mins")
 
-  if (nterval == 60) {
+  if (nterval_ref_temp == 60) {
     ref_temp_interval <- "Hourly"
-  } else if (nterval == 1440) {
+  } else if (nterval_ref_temp == 1440) {
     ref_temp_interval <- "Daily"
   } else {
     stop("Please upload ref_temp_data in hourly or daily time data intervals")
   }
 
-  site_temp_data <- data_list$dataframe[, c("time", "temp")]
+  site_temp_data <- dataframe[, c("time", "temp")]
 
-  if(ref_temp_interval == "Daily" | data_list$chosen_modeling_interval == "Daily") {
+  if(ref_temp_interval == "Daily" | dataframe_interval == "Daily") {
 
     ref_temp_data <- ref_temp_data %>%
       dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
@@ -128,7 +138,7 @@ calculate_coverage <- function(data_list = NULL, ref_temp_data = NULL,
   temp_coverage_factor <- signif(min(100, (100 * (extrapolated_max_obs_OA_bin - extrapolated_min_obs_OA_bin) /
                                              (max_ref_OA_bin - min_ref_OA_bin))), 4)
 
-  if (data_list$chosen_modeling_interval == "Daily") {
+  if (dataframe_interval == "Daily") {
 
     peak_days <- max(temp_coverage$n_site_data)
     peak_bin_daily <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
@@ -162,7 +172,7 @@ calculate_coverage <- function(data_list = NULL, ref_temp_data = NULL,
   coverage_factor_summary[1, 2] <- temp_coverage_factor
 
 
-  if (data_list$chosen_modeling_interval == "Daily") {
+  if (dataframe_interval == "Daily") {
 
     coverage_factor_summary[2, 1] <- "Time Coverage"
     coverage_factor_summary[2, 2] <- daily_coverage_factor

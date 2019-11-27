@@ -2,7 +2,7 @@
 #'
 #' \code{This function builds an energy use model using the simple linear regression algorithm.}
 #'
-#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs#'
 #'
 #' @return a list with the following components:
@@ -15,32 +15,43 @@
 #' @export
 
 
-model_with_SLR <- function(training_list = NULL, model_input_options = NULL){
+model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
-  model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
+  nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
-  dframe <- training_list$dataframe
+  if (nterval == 60){
+    nterval_value <- "Hourly"
+  } else if (nterval == 1440) {
+    nterval_value <- "Daily"
+  } else if (nterval >= 40320) {
+    nterval_value <- "Monthly"
+  }
 
-  if(! is.null(training_list$operating_mode_data)){
+  model_input_options$chosen_modeling_interval <- nterval_value
 
+  if (nterval_value == "Hourly") {
 
-    dframe <- dplyr::inner_join(dframe, training_list$operating_mode_data, by = "time") %>%
+    dframe <- training_data %>%
+      select (-c("time"))
+
+    linregress <- lm(eload ~ ., dframe)
+
+  } else if (nterval_value == "Daily") {
+
+    dframe <- training_data %>%
       select(- c("time", "HDD", "CDD"))
 
     linregress <- lm(eload ~ ., dframe)
 
-  } else  {
+  } else if (nterval_value == "Monthly") {
 
-    linregress <- lm(eload ~ temp, dframe)
+    linregress <- lm(eload ~ temp, training_data) # monthly data is not regressed using operating mode data
+
   }
 
   out <- list()
   out$model <- linregress
-  out$training_data <- data.frame(training_list$dataframe, "model_fit" = linregress$fitted.values)
-  if(! is.null(training_list$operating_mode_data)) {
-    out$training_data <- dplyr::inner_join(out$training_data, training_list$operating_mode_data, by = "time")
-
-  }
+  out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
   out$model_input_options <- model_input_options
 
   return(out)

@@ -2,8 +2,8 @@
 #'
 #' \code{This function calculates predictions from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT}
 #'
-#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
-#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
 #' @return a list with the following components:
@@ -13,49 +13,38 @@
 #'
 #' @export
 
-calculate_model_predictions <- function(training_list = NULL, prediction_list = NULL, modeled_object = NULL) {
+calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
-  dframe_pred <- prediction_list$dataframe
+  dframe_pred <- prediction_data
 
   if(modeled_object$model_input_options$regression_type == "SLR" |
      modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" |
      modeled_object$model_input_options$regression_type == "HDD Regression" |
      modeled_object$model_input_options$regression_type == "CDD Regression") {
 
-    if(! is.null(prediction_list$operating_mode_data)){
-      dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
-    }
-
     predictions <- predict(modeled_object$model, dframe_pred)
 
-    out <- NULL
-    out$predictions <- data.frame(prediction_list$dataframe, predictions)
+    predictions_df <- data.frame(prediction_data, predictions)
 
   } else if(modeled_object$model_input_options$regression_type == "TOWT" |
             modeled_object$model_input_options$regression_type == "TOW") {
 
-    if(! is.null(prediction_list$operating_mode_data)){
-      dframe_pred <- dplyr::inner_join(dframe_pred, prediction_list$operating_mode_data, by = "time")
-    }
-
-    predictions <- calculate_TOWT_model_predictions(training_list = training_list, prediction_list = prediction_list,
+    predictions <- calculate_TOWT_model_predictions(training_data = training_data, prediction_data = prediction_data,
                                                     modeled_object = modeled_object)
 
-    out <- NULL
-    out$predictions <- data.frame(prediction_list$dataframe, predictions)
+    predictions_df <- data.frame(prediction_data, predictions)
 
   } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "Three Parameter Heating" |
              modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "Five Parameter Linear Model") {
 
-    dframe_pred <- data.frame(independent_variable = prediction_list$dataframe$temp)
+    dframe_pred <- data.frame(independent_variable = prediction_data$temp)
 
     predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
 
-    out <- NULL
-    out$predictions <- data.frame(prediction_list$dataframe, predictions)
+    predictions_df <- data.frame(prediction_data, predictions)
 
   }
 
-  return(out)
+  return(predictions_df)
 
 }

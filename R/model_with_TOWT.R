@@ -3,8 +3,8 @@
 #' \code{This function builds an energy use/demand models using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param training_list List with training dataframe and operating mode dataframe. Output from create_dataframe
-#' @param prediction_list List with prediction dataframe and operating mode dataframe. Output from create_dataframe
+#' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
+#' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
 #' @return a list with the following components:
@@ -18,16 +18,26 @@
 #'
 #' @export
 
-model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_input_options = NULL){
+model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL){
 
-  if(training_list$chosen_modeling_interval == "Monthly") {
+  nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
+
+  if (nterval == 60){
+    nterval_value <- "Hourly"
+  } else if (nterval == 1440) {
+    nterval_value <- "Daily"
+  } else if (nterval >= 40320) {
+    nterval_value <- "Monthly"
+  }
+
+  model_input_options$chosen_modeling_interval <- nterval_value
+
+  if(model_input_options$chosen_modeling_interval == "Monthly") {
     stop("Error: model_with_TOWT cannot be used with Monthly data.")
   }
 
-  model_input_options$chosen_modeling_interval <- training_list$chosen_modeling_interval
-
   # calculate temperature knots
-  model_input_options$calculated_temp_knots <- calculate_temp_knots(training_list = training_list, model_input_options = model_input_options)
+  model_input_options$calculated_temp_knots <- calculate_temp_knots(training_data = training_data, model_input_options = model_input_options)
 
   # Run for energy modeling - timescale_days not used
   if (is.null(model_input_options$timescale_days)) {
@@ -35,10 +45,10 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     # train_weight_vec not essentially needed for energy modeling.
     # it is needed for fit_TOWT_reg however
     # therefore, keeping it as 1 for energy modeling
-    model_input_options$train_weight_vec <- rep(1, length(training_list$dataframe$time))
+    model_input_options$train_weight_vec <- rep(1, length(training_data$time))
 
     # fit linear regression
-    reg_out <- fit_TOWT_reg(training_list = training_list, prediction_list = prediction_list,
+    reg_out <- fit_TOWT_reg(training_data = training_data, prediction_data = prediction_data,
                             model_input_options = model_input_options)
 
     train_out <- reg_out$training
@@ -46,7 +56,7 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     final_train_matrix <- train_out$training_load_pred
 
     # Run only if prediction list is available
-    if(! is.null(prediction_list)) {
+    if(! is.null(prediction_data)) {
       pred_out <- reg_out$predictions
       final_pred_matrix <- pred_out$pred_vec
     }
@@ -54,14 +64,14 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
     # Run for demand modeling - timescale_days used
   } else {
 
-    modeled_demand <- model_demand_with_TOWT(training_list = training_list, prediction_list = prediction_list, model_input_options = model_input_options)
+    modeled_demand <- model_demand_with_TOWT(training_data = training_data, prediction_data = prediction_data, model_input_options = model_input_options)
 
     final_train_matrix <- modeled_demand$final_train_matrix
 
     reg_out <- modeled_demand$reg_out
 
     # Run only if prediction list is available
-    if(! is.null(prediction_list)) {
+    if(! is.null(prediction_data)) {
       pred_out <- reg_out$predictions
       final_pred_matrix <- modeled_demand$final_pred_matrix
     }
@@ -71,19 +81,11 @@ model_with_TOWT <- function(training_list = NULL, prediction_list = NULL, model_
   results <- list()
 
   # training data and model fit
-  results$training_data <- dplyr::bind_cols(training_list$dataframe, "model_fit" = final_train_matrix)
-
-  if(! is.null(training_list$operating_mode_data)) {
-    results$training_data <- dplyr::inner_join(results$training_data, training_list$operating_mode_data, by = "time")
-
-  }
+  results$training_data <- dplyr::bind_cols(training_data, "model_fit" = final_train_matrix)
 
   # Run only if prediction list is available
-  if(! is.null(prediction_list)){
-    results$prediction_data <- dplyr::bind_cols(prediction_list$dataframe, "model_predictions" = final_pred_matrix)
-    if(! is.null(prediction_list$operating_mode_data)){
-      results$prediction_data <- dplyr::inner_join(results$prediction_data, prediction_list$operating_mode_data, by = "time")
-    }
+  if(! is.null(prediction_data)){
+    results$prediction_data <- dplyr::bind_cols(prediction_data, "model_predictions" = final_pred_matrix)
   }
 
   # model fits and coefficient counts for models

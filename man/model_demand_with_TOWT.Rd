@@ -4,13 +4,13 @@
 \alias{model_demand_with_TOWT}
 \title{Modeling electric demand Time-of-Week and Temperature.}
 \usage{
-model_demand_with_TOWT(training_list = NULL, prediction_list = NULL,
+model_demand_with_TOWT(training_data = NULL, prediction_data = NULL,
   model_input_options = NULL)
 }
 \arguments{
-\item{training_list}{List with training dataframe and operating mode dataframe. Output from create_dataframe}
+\item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{prediction_list}{List with prediction dataframe and operating mode dataframe. Output from create_dataframe}
+\item{prediction_data}{Prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }

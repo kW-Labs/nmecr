@@ -6,8 +6,8 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "November 22, 2019"
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -89,7 +89,7 @@ baseline_df_with_op_mode <- create_dataframe(eload_data = school_eload,
 
 ```{r baseline profile, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
-ggplot2::ggplot(baseline_df$dataframe, aes(x = time, y = eload)) +
+ggplot2::ggplot(baseline_df, aes(x = time, y = eload)) +
   geom_line() +
   xlab("Time") +
   scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma)+
@@ -102,7 +102,7 @@ Figure 1: Baseline Energy Use over Time
 
 ```{r baseline scatter, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
-ggplot2::ggplot(baseline_df$dataframe, aes(x = temp, y = eload)) +
+ggplot2::ggplot(baseline_df, aes(x = temp, y = eload)) +
   geom_point() +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma)+
@@ -122,7 +122,7 @@ As there isn't a high dependence on temperature, we expect that a model with Sim
 
 ```{r SLR_model, results = 'markup', echo = FALSE}
 
-SLR_model <- model_with_SLR(training_list = baseline_df, 
+SLR_model <- model_with_SLR(training_data = baseline_df, 
                             model_input_options = 
                               assign_model_inputs(regression_type = "SLR"))
 
@@ -130,14 +130,15 @@ SLR_df <- SLR_model$training_data
 
 names(SLR_df) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_without_op.mode_info")
 
-SLR_model_with_op_mode <- model_with_SLR(training_list = baseline_df_with_op_mode, 
+SLR_model_with_op_mode <- model_with_SLR(training_data = baseline_df_with_op_mode, 
                             model_input_options = 
                               assign_model_inputs(regression_type = "SLR"))
 
 SLR_df_with_op_mode <- SLR_model_with_op_mode$training_data
 
-names(SLR_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_with_op.mode_info",
-                                "school holidays", "summer maintenance", "summer school", "pre-class ramp up")
+names(SLR_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "school holidays", 
+                                "summer maintenance", "summer school", "pre-class ramp up",
+                                "model_fit_with_op.mode_info")
 
 SLR_all_data <- SLR_df %>%
   dplyr::inner_join(SLR_df_with_op_mode, by = c("time", "temp", "HDD", "CDD", "eload"))
@@ -209,21 +210,22 @@ Figure 5 shows that the model without the operating mode information tends to av
 
 ```{r TOWT_model, results='markup', echo = FALSE}
 
-TOWT_model <- model_with_TOWT(training_list = baseline_df, 
+TOWT_model <- model_with_TOWT(training_data = baseline_df, 
                               model_input_options = 
                                 assign_model_inputs(regression_type = "TOWT"))
 TOWT_df <- TOWT_model$training_data
 
 names(TOWT_df) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_without_op.mode_info")
 
-TOWT_model_with_op_mode <- model_with_TOWT(training_list = baseline_df_with_op_mode, 
+TOWT_model_with_op_mode <- model_with_TOWT(training_data = baseline_df_with_op_mode, 
                             model_input_options = 
                               assign_model_inputs(regression_type = "TOWT"))
 
 TOWT_df_with_op_mode <- TOWT_model_with_op_mode$training_data
 
-names(TOWT_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_with_op.mode_info",
-                                 "school holidays", "summer maintenance", "summer school", "pre-class ramp up")
+names(TOWT_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "school holidays", 
+                                 "summer maintenance", "summer school", "pre-class ramp up",
+                                  "model_fit_with_op.mode_info")
 
 TOWT_all_data <- TOWT_df %>%
   dplyr::inner_join(TOWT_df_with_op_mode, by = c("time", "temp", "HDD", "CDD", "eload"))
@@ -292,7 +294,7 @@ The plots show that the Time-of-Week and Temperature algorithm models the energy
 
 This insight can be confirmed through model statistics by using the `calculate_summary_statistics()` function. The following table summarizes the results from this function for each of the models assessed above:
 
-```{r stats, results='markup', echo=FALSE}
+```{r stats, results='markup', echo=TRUE}
 
 SLR_stats <- calculate_summary_statistics(SLR_model)
 
@@ -329,7 +331,7 @@ The California Public Utilities Commission requires savings to be detectable abo
 
 ```{r savings summary, results='markup'}
 
-TOWT_savings <- calculate_savings_and_uncertainty(prediction_results_list = NULL, 
+TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = NULL, 
                                                   modeled_object = TOWT_model_with_op_mode, 
                                                   model_summary_statistics = TOWT_with_op_mode_stats,
                                                   confidence_level = 68)
