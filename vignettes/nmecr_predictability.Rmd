@@ -1,10 +1,10 @@
 ---
-title: "Introduction to nmecr"
+title: "Predictability Analysis using nmecr"
 author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "November 22, 2019"
+date: "December 18, 2019"
 output:
   word_document: default
   pdf_document: default
@@ -29,27 +29,21 @@ The `nmecr` package was written to integrate the past efforts of the energy effi
 
 ## Normalized Metered Energy Consumption (NMEC)
 
-Meter-based energy efficiency programs are proliferating across the globe. This proliferation is influenced by the widespread availability of high frequency energy use measurements from new metering technology as well as advancements in statistical regression and other empirical energy data modeling methodologies. Program administrators may report savings as the overall reduction in normalized metered energy consumption (NMEC). This method to determine savings is based on analysis of meter data collected prior to and after energy efficiency and conservation measures have been installed. Referred to as advanced measurement and verification (M&V) by the industry, this time-granular data and updated modeling methods provide several advantages over other methods used to quantify the benefits of energy efficiency:
+Meter-based energy efficiency programs are proliferating across the globe. This proliferation is influenced by the widespread availability of high frequency energy use measurements from new metering technology as well as advancements in statistical regression and other empirical energy data modeling methodologies. Program administrators may report savings as the overall reduction in normalized metered energy consumption (NMEC). This method to determine savings is based on analysis of meter data collected prior to and after energy efficiency and conservation measures have been installed. 
 
-* It reliably determines the actual savings achieved at the meter
+## Necessity of Predictability Analysis 
 
-*	It provides fast feedback on the facility's energy performance and savings progress
+Prior to engaging in a meter-based savings project, a good practice from a modeling perspective is to determine whether a sufficiently accurate energy model may be developed. Using a year of pre-installation period energy use data, a modeling algorithm is selected, an energy model is developed, and its goodness of fit metrics are calculated and compared to industry accepted criteria. Adherence to the assumptions of regression modeling may also be checked, as the modeling algorithms in nmecr are each based on ordinary least squares regressions. The four main assumptions of linear regression are:
 
-*	It enables identification and troubleshooting of issues that prevent savings realization
- 
-The `nmecr` package streamlines the application of the NMEC approach by enabling the:
-
-* Management of high frequency, high volume data.
-
-* Execution of advanced, state-of-the-art time-series data modeling algorithms.
-
-* Comprehensive assessment of the validity of energy data models in specific applications.
-
-* Quantification of uncertainties and risks associated with the energy savings projections in accordance with ASHRAE Guideline 14.
+- Linearity of data: The relationship between the predictor and the predicted is assumed to be linear
+- Normality of residuals: The residuals are assumed to be normally distributed. Residuals are the difference between the predictor and predicted values.
+- Homoscedasticity: (homogeneity of residual variance): The residuals are assumed to have a constant variance.
+- Independence of residuals: The residuals are assumed to be independent of each other.
 
 ## Data
 
-`nmecr` includes two datasets: `temp` and `eload`. These contain three years (03/01/2012 - 02/28/2015) of outside air temperature data and energy use data from a commercial building in North America. Energy conservation measures were installed between 03/01/2013 and 02/28/2014 in this building and so, we will use the first year (03/01/2012 - 02/01/2013) as the pre-implementation dataset and the third year (03/01/2014 - 02/28/2015) as the post-implementation dataset. 
+`nmecr` includes two datasets: `temp` and `eload`. These contain three years (03/01/2012 - 02/28/2015) of energy use and outside temperature data from a commercial building in North America. We will use the first year (03/01/2012 - 02/28/2013) of energy use and temperature data for this predictability analysis, as at the start of any project, we generally can collect a year of data. 
+
 
 ```{r, results='markup'}
 # Load data into an R session:
@@ -73,7 +67,7 @@ Temp:
 head(temp, n=5)
 ```
 
-## Baseline and Performance Period Dataframes for Modeling
+## Baseline Dataframe for Modeling
 
 `create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If an operating mode dataframe is supplied, `create_dataframe` creates a list with two objects: dataframe, operating_mode_data.
 
@@ -90,22 +84,9 @@ head(baseline_df, 5)
 
 ```
 
-```{r performance_df, results='markup'}
-
-# Performance Period Dataframe
-
-performance_df <- create_dataframe(eload_data = eload, temp_data = temp, 
-                                   start_date = "03/01/2014 00:00", 
-                                   end_date = "02/28/2015 23:59", 
-                                   convert_to_data_interval = "Daily")
-
-head(performance_df, 5)
-
-```
-
 ## Energy Data Modeling
 
-The baseline and performance period dataframes can then be used for energy data modeling using one of the four modeling algorithms available in nmecr:
+The baseline period dataframe can be used for energy data modeling using one of the four modeling algorithms available in nmecr:
 
 * `model_with_TOWT()*`: Time-of-Week & Temperature and Time-Only algorithms
 
@@ -118,7 +99,7 @@ The baseline and performance period dataframes can then be used for energy data 
 The common arguments for these four algorithms are:
 
 1. training_list (output from `create_dataframe()`)
-1. model_input_options (see below)
+2. model_input_options (see below)
 
 `*model_with_TOWT()` has an additional argument (prediction_list) for creating data models and predictions together. 
 
@@ -326,7 +307,7 @@ Using the modeling statistics and the savings uncertainity for 10%, we can deter
 1. CVRMSE: 6.78% (should be < 25%)
 2. NDBE: 0.0000 (should be < 0.005%)
 
-The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. It includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
 
 ```{r savings_10 summary, results='markup'}
 
@@ -345,63 +326,19 @@ The savings percentage required to meet the threshold of 50% uncertainty, at the
 
 In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above).
 
-## Energy Load Prediction
+Whether each of the four assumptions of linear regression are met by each model, the following techniques may be used. 
 
-The energy use models can be used to predict energy use during a different time period. Predictions in the reporting period are called the Adjusted Baseline Energy Use. The difference between the Adjusted Baseline Energy Use and reporting period actual energy use is called the Avoided Energy Use.
-
-```{r model predictions, results='markup'}
-
-TOWT_predictions <- calculate_model_predictions(training_data = baseline_df, 
-                                                prediction_data = performance_df, 
-                                                modeled_object = TOWT_model)
-
-```
-
-```{r TOWT pred, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
-
-TOWT_df <- TOWT_predictions %>%
-  tidyr::gather(key = "variable", value = "value", -c("time", "temp", "CDD", "HDD"))
-
-ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
-  geom_line(aes(color = variable), size = 1) +
-  xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Predictions", labels = scales::comma) +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  theme(legend.title = element_blank())
-```
-
-Figure 9: Performance period energy use and TOWT model predictions over Time
-
-```{r TOWT pred scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
- ggplot2::ggplot(TOWT_df, aes(x = temp, y = value)) +
-  geom_point(aes(color = variable), size = 1) +
-  xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Predictions", labels = scales::comma) +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  theme(legend.title = element_blank())
-
-```
-
-Figure 10: Performance period energy use and TOWT model predictions over Temperature
+1. Linearity of Data
+check predicted (kWh) vs predictor (temp) scatter plots generated above
 
 
-## Energy Savings Achieved and Uncertainity
-
-```{r savings summary, results='markup'}
-
-TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = TOWT_predictions, 
-                                                  modeled_object = TOWT_model, 
-                                                  model_summary_statistics = TOWT_stats,
-                                                  confidence_level = 68)
-
-TOWT_savings$savings_summary_df
-```
-
-Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 14.5%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 68% confidence level. The 14.5% uncertainty is well below this threshold. 
+2. Normality of Residuals
+Plot the distribution of residuals as in kWMV for each of the models
 
 
+3. Homoscedasticity
+plot the residuals versus the predicted value, also calculate the ?? metric
 
 
-
+4. Independence of Residuals
+calclulate the correlation coefficient between a residual and its previous value, or plot the lags of residuals (?? this isn't in nmecr - only the three plots are (for 1, 2, and 3)
