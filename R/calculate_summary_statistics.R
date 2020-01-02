@@ -33,15 +33,15 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
   SSR_over_SST <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
-    mean(.) %>%
-    magrittr::divide_by(var(modeled_data_obj$training_data$eload))
+    mean(na.rm = T) %>%
+    magrittr::divide_by(var(modeled_data_obj$training_data$eload, na.rm = T))
 
   R_squared <- 1 - SSR_over_SST
 
   # Root Mean Sqaured Error (Absolute)
   RMSE <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
-    sum(.) %>%
+    sum(na.rm = T) %>%
     magrittr::divide_by(effective_parameters) %>%
     magrittr::raise_to_power(0.5)
 
@@ -52,21 +52,21 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
   # Mean Bias Error (Absolute)
   MBE <- fit_residuals_numeric %>%
-    sum(.) %>%
+    sum(na.rm = T) %>%
     magrittr::divide_by(length(fit_residuals_numeric))
 
   # Coefficient of Variation of Mean Absolute error (Absolute)
   CVMAE <- fit_residuals_numeric %>%
     abs(.) %>%
     magrittr::divide_by(length(fit_residuals_numeric)) %>%
-    sum(.) %>%
-    magrittr::divide_by(mean(eload))
+    sum(na.rm = T) %>%
+    magrittr::divide_by(mean(eload, na.rm = T))
 
   # Net Determination Bias Error (Absolute)
 
   NDBE <- fit_residuals_numeric %>%
-    sum(.) %>%
-    magrittr::divide_by(sum(eload))
+    sum(na.rm = T) %>%
+    magrittr::divide_by(sum(eload, na.rm = T))
 
   goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 5))
   names(goodness_of_fit) <- c("R_squared", "CVRMSE", "NDBE", "MBE", "#Parameters")
