@@ -48,7 +48,7 @@ assign_model_inputs <- function(timescale_days = NULL,
   }
 
   if (! assertive::is_numeric(temp_knots_value)) {
-    stop("Error: temp_knots_value must be a numeric vector input. Default value: c(40,45,50,60,65,90)")
+    stop("Error: temp_knots_value must be a numeric vector input. Default value: c(40, 55, 65, 80, 90)")
   }
 
   if (! assertive::is_numeric(initial_breakpoints)) {
