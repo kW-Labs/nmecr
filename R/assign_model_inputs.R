@@ -3,10 +3,13 @@
 #'
 #' @param timescale_days Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.
 #' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Default: 15
-#' @param has_temp_knots_defined Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE
+#' @param has_temp_knots_defined Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE.
+#' If set to FALSE, variables 'equal_tem_segment_points' and 'temp_segments_numeric' are used to calculate the temperature knots.#'
 #' @param equal_temp_segment_points  Logical specifying structure of temperature segments: equal number of points vs. equal segment length. Default: TRUE
+#' Only used if has_temp_knots_defined is set to FALSE.
 #' @param temp_segments_numeric Numeric specifying number of temperature segments. Default: 6
-#' @param temp_knots_value Vector specifying manually defined temperature knots.
+#' Only used if has_temp_knots_defined is set to FALSE.
+#' @param temp_knots_value Vector specifying manually defined temperature knots.  Only used if has_temp_knots_defined is set to TRUE.
 #' @param initial_breakpoints Vector indicating the initial breakpoints (changepoints) to regress over.
 #' @param regression_type Character string indictating the modeling algorithm to run:
 #'
@@ -50,6 +53,11 @@ assign_model_inputs <- function(timescale_days = NULL,
   if (! assertive::is_numeric(temp_knots_value)) {
     stop("Error: temp_knots_value must be a numeric vector input. Default value: c(40, 55, 65, 80, 90)")
   }
+
+  if(has_temp_knots_defined == TRUE && equal_temp_segment_points == TRUE) {
+    writeLines("You have set 'has_temp_knots_defined' and 'equal_temp_segment_points' to TRUE. These two variables are mutually exclusive: \n 1. when 'has_temp_knots_defined' is set to TRUE, the temperature knots as defined in 'temp_knots_value' are used \n 2. To use 'equal_temp_segment_points', set 'has_temp_knots_defined' to FALSE. Remember to edit the 'temp_segments_numeric' variable as needed.")
+  }
+
 
   if (! assertive::is_numeric(initial_breakpoints)) {
     stop("Error: initial_breakpoints must be a numeric vector input. Default value: c(50,65)")

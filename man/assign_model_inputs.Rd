@@ -6,9 +6,9 @@
 \usage{
 assign_model_inputs(timescale_days = NULL, interval_minutes = 15,
   has_temp_knots_defined = FALSE, equal_temp_segment_points = TRUE,
-  temp_segments_numeric = 6, temp_knots_value = c(40, 45, 50, 60, 65,
-  90), initial_breakpoints = c(50, 65), regression_type = c("TOWT",
-  "TOW", "SLR", "HDD-CDD Multivariate Regression", "HDD Regression",
+  temp_segments_numeric = 6, temp_knots_value = c(40, 55, 65, 80, 90),
+  initial_breakpoints = c(50, 65), regression_type = c("TOWT", "TOW",
+  "SLR", "HDD-CDD Multivariate Regression", "HDD Regression",
   "CDD Regression", "Three Parameter Cooling", "Three Parameter Heating",
   "Four Parameter Linear Model", "Five Parameter Linear Model"))
 }
@@ -17,13 +17,16 @@ assign_model_inputs(timescale_days = NULL, interval_minutes = 15,
 
 \item{interval_minutes}{Numeric of length of a Time Of Week interval as input variables. Default: 15}
 
-\item{has_temp_knots_defined}{Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE}
+\item{has_temp_knots_defined}{Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE.
+If set to FALSE, variables 'equal_tem_segment_points' and 'temp_segments_numeric' are used to calculate the temperature knots.#'}
 
-\item{equal_temp_segment_points}{Logical specifying structure of temperature segments: equal number of points vs. equal segment length. Default: TRUE}
+\item{equal_temp_segment_points}{Logical specifying structure of temperature segments: equal number of points vs. equal segment length. Default: TRUE
+Only used if has_temp_knots_defined is set to FALSE.}
 
-\item{temp_segments_numeric}{Numeric specifying number of temperature segments. Default: 6}
+\item{temp_segments_numeric}{Numeric specifying number of temperature segments. Default: 6
+Only used if has_temp_knots_defined is set to FALSE.}
 
-\item{temp_knots_value}{Vector specifying manually defined temperature knots.}
+\item{temp_knots_value}{Vector specifying manually defined temperature knots.  Only used if has_temp_knots_defined is set to TRUE.}
 
 \item{initial_breakpoints}{Vector indicating the initial breakpoints (changepoints) to regress over.}
 
