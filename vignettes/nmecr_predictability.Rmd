@@ -193,7 +193,7 @@ Figure 3: Baseline Energy Use modeled with Simple Linear Regression over Time
 
 Figure 4: Baseline Energy Use modeled with Simple Linear Regression over Temperature
 
-**Four Parameter Heating:**
+**Four Parameter Cooling:**
 
 ```{r 4P_model, results='markup'}
 
@@ -307,9 +307,9 @@ Using the modeling statistics and the savings uncertainity for 10%, we can deter
 1. CVRMSE: 6.78% (should be < 25%)
 2. NDBE: 0.0000 (should be < 0.005%)
 
-The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar* for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar[^1] for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
 
-*Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
+[^1]: Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
 
 
 ```{r savings_10 summary, results='markup'}
@@ -317,15 +317,15 @@ The California Public Utilities Commission requires savings to be detectable abo
 TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
-                                                  confidence_level = 68)
+                                                  confidence_level = 90)
 
 TOWT_savings_10$savings_summary_df
 
 ```
 
-3. Savings Uncertainty for 10% savings (at 68% confidence level): 10.1% (shoule be < 50%). 
+3. Savings Uncertainty for 10% savings (at 90% confidence level): 16.7% (shoule be < 50%). 
 
-The savings percentage required to meet the threshold of 50% uncertainty, at the 68% confidence level, is 2% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
+The savings percentage required to meet the threshold of 50% uncertainty, at the 90% confidence level, is 3% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 
 In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model.
 
@@ -335,16 +335,17 @@ Linearity of data is checked by plotting the predicted values (predicted energy 
 
 The data fulfills this linearity assumption if the residuals are scatted randomly around the zero line.
 
-```{r linearity, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
+```{r linearity, fig.width=7, fig.height=3, echo = TRUE, results='markup'}
 
 TOWT_res <- TOWT_model$training_data$eload - TOWT_model$training_data$model_fit
 
-TOWT_res_df <- data.frame("Time" = TOWT_model$training_data$time, "Residuals" = TOWT_res, "Modeled_eload" = TOWT_model$training_data$model_fit)
+TOWT_res_df <- data.frame("Time" = TOWT_model$training_data$time, "Residuals" = TOWT_res, 
+                          "Modeled_eload" = TOWT_model$training_data$model_fit)
 
 
 ggplot2::ggplot(TOWT_res_df, aes(x = Modeled_eload, y = Residuals)) +
   geom_point() +
-  xlab("Modeled eload") +
+  xlab("Modeled Data") +
   scale_y_continuous(name = "Residuals", labels = scales::comma)+
   theme_minimal()
 
@@ -356,10 +357,10 @@ Figure 9: Linearity of Data
 
 Normality of residuals is tested by plotting their histograms.
 
-```{r normality, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
+```{r normality, fig.width=7, fig.height=3, echo = TRUE, results='markup'}
 
 ggplot2::ggplot(TOWT_res_df, aes(x = Residuals)) +
-  geom_histogram(binwidth = 30) +
+  geom_histogram(binwidth = 40) +
   theme_minimal()
 
 ```
@@ -372,17 +373,17 @@ Residuals, of the Time-of-Week and Temperature model, are normally distributed w
 
 Homoscedasticity, or homogenous variance of residuals, is tested by plotting the residuals over time. Ideally, we would like to see a constant amount of scatter around the zero line. If the scatter increases or decreases over time, the dataset is in violation of this linearity assumption.
 
-```{r homoscesdacity, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
+```{r homoscesdacity, fig.width=7, fig.height=3, echo = TRUE, results='markup'}
 
 ggplot2::ggplot(TOWT_res_df, aes(x = Time, y = Residuals)) +
   geom_point() +
-  xlab("Modeled eload") +
+  xlab("Time") +
   scale_y_continuous(name = "Residuals", labels = scales::comma)+
   theme_minimal()
 ```
 Figure 11: Homoscedasticity of Residuals
 
-The figure above shows constant variance in residuals.
+The residuals exhibit a positive slope which means that the model underpredicts during the later half of the baseline period. Additional information can be added to this model to correct for this behavior.
 
 #### d. Independence of Residuals
 
