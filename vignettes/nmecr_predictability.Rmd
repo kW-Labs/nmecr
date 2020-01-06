@@ -307,7 +307,10 @@ Using the modeling statistics and the savings uncertainity for 10%, we can deter
 1. CVRMSE: 6.78% (should be < 25%)
 2. NDBE: 0.0000 (should be < 0.005%)
 
-The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar (reference?) for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar* for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+
+*Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
+
 
 ```{r savings_10 summary, results='markup'}
 
