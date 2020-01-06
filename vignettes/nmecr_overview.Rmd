@@ -212,7 +212,7 @@ Figure 3: Baseline Energy Use modeled with Simple Linear Regression over Time
 
 Figure 4: Baseline Energy Use modeled with Simple Linear Regression over Temperature
 
-**Four Parameter Cooling:**
+**Four Parameter Heating:**
 
 ```{r 4P_model, results='markup'}
 
