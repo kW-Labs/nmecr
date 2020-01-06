@@ -65,7 +65,7 @@ data(school_op_mode)
 
 ## Baseline and Performance Period Dataframes for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If an operating mode dataframe is supplied, `create_dataframe` creates a list with two objects: dataframe, operating_mode_data.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 
 
