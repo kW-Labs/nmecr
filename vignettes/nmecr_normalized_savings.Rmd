@@ -280,8 +280,8 @@ TMY3_daily <- aggregate(eload_data = NULL, temp_data = TMY3, convert_to_data_int
 
 ```{r baseline normalized use, results='markup'}
 
-TOWT_baseline_normalized <- calculate_model_predictions(training_data = TOWT_baseline_df, prediction_data = TMY3_daily, modeled_object = TOWT_baseline_model)
-TOWT_performance_normalized <- calculate_model_predictions(training_data = TOWT_performance_df, prediction_data = TMY3_daily, modeled_object = TOWT_performance_model)
+TOWT_baseline_normalized <- calculate_model_predictions(training_data = baseline_df, prediction_data = TMY3_daily, modeled_object = TOWT_baseline_model)
+TOWT_performance_normalized <- calculate_model_predictions(training_data = performance_df, prediction_data = TMY3_daily, modeled_object = TOWT_performance_model)
 
 ```
 
