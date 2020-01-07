@@ -15,8 +15,6 @@
 
 calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
-  dframe_pred <- prediction_data
-
   if(modeled_object$model_input_options$regression_type == "SLR" |
      modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" |
      modeled_object$model_input_options$regression_type == "HDD Regression" |

@@ -56,6 +56,8 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
     CDD <- daily_temp$temp - base_temp
     CDD[CDD < 0 ] <- 0
 
+    daily_temp <- dplyr::bind_cols(daily_temp, "HDD" = HDD, "CDD" = CDD)
+
     if(! is.null(eload_data)) {
 
       daily_eload <- eload_data %>%
@@ -65,7 +67,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
         na.omit()
 
 
-      aggregated_data <- dplyr::bind_cols(daily_temp, "HDD" = HDD, "CDD" = CDD) %>%
+      aggregated_data <- daily_temp %>%
         dplyr::inner_join(daily_eload, by = "time") %>%
         dplyr::distinct()
 
