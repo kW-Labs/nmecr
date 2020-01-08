@@ -4,7 +4,7 @@ author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "January 6, 2020"
+date: "January 8, 2020"
 output:
   pdf_document: default
   word_document: default
@@ -47,7 +47,7 @@ The `nmecr` package streamlines the application of the NMEC approach by enabling
 
 * Quantification of uncertainties and risks associated with the energy savings projections in accordance with ASHRAE Guideline 14.
 
-For an overview of nmcer, please refer [nmecr_overview.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes/nmecr.pdf)
+For an overview of nmcer, please refer [nmecr_overview.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
 
 ## Data
 
@@ -142,7 +142,7 @@ model_input_options <- assign_model_inputs(timescale_days = NULL, interval_minut
 
 ```
 
-As noted in the [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes/nmecr_predictability.pdf) vignette, the Time-of-Week and Temperature model is best suited for this facility. Here we create a TOWT model for the baseline as well as the performance period data: 
+As noted in the [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes) vignette, the Time-of-Week and Temperature model is best suited for this facility.
 
 **Time of Week and Temperature:**
 
@@ -194,7 +194,9 @@ ggplot2::ggplot(TOWT_performance_df, aes(x = time, y = value)) +
 
 Figure 2: Performance Period Energy Use modeled with Time-of-week and Temperature over Time
 
-`calculate_summary_statistics()` can be used to calculate the model fit statistics for both models:
+**Model  Statistics**
+
+To ensure that the models meet goodness-of-fit criteria, we can run the `calculate_summary_statistics()` function: 
 
 ```{r stats, results='markup', echo=TRUE}
 
@@ -219,21 +221,28 @@ all_stats
 
 ## Assessing project fit for NMEC
 
-Using the modeling statistics and the savings uncertainity for 10%, we can determine the validity of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment
+Using the models' statistics and the uncertainity for 10% savings, we can determine the validity of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment
 
-1. CVRMSE: 6.78% (should be < 25%)
-2. NDBE: 0.0000 (should be < 0.005%)
+1. CVRMSE (should be < 25%):
 
-Both models have CV(RMSE) values lower than 25%
+* Baseline Model: 6.8%
+* Performance Period Model: 7.3%
+
+2. NDBE: should be < 0.005%
+
+* Baseline Model: 0.0000
+* Performance Period Model: 0.000
 
 The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar[^1] for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
 
 [^1]: Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
 
+3. Savings Uncertainty for 10% savings (at 90% confidence level) (shoule be < 50%):
 
 ```{r baseline savings_10 summary, results='markup'}
 
 TOWT_baseline_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                              savings_fraction = 0.1,
                                                   modeled_object = TOWT_baseline_model, 
                                                   model_summary_statistics = TOWT_baseline_stats,
                                                   confidence_level = 90)
@@ -243,8 +252,11 @@ TOWT_baseline_savings_10$savings_summary_df
 
 ```
 
+* Baseline Model: 16.7%
+
 ```{r performance savings_10 summary, results='markup'}
 TOWT_performance_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                                 savings_fraction = 0.1,
                                                   modeled_object = TOWT_performance_model, 
                                                   model_summary_statistics = TOWT_performance_stats,
                                                   confidence_level = 90)
@@ -253,16 +265,15 @@ TOWT_performance_savings_10$savings_summary_df
 
 ```
 
-3. Savings Uncertainty for 10% savings (at 90% confidence level) (shoule be < 50%):
+* Performance Period Model: 19.8%
 
-Baseline Period: 16.7%
-Performance Period: 19.8%
+In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
 
-In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes/nmecr_predictability.pdf)
+## Normalized Savings and Uncertainty
 
-## Normalized Savings
+Normalized Savings represent the energy savings that measures would achieve under a 'normal' set of conditions which, in this case, TMY3 weather data.
 
-To calculate Normalized Savings, the energy use under normal conditions needs to be predicted. Inspecting the TMY3 data, we see that it has hourly data intervals:
+Inspecting the TMY3 data, we see that it has hourly data intervals:
 
 ```{r TMY3 data, results='markup', echo=TRUE}
 
@@ -274,22 +285,81 @@ Since we have our models in the daily time intervals, it will be best to aggrega
 
 ```{r TMY3 daily, results='markup', echo = TRUE}
 
-TMY3_daily <- aggregate(eload_data = NULL, temp_data = TMY3, convert_to_data_interval = "Daily", temp_balancepoint = 65)
+TMY3_daily <- aggregate(eload_data = NULL, temp_data = TMY3, 
+                        convert_to_data_interval = "Daily", temp_balancepoint = 65)
 
 ```
 
-```{r baseline normalized use, results='markup'}
+Next, we calculate the baseline and the performance period energy use normalized to TMY3 condotions.
 
-TOWT_baseline_normalized <- calculate_model_predictions(training_data = baseline_df, prediction_data = TMY3_daily, modeled_object = TOWT_baseline_model)
-TOWT_performance_normalized <- calculate_model_predictions(training_data = performance_df, prediction_data = TMY3_daily, modeled_object = TOWT_performance_model)
+```{r normalized use, results='markup'}
+
+TOWT_baseline_normalized <- calculate_model_predictions(training_data = baseline_df, 
+                                                        prediction_data = TMY3_daily, 
+                                                        modeled_object = TOWT_baseline_model)
+
+TOWT_performance_normalized <- calculate_model_predictions(training_data = performance_df, 
+                                                           prediction_data = TMY3_daily, 
+                                                           modeled_object = TOWT_performance_model)
 
 ```
 
+The normalized energy savings are calculated as:
+
+```{r normalized energy savings, results='markup'}
+
+TOWT_normalized_savings <- data.frame("Savings" = 
+                                        TOWT_baseline_normalized$predictions - 
+                                        TOWT_performance_normalized$predictions)
+
+TOWT_normalized_savings_fraction <- sum(TOWT_normalized_savings, na.rm = T) / 
+                                      sum(TOWT_baseline_normalized$predictions, na.rm = T)
+
+```
+
+```{r, normalized energy savings summary, results='markup', echo = FALSE}
+TOWT_normalized_savings_value <- sum(TOWT_normalized_savings, na.rm = T)
+
+normalized_savings_summary_df <- data.frame(matrix(nrow=1, ncol = 2))
+colnames(normalized_savings_summary_df) <- c("Normalized Savings", "Normalized Savings Fraction")
+normalized_savings_summary_df$`Normalized Savings` <- TOWT_normalized_savings_value
+normalized_savings_summary_df$`Normalized Savings Fraction` <- TOWT_normalized_savings_fraction
+
+normalized_savings_summary_df
+
+```
+
+Normalized savings uncertainty is calculated as the square-root of the sum of the baseline and performance period models' squared uncertainties. These two values can be calculated using the `calculate_savings_and_uncertainty()` function:
+
+```{r normalized savings uncertainty, results='markup'}
+TOWT_baseline_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                  savings_fraction = TOWT_normalized_savings_fraction,
+                                                  modeled_object = TOWT_baseline_model, 
+                                                  model_summary_statistics = TOWT_baseline_stats,
+                                                  confidence_level = 90)
+
+TOWT_performance_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                  savings_fraction = TOWT_normalized_savings_fraction,
+                                                  modeled_object = TOWT_performance_model, 
+                                                  model_summary_statistics = TOWT_performance_stats,
+                                                  confidence_level = 90)
 
 
+TOWT_baseline_normalized_uncertainty_value <- 
+  TOWT_baseline_normalized_uncertainty$savings_summary_df$savings_uncertainty
+
+TOWT_performance_normalized_uncertainty_value <- 
+  TOWT_performance_normalized_uncertainty$savings_summary_df$savings_uncertainty
+
+TOWT_normalized_savings_uncertainty <- sqrt(TOWT_baseline_normalized_uncertainty_value^2 + 
+                                              TOWT_performance_normalized_uncertainty_value^2)
+
+TOWT_normalized_savings_uncertainty
 
 
+```
 
+The Normalized Savings are found to be 9.1% with an associated uncertainty of 28.4%.
 
 
 

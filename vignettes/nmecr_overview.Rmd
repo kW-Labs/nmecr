@@ -6,8 +6,8 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "November 22, 2019"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -331,17 +331,18 @@ The California Public Utilities Commission requires savings to be detectable abo
 ```{r savings_10 summary, results='markup'}
 
 TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                     savings_fraction = 0.1,
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
-                                                  confidence_level = 68)
+                                                  confidence_level = 90)
 
 TOWT_savings_10$savings_summary_df
 
 ```
 
-3. Savings Uncertainty for 10% savings (at 68% confidence level): 10.1% (shoule be < 50%). 
+3. Savings Uncertainty for 10% savings (at 90% confidence level): 10.1% (shoule be < 50%). 
 
-The savings percentage required to meet the threshold of 50% uncertainty, at the 68% confidence level, is 2% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
+The savings percentage required to meet the threshold of 50% uncertainty, at the 90% confidence level, is 2% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 
 In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above).
 
@@ -394,7 +395,7 @@ Figure 10: Performance period energy use and TOWT model predictions over Tempera
 TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = TOWT_predictions, 
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
-                                                  confidence_level = 68)
+                                                  confidence_level = 90)
 
 TOWT_savings$savings_summary_df
 ```

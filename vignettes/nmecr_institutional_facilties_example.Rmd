@@ -6,8 +6,8 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "November 22, 2019"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -332,6 +332,7 @@ The California Public Utilities Commission requires savings to be detectable abo
 ```{r savings summary, results='markup'}
 
 TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                  savings_fraction = 0.1,
                                                   modeled_object = TOWT_model_with_op_mode, 
                                                   model_summary_statistics = TOWT_with_op_mode_stats,
                                                   confidence_level = 68)

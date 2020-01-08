@@ -315,6 +315,7 @@ The California Public Utilities Commission requires savings to be detectable abo
 ```{r savings_10 summary, results='markup'}
 
 TOWT_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
+                                                     savings_fraction = 0.1,
                                                   modeled_object = TOWT_model, 
                                                   model_summary_statistics = TOWT_stats,
                                                   confidence_level = 90)
