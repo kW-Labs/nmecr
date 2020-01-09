@@ -8,7 +8,7 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{predictions} {dataframe with model predictions}
+#'   \item{predictions}{dataframe with model predictions}
 #' }
 #'
 #' @export

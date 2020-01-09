@@ -9,10 +9,10 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{model_occupied} {an lm object generated when using Time-of-Week and Time-of-Week & Temperature algorithms}
-#'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
-#'   \item{training_data} {training dataframe along with the model_fit values}
-#'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_data is supplied to the algorithm}
+#'   \item{model_occupied}{an lm object generated when using Time-of-Week and Time-of-Week & Temperature algorithms}
+#'   \item{model_unoccupied}{an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
+#'   \item{training_data}{training dataframe along with the model_fit values}
+#'   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_data is supplied to the algorithm}
 #' }
 
 fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL) {

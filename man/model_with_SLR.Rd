@@ -14,9 +14,9 @@ model_with_SLR(training_data = NULL, model_input_options = NULL)
 \value{
 a list with the following components:
 \describe{
-  \item{model} {an lm object}
-  \item{training_data} {training dataframe along with the model_fit values}
-  \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
+  \item{model}{an lm object}
+  \item{training_data}{training dataframe along with the model_fit values}
+  \item{model_input_options}{model_input_options from the input along with the chosen modeling algorithm.}
 }
 }
 \description{
