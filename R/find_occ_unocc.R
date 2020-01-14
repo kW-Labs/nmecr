@@ -37,5 +37,10 @@ find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col =
     }
   }
 
+  # change to occ if less than 2 unocc
+  if (length(which(ok_occ==0)) < 2) {
+    ok_occ[ok_occ==0] <- 1
+  }
+
   return(cbind(uniq_time_of_week, ok_occ))
 }

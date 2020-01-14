@@ -17,9 +17,9 @@ model_demand_with_TOWT(training_data = NULL, prediction_data = NULL,
 \value{
 a list with the following components:
 \describe{
-  \item{final_train_matrix} {training data matrix weighted according to timescale_days}
-  \item{reg_out} {an lm object generated from fit_TOWT_reg}
-  \item{final_pred_matrix} {prediction data matrix weighted according to timescale_days}
+  \item{final_train_matrix}{training data matrix weighted according to timescale_days}
+  \item{reg_out}{an lm object generated from fit_TOWT_reg}
+  \item{final_pred_matrix}{prediction data matrix weighted according to timescale_days}
 }
 }
 \description{

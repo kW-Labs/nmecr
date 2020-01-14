@@ -17,7 +17,7 @@ calculate_TOWT_model_predictions(training_data = NULL,
 \value{
 a list with the following components:
 \describe{
-  \item{predictions} {dataframe with model predictions}
+  \item{predictions}{dataframe with model predictions}
 }
 }
 \description{

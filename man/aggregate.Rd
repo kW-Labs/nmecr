@@ -18,8 +18,9 @@ aggregate(eload_data = NULL, temp_data = NULL,
 \item{temp_balancepoint}{A numeric indicating the balancepoint for the temp_data dataframe}
 }
 \value{
-a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval.
+a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval. If energy consumption data is not available,
+aggregated temperature data is returned.
 }
 \description{
-\code{Aggregate energy/demand consumption and temperature data to hourly, daily, or monthly data intervals.}
+\code{Aggregate energy/demand consumption and/or temperature data to hourly, daily, or monthly data intervals.}
 }

@@ -9,11 +9,11 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{model_occupied} {an lm object generated when using Time-of-Week and TIme-of-Week & Temperature algorithms}
-#'   \item{model_unoccupied} {an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
-#'   \item{training_data} {training dataframe along with the model_fit values}
-#'   \item{prediction_data} {prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
-#'   \item{model_input_options} {model_input_options from the input along with the chosen modeling algorithm.}
+#'   \item{model_occupied}{an lm object generated when using Time-of-Week and TIme-of-Week & Temperature algorithms}
+#'   \item{model_unoccupied}{an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
+#'   \item{training_data}{training dataframe along with the model_fit values}
+#'   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
+#'   \item{model_input_options}{model_input_options from the input along with the chosen modeling algorithm.}
 #' }
 #'
 #' @export

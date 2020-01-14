@@ -3,6 +3,7 @@
 #' \code{This function calculates meter-based savings achieved and the associated uncertainty.}
 #'
 #' @param prediction_df Model predictions. Output from calculate_model_predictions
+#' @param savings_fraction savings fraction value to use in savings uncertainty calculations. Used when prediction_df is set to NULL
 #' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #' @param model_summary_statistics Dataframe with model statistics. Output from calculate_summary_statistics.
 #' @param confidence_level Numeric corresponding to the confidence level to be used for savings uncertainty calculation
@@ -16,7 +17,7 @@
 #'
 #' @export
 
-calculate_savings_and_uncertainty <- function(prediction_df = NULL, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
+calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_fraction = 0.1, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
 
   if(confidence_level < 0 | confidence_level > 100){
     stop("Error: confidence level cannot be less than zero or greater than 100")
@@ -24,6 +25,10 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, modeled_obje
 
   if(! assertive::is_numeric(confidence_level)){
     stop("Error: confidence level needs to be a numeric input between 0 and 100")
+  }
+
+  if(! assertive::is_numeric(savings_fraction)) {
+    stop("Error: confidence level needs to be a numeric input between 0 and 1")
   }
 
   correlation_df <- as.data.frame(matrix(nrow = length(modeled_object$training_data$eload), ncol = 2))
@@ -60,7 +65,7 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, modeled_obje
     m <- n
     savings_summary_df <- as.data.frame(matrix(nrow = 1, ncol = 1))
     names(savings_summary_df) <- "savings_pct"
-    savings_summary_df$savings_pct <- 0.1
+    savings_summary_df$savings_pct <- savings_fraction
 
   }
 

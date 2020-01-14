@@ -9,9 +9,9 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{final_train_matrix} {training data matrix weighted according to timescale_days}
-#'   \item{reg_out} {an lm object generated from fit_TOWT_reg}
-#'   \item{final_pred_matrix} {prediction data matrix weighted according to timescale_days}
+#'   \item{final_train_matrix}{training data matrix weighted according to timescale_days}
+#'   \item{reg_out}{an lm object generated from fit_TOWT_reg}
+#'   \item{final_pred_matrix}{prediction data matrix weighted according to timescale_days}
 #' }
 #'
 #' @export
