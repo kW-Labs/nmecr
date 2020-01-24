@@ -66,12 +66,18 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
   } else if (model_input_options$regression_type == "Five Parameter Linear Model") {
 
     linear_5P_model <- lm(dependent_variable ~ independent_variable)
-    validate(
-      need(! is.null(min(model_input_options$initial_breakpoints)), ""),
-      need(! is.null(max(model_input_options$initial_breakpoints)), ""),
-      need(min(model_input_options$initial_breakpoints) > min(independent_variable), "Changepoint 1 is lower than the minimum temperature value available in the data"),
-      need(max(model_input_options$initial_breakpoints) < max(independent_variable), "Changepoint 2 is higher than the maximum temperature value available in the data")
-    )
+
+    message <- paste("Using intial breakpoints:", toString(model_input_options$initial_breakpoints), sep = " ")
+
+    writeLines(message)
+
+    if (min(model_input_options$initial_breakpoints) < min(independent_variable)) {
+      stop("Changepoint 1 is lower than the minimum temperature value available in the data")
+    }
+
+    if (max(model_input_options$initial_breakpoints) > max(independent_variable)) {
+      stop("Changepoint 2 is higher than the maximum temperature value available in the data")
+    }
 
    if.false <- F
    while (if.false == F){
