@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-devtools::load_all()
+library(nmecr)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
@@ -132,7 +132,7 @@ The four modeling algorithms have many specifications in common that can be spec
 
 ```{r model inputs, results='markup'}
 
-model_input_options <- assign_model_inputs(timescale_days = NULL, interval_minutes = 15, 
+model_input_options <- assign_model_inputs(timescale_days = NULL, interval_minutes = 1440, 
                                            has_temp_knots_defined = FALSE, 
                                            equal_temp_segment_points = TRUE,
                                            temp_segments_numeric = 6, 
@@ -237,7 +237,7 @@ The California Public Utilities Commission requires savings to be detectable abo
 
 [^1]: Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
 
-3. Savings Uncertainty for 10% savings (at 90% confidence level) (shoule be < 50%):
+3. Savings Uncertainty for 10% savings (at 90% confidence level) (should be < 50%):
 
 ```{r baseline savings_10 summary, results='markup'}
 
