@@ -5,11 +5,13 @@
 \title{Calculate meter-based savings and associated uncertainty.}
 \usage{
 calculate_savings_and_uncertainty(prediction_df = NULL,
-  modeled_object = NULL, model_summary_statistics = NULL,
-  confidence_level = 90)
+  savings_fraction = 0.1, modeled_object = NULL,
+  model_summary_statistics = NULL, confidence_level = 90)
 }
 \arguments{
 \item{prediction_df}{Model predictions. Output from calculate_model_predictions}
+
+\item{savings_fraction}{savings fraction value to use in savings uncertainty calculations. Used when prediction_df is set to NULL}
 
 \item{model_summary_statistics}{Dataframe with model statistics. Output from calculate_summary_statistics.}
 

@@ -8,7 +8,7 @@
 #'
 #' @return a list with the following components:
 #' \describe{
-#'   \item{predictions} {dataframe with model predictions}
+#'   \item{predictions}{dataframe with model predictions}
 #' }
 #'
 #' @export
@@ -20,7 +20,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
      modeled_object$model_input_options$regression_type == "HDD Regression" |
      modeled_object$model_input_options$regression_type == "CDD Regression") {
 
-    predictions <- predict(modeled_object$model, dframe_pred)
+    predictions <- predict(modeled_object$model, prediction_data)
 
     predictions_df <- data.frame(prediction_data, predictions)
 
