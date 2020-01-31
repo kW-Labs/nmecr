@@ -67,10 +67,6 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     linear_5P_model <- lm(dependent_variable ~ independent_variable)
 
-    message <- paste("Using intial breakpoints:", toString(model_input_options$initial_breakpoints), sep = " ")
-
-    writeLines(message)
-
     if (min(model_input_options$initial_breakpoints) < min(independent_variable)) {
       stop("Changepoint 1 is lower than the minimum temperature value available in the data")
     }
