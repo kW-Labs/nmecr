@@ -45,11 +45,11 @@ find_rtools() # should return TRUE
 ```
 	
 2. *rlang*: Error in loadNamespace(i, c(lib.loc, .libPaths()), versionCheck = vI[[i]]) : 
-  namespace ‘rlang’ 0.2.2 is being loaded, but >= 0.4.4 is required...failed to lock directory ‘system_path/R/3.6.2’ for modifying. Try removing ‘system_path/3.6.2/00LOCK-rlang.
+  	namespace ‘rlang’ 0.2.2 is being loaded, but >= 0.4.4 is required...failed to lock directory ‘system_path/R/3.6.2’ for modifying. Try removing ‘system_path/3.6.2/00LOCK-rlang.
   
-  You might get this error while downloading Tidyverse
+  	You might get this error while downloading Tidyverse
 	
-  Fix: Navigate to the directory where 00LOCK-rlang file is located and manually delete it. Close all R sessions.
+  	Fix: Navigate to the directory where 00LOCK-rlang file is located and manually delete it. Close all R sessions.
   	Install and load rlang in a fresh session:
 	
 ``` r
