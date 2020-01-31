@@ -35,7 +35,14 @@ If the download fails, try and read the error message in the console to fix the 
 
 1. *Rtools*: RTools is required to build R packages, but no version of Rtools...found. 
 	
-	Fix: Download the latest recommended version of [RTools](https://cran.r-project.org/bin/windows/Rtools/). Make sure check the option for setting the PATH environment variable at the time of installation
+	Fix: Download the latest recommended version of [RTools](https://cran.r-project.org/bin/windows/Rtools/). Make sure check the option for setting the PATH environment variable at the time of installation.
+	
+	To check if RTools is correctly installed:	
+``` r
+install.packages("pkgbuild")
+library(pkgbuild)
+find_rtools() # should return TRUE
+```
 	
 2. *rlang*: Error in loadNamespace(i, c(lib.loc, .libPaths()), versionCheck = vI[[i]]) : 
   namespace ‘rlang’ 0.2.2 is being loaded, but >= 0.4.4 is required...failed to lock directory ‘system_path/R/3.6.2’ for modifying. Try removing ‘system_path/3.6.2/00LOCK-rlang.
