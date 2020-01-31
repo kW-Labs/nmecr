@@ -31,7 +31,7 @@ find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col =
     ok_time_of_week <- interval_of_week == uniq_time_of_week[row_index]
     # if the regression underpredicts the load more than 65% of the time
     # then assume it's an occupied period
-    if (sum(residuals(amod)[ok_time_of_week] > 0, na.rm = TRUE) <
+    if (sum(residuals(amod)[ok_time_of_week] > 0, na.rm = TRUE) >
         0.65 * sum(ok_time_of_week)) {
       ok_occ[row_index] <- 1
     }
