@@ -18,11 +18,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-devtools::load_all()
-library(dplyr)
-library(lubridate)
+library(nmecr)
 library(ggplot2)
-library(tidyr)
 ```
 
 ## Normalized Metered Energy Consumption (NMEC)
