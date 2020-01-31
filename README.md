@@ -23,16 +23,34 @@ There are ten energy modeling algorithms available in nmecr:
 
 ## Installation
 
-You can nmecr from GitHub.
+You can download nmecr from GitHub.
 
 ``` r
 install.packages("devtools")
 devtools::install_github("kW-Labs/nmecr")
-
-# If a dependecy package is missing, use:
-devtools::install_deps(".")
-
 ```
+Please make sure R is updated on your system. Check [here](https://www.r-project.org/) for the latest release.
+
+If the download fails, try and read the error message in the console to fix the issues. Here is a list of common errors and their fixes:
+
+1. *Rtools*: RTools is required to build R packages, but no version of Rtools...found. 
+	
+	Fix: Download the latest recommended version of [RTools](https://cran.r-project.org/bin/windows/Rtools/). Make sure check the option for setting the PATH environment variable at the time of installation
+	
+2. *rlang*: Error in loadNamespace(i, c(lib.loc, .libPaths()), versionCheck = vI[[i]]) : 
+  namespace ‘rlang’ 0.2.2 is being loaded, but >= 0.4.4 is required...failed to lock directory ‘system_path/R/3.6.2’ for modifying. Try removing ‘system_path/3.6.2/00LOCK-rlang.
+  
+  You might get this error while downloading Tidyverse
+	
+  Fix: Navigate to the directory where 00LOCK-rlang file is located and manually delete it. Close all R sessions.
+  	Install and load rlang in a fresh session:
+	
+``` r
+install.packages("rlang")
+require(rlang)
+```
+
+
 
 ## Getting help
 
