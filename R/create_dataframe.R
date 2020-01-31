@@ -66,7 +66,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   } else if (convert_to_data_interval == "Daily"){
     nterval <- 1440
   } else if (convert_to_data_interval == "Monthly") {
-    nterval <- 40320 # using 28 days
+    nterval <- 64800 # using 45 days
   } else {
     stop(paste0("Check spellings: convert_to_data_interval can be specified as one of the following:
                 'Hourly', 'Daily', or 'Monthly'."))
