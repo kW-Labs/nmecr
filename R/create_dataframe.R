@@ -47,14 +47,14 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
 
   # determine data intervals of eload, temp, and operating mode data
-  nterval_eload <- difftime(eload_data$time[2], eload_data$time[1], units = "min")
-  nterval_temp <- difftime(temp_data$time[2], temp_data$time[1], units = "min")
+  nterval_eload <- median(diff(as.numeric(eload_data$time)))/60
+  nterval_temp <- median(diff(as.numeric(temp_data$time)))/60
 
   nterval_max <- max(nterval_eload, nterval_temp)
 
   if(! is.null(operating_mode_data)) {
     operating_mode_data$time <- lubridate_timestamp(operating_mode_data$time)
-    nterval_operating_mode <- difftime(operating_mode_data$time[2], operating_mode_data$time[1], units = "min")
+    nterval_operating_mode <- median(diff(as.numeric(operating_mode_data$time)))/60
     nterval_max <- max(nterval_max, nterval_operating_mode)
   }
 
