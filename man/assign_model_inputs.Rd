@@ -4,7 +4,7 @@
 \alias{assign_model_inputs}
 \title{Assign inputs for various modeling algorithms within nmecr.}
 \usage{
-assign_model_inputs(timescale_days = NULL, interval_minutes = 15,
+assign_model_inputs(timescale_days = NULL,
   has_temp_knots_defined = FALSE, equal_temp_segment_points = TRUE,
   temp_segments_numeric = 6, temp_knots_value = c(40, 55, 65, 80, 90),
   initial_breakpoints = c(50, 65), regression_type = c("TOWT", "TOW",
@@ -14,8 +14,6 @@ assign_model_inputs(timescale_days = NULL, interval_minutes = 15,
 }
 \arguments{
 \item{timescale_days}{Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.}
-
-\item{interval_minutes}{Numeric of length of a Time Of Week interval as input variables. Default: 15}
 
 \item{has_temp_knots_defined}{Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE.
 If set to FALSE, variables 'equal_tem_segment_points' and 'temp_segments_numeric' are used to calculate the temperature knots.#'}
