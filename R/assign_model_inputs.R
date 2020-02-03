@@ -2,7 +2,6 @@
 #'
 #'
 #' @param timescale_days Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.
-#' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Default: 15
 #' @param has_temp_knots_defined Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE.
 #' If set to FALSE, variables 'equal_tem_segment_points' and 'temp_segments_numeric' are used to calculate the temperature knots.#'
 #' @param equal_temp_segment_points  Logical specifying structure of temperature segments: equal number of points vs. equal segment length. Default: TRUE
@@ -18,7 +17,6 @@
 #' @export
 
 assign_model_inputs <- function(timescale_days = NULL,
-                             interval_minutes = 15,
                              has_temp_knots_defined = FALSE,
                              equal_temp_segment_points = TRUE,
                              temp_segments_numeric = 6,
@@ -32,10 +30,6 @@ assign_model_inputs <- function(timescale_days = NULL,
     if(! assertive::is_numeric(timescale_days)) {
       stop("Error: timescale_days should either be NULL or a numeric input. Default value: NULL")
     }
-  }
-
-  if (! assertive::is_numeric(interval_minutes)) {
-    stop("Error: interval_minutes must be a numeric input. Default value: 15")
   }
 
   if (! assertive::is_logical(has_temp_knots_defined)) {
@@ -66,7 +60,6 @@ assign_model_inputs <- function(timescale_days = NULL,
   out <- list()
 
   out$timescale_days <- timescale_days
-  out$interval_minutes <- interval_minutes
   out$has_temp_knots_defined <- has_temp_knots_defined
   out$equal_temp_segment_points <- equal_temp_segment_points
   out$temp_segments_numeric <- temp_segments_numeric

@@ -79,8 +79,9 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     # Determine occupancy information
 
-    occ_info <- find_occ_unocc(interval_of_week[ok_load],
-                               training_data$eload[ok_load], training_data$temp[ok_load])
+    occ_info <- find_occ_unocc(interval_of_week = interval_of_week[ok_load],
+                               eload_col = training_data$eload[ok_load], temp_col = training_data$temp[ok_load],
+                               interval_minutes <- model_input_options$interval_minutes)
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 
     # which time intervals are 'occupied'?
