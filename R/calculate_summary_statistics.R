@@ -1,4 +1,4 @@
-#' Calculate model summary statistics.
+#' Calculate model summary statistics. Applicable to training data only.
 #'
 #' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #'
@@ -65,7 +65,6 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     magrittr::divide_by(mean(eload, na.rm = T))
 
   # Net Determination Bias Error (Percentage)
-
   NDBE <- fit_residuals_numeric %>%
     sum(na.rm = T) %>%
     magrittr::divide_by(sum(eload, na.rm = T)) %>%
