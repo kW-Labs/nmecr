@@ -50,11 +50,11 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
       dplyr::mutate(savings = predictions - eload)
 
     savings_summary_df <- as.data.frame(matrix(nrow = 1, ncol = 4))
-    names(savings_summary_df) <- c("performance_period_use", "adjusted_baseline_use", "savings", "savings_pct")
+    names(savings_summary_df) <- c("performance_period_use", "adjusted_baseline_use", "savings", "savings_fraction")
     savings_summary_df$performance_period_use <- sum(savings_df$eload, na.rm = T)
     savings_summary_df$adjusted_baseline_use <- sum(savings_df$predictions, na.rm = T)
     savings_summary_df$savings <- sum(savings_df$savings, na.rm = T)
-    savings_summary_df$savings_pct <- round(savings_summary_df$savings/savings_summary_df$adjusted_baseline_use, 2)
+    savings_summary_df$savings_fraction <- round(savings_summary_df$savings/savings_summary_df$adjusted_baseline_use, 2)
 
     m <- length(prediction_df$time)
 
@@ -64,8 +64,8 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
     m <- n
     savings_summary_df <- as.data.frame(matrix(nrow = 1, ncol = 1))
-    names(savings_summary_df) <- "savings_pct"
-    savings_summary_df$savings_pct <- savings_fraction
+    names(savings_summary_df) <- "savings_fraction"
+    savings_summary_df$savings_fraction <- savings_fraction
 
   }
 
@@ -95,13 +95,13 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
   if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly") {
 
-    savings_uncertainty <- t_stat * alpha * model_summary_statistics$CVRMSE * sqrt((1 + (2 / n)) *  (1 / m)) / savings_summary_df$savings_pct
-    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE * sqrt((1 + 2 / n) * (1 / m)) / uncertainty_50
+    savings_uncertainty <- t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + (2 / n)) *  (1 / m)) / savings_summary_df$savings_fraction
+    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + 2 / n) * (1 / m)) / uncertainty_50
 
   } else {
 
-    savings_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE * sqrt(((n / n_dash) * (1 + (2 / n_dash)) *  (1 / m))) / savings_summary_df$savings_pct
-    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE * sqrt(((n / n_dash) * (1 + (2 / n_dash)) * (1 / m))) / uncertainty_50
+    savings_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) *  (1 / m))) / savings_summary_df$savings_fraction
+    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) * (1 / m))) / uncertainty_50
 
   }
 
