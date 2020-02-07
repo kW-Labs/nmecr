@@ -36,7 +36,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     mean(na.rm = T) %>%
     magrittr::divide_by(var(modeled_data_obj$training_data$eload, na.rm = T))
 
-  R_squared <- 1 - SSR_over_SST
+  R_squared <- round(1 - SSR_over_SST,2)
 
   # Root Mean Sqaured Error (Absolute)
   RMSE <- fit_residuals_numeric %>%
@@ -49,13 +49,15 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   # Coefficient of Variation of the Root Mean Square Error (Percentage)
   CVRMSE <- RMSE %>%
     magrittr::divide_by(mean(eload, na.rm = T)) %>%
-    magrittr::multiply_by(100)
+    magrittr::multiply_by(100) %>%
+    round(., 2)
 
   # Normalized Mean Bias Error (Percentage)
   NMBE <- fit_residuals_numeric %>%
     sum(na.rm = T) %>%
     magrittr::divide_by(effective_parameters*mean(eload, na.rm = T)) %>%
-    magrittr::multiply_by(100)
+    magrittr::multiply_by(100) %>%
+    round(., 2)
 
   # Coefficient of Variation of Mean Absolute error (Absolute)
   CVMAE <- fit_residuals_numeric %>%
@@ -68,7 +70,8 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   NDBE <- fit_residuals_numeric %>%
     sum(na.rm = T) %>%
     magrittr::divide_by(sum(eload, na.rm = T)) %>%
-    magrittr::multiply_by(100)
+    magrittr::multiply_by(100) %>%
+    round(., 2)
 
   goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 5))
   names(goodness_of_fit) <- c("R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters")
