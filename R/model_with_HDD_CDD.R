@@ -44,10 +44,11 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
     if (data_interval == "Monthly") {
 
     linregress <- lm(eloadperday ~ HDDperday + CDDperday, data = training_data)
+    model_fit <- linregress$fitted.values*training_data$days
 
     out <- list()
     out$model <- linregress
-    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
+    out$training_data <- data.frame(training_data, "model_fit" = model_fit)
     out$model_input_options <- model_input_options
 
     } else if (data_interval == "Daily") {
