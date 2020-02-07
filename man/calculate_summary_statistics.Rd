@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_summary_statistics.R
 \name{calculate_summary_statistics}
 \alias{calculate_summary_statistics}
-\title{Calculate model summary statistics.}
+\title{Calculate model summary statistics. Applicable to training data only.}
 \usage{
 calculate_summary_statistics(modeled_data_obj = NULL)
 }
@@ -13,5 +13,5 @@ calculate_summary_statistics(modeled_data_obj = NULL)
 a dataframe with five model statistics: "R_squared", "CVRMSE", "NDBE", "MBE", "#Parameters"
 }
 \description{
-Calculate model summary statistics.
+Calculate model summary statistics. Applicable to training data only.
 }
