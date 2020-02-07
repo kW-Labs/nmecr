@@ -2,14 +2,14 @@
 % Please edit documentation in R/aggregate.R
 \name{aggregate}
 \alias{aggregate}
-\title{Aggregate energy/demand consumption and temperature data}
+\title{Aggregate energy consumption and temperature data. Can be used to aggregate temperature data only as well.}
 \usage{
 aggregate(eload_data = NULL, temp_data = NULL,
   convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
   temp_balancepoint = 65)
 }
 \arguments{
-\item{eload_data}{A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly}
+\item{eload_data}{A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly}
 
 \item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily}
 
@@ -22,5 +22,5 @@ a dataframe with energy consumption data and corresponding temperature data, agg
 aggregated temperature data is returned.
 }
 \description{
-\code{Aggregate energy/demand consumption and/or temperature data to hourly, daily, or monthly data intervals.}
+\code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.}
 }

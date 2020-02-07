@@ -1,8 +1,8 @@
-#' Aggregate energy/demand consumption and temperature data
+#' Aggregate energy consumption and temperature data. Can be used to aggregate temperature data only as well.
 #'
-#' \code{Aggregate energy/demand consumption and/or temperature data to hourly, daily, or monthly data intervals.}
+#' \code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.}
 #'
-#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
+#' @param eload_data A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
