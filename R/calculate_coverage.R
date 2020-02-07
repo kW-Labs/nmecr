@@ -140,9 +140,6 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
   if (dataframe_interval == "Daily") {
 
-    peak_days <- max(temp_coverage$n_site_data)
-    peak_bin_daily <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
-
     days_covered <- temp_coverage %>%
       dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
 
@@ -152,9 +149,6 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     daily_coverage_factor <- signif((days_covered / 365) * 100, 4)
 
   } else {
-
-    peak_hours <- max(temp_coverage$n_site_data)
-    peak_bin_hourly <- as.numeric(temp_coverage$bins[which(temp_coverage$n_site_data == max(temp_coverage$n_site_data))])
 
     hours_covered <- temp_coverage %>%
       dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
@@ -166,7 +160,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
   }
 
-  coverage_factor_summary <- as.data.frame(matrix(nr = 6, nc = 2))
+  coverage_factor_summary <- as.data.frame(matrix(nr = 4, nc = 2))
 
   coverage_factor_summary[1, 1] <- "Temperature Coverage"
   coverage_factor_summary[1, 2] <- temp_coverage_factor
@@ -183,12 +177,6 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     coverage_factor_summary[4, 1] <- "Days Not Covered"
     coverage_factor_summary[4, 2] <- days_not_covered
 
-    coverage_factor_summary[5, 1] <- "Peak Temperature Bin"
-    coverage_factor_summary[5, 2] <- peak_bin_daily
-
-    coverage_factor_summary[6, 1] <- "Number of days in Peak Temperature Bin"
-    coverage_factor_summary[6, 2] <- peak_days
-
   } else {
 
     coverage_factor_summary[2, 1] <- "Time Coverage"
@@ -199,12 +187,6 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
     coverage_factor_summary[4, 1] <- "Hours Not Covered"
     coverage_factor_summary[4, 2] <- hours_not_covered
-
-    coverage_factor_summary[5, 1] <- "Peak Temperature Bin"
-    coverage_factor_summary[5, 2] <- peak_bin_hourly
-
-    coverage_factor_summary[6, 1] <- "Number of hours in Peak Temperature Bin"
-    coverage_factor_summary[6, 2] <- peak_hours
 
   }
 
