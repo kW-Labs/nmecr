@@ -57,7 +57,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     sum(na.rm = T) %>%
     magrittr::divide_by(effective_parameters*mean(eload, na.rm = T)) %>%
     magrittr::multiply_by(100) %>%
-    round(., 2)
+    format(round(., 2), nsmall = 4)
 
   # Coefficient of Variation of Mean Absolute error (Absolute)
   CVMAE <- fit_residuals_numeric %>%
@@ -71,7 +71,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     sum(na.rm = T) %>%
     magrittr::divide_by(sum(eload, na.rm = T)) %>%
     magrittr::multiply_by(100) %>%
-    round(., 2)
+    format(round(., 2), nsmall = 4)
 
   goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 5))
   names(goodness_of_fit) <- c("R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters")
