@@ -16,13 +16,34 @@
 calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
   if(modeled_object$model_input_options$regression_type == "SLR" |
-     modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" |
      modeled_object$model_input_options$regression_type == "HDD Regression" |
      modeled_object$model_input_options$regression_type == "CDD Regression") {
 
     predictions <- predict(modeled_object$model, prediction_data)
 
     predictions_df <- data.frame(prediction_data, predictions)
+
+  } else if (modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression") {
+
+    if(exists("eloadperday", where = training_data)) {
+      data_interval <- "Monthly"
+    } else {
+      data_interval <- "Daily"
+    }
+
+    if (data_interval == "Monthly") {
+
+      predictions <- predict(modeled_object$model, prediction_data)*training_data$days
+      predictions_df <- data.frame(prediction_data, predictions)
+
+    } else if (data_interval == "Daily") {
+
+      predictions <- predict(modeled_object$model, prediction_data)
+
+      predictions_df <- data.frame(prediction_data, predictions)
+    }
+
+  }
 
   } else if(modeled_object$model_input_options$regression_type == "TOWT" |
             modeled_object$model_input_options$regression_type == "TOW") {
