@@ -96,18 +96,18 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
   if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly") {
 
     savings_uncertainty <- t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + (2 / n)) *  (1 / m)) / savings_summary_df$savings_fraction
-    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + 2 / n) * (1 / m)) / uncertainty_50
+    savings_frac_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + 2 / n) * (1 / m)) / uncertainty_50
 
   } else {
 
     savings_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) *  (1 / m))) / savings_summary_df$savings_fraction
-    savings_pct_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) * (1 / m))) / uncertainty_50
+    savings_frac_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) * (1 / m))) / uncertainty_50
 
   }
 
   savings_summary_df <- savings_summary_df %>%
     dplyr::mutate(savings_uncertainty = savings_uncertainty) %>%
-    dplyr::mutate(savings_pct_for_50pct_uncertainty = savings_pct_for_50pct_uncertainty) %>%
+    dplyr::mutate(savings_frac_for_50pct_uncertainty = savings_frac_for_50pct_uncertainty) %>%
     dplyr::mutate(confidence_level = confidence_level)
 
   results$savings_summary_df <- savings_summary_df
