@@ -43,6 +43,8 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
       predictions_df <- data.frame(prediction_data, predictions)
     }
 
+  }
+
   } else if(modeled_object$model_input_options$regression_type == "TOWT" |
             modeled_object$model_input_options$regression_type == "TOW") {
 
