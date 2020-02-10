@@ -34,6 +34,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
     if (data_interval == "Monthly") {
 
       predictions <- predict(modeled_object$model, prediction_data)*training_data$days
+
       predictions_df <- data.frame(prediction_data, predictions)
 
     } else if (data_interval == "Daily") {
