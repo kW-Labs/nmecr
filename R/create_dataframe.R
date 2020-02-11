@@ -23,20 +23,20 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   if(! is.null(start_date)) {
     if(! is.character(start_date)){
-      stop("Enter the start date as a character string in 'yyyy/mm/dd hh:mm' format.")
+      stop("Enter the start date as a character string in 'mm/dd/yyyy hh:mm' format.")
     }
   }
 
   if(! is.null(end_date)) {
     if(! is.character(end_date)){
-      stop("Enter the end date as a character string in 'yyyy/mm/dd hh:mm' format.")
+      stop("Enter the end date as a character string in 'mm/dd/yyyy hh:mm' format.")
     }
   }
 
   # convert timestamps to time objects, if originally found to be of class, 'character'
   lubridate_timestamp <- function(time_col) {
     if(is.character(time_col)) {
-      time_col <- lubridate::ymd_hm(time_col)
+      time_col <- lubridate::mdy_hm(time_col)
     } else {
       return(time_col)
     }
@@ -111,12 +111,12 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   if(! is.null(start_date)) {
   dataframe <- dataframe %>%
-    dplyr::filter(time >= lubridate::ymd_hm(start_date))
+    dplyr::filter(time >= lubridate::mdy_hm(start_date))
   }
 
   if(! is.null(end_date)) {
     dataframe <- dataframe %>%
-      dplyr::filter(time <= lubridate::ymd_hm(end_date))
+      dplyr::filter(time <= lubridate::mdy_hm(end_date))
   }
 
   return(dataframe)
