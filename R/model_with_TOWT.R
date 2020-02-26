@@ -20,7 +20,7 @@
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL){
 
-  nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
+  nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 60){
     nterval_value <- "Hourly"
