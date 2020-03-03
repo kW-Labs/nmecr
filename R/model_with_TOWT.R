@@ -40,7 +40,7 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
   model_input_options$calculated_temp_knots <- calculate_temp_knots(training_data = training_data, model_input_options = model_input_options)
 
   #calculate interval minutes
-  model_input_options$interval_minutes <- median(diff(as.numeric(training_data$time)))/60
+  model_input_options$interval_minutes <- nterval
 
   # Run for energy modeling - timescale_days not used
   if (is.null(model_input_options$timescale_days)) {
