@@ -79,20 +79,15 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     # Determine occupancy information
 
-    occ_info <- find_occ_unocc(interval_of_week = interval_of_week[ok_load],
-                               eload_col = training_data$eload[ok_load], temp_col = training_data$temp[ok_load],
-                               interval_minutes <- model_input_options$interval_minutes)
-    occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
+    occ_info <- model_input_options$baseline_occupancy
+    occ_intervals <- occ_info[occ_info[, 2] == 1, 1] # which time intervals are 'occupied'?
 
-    # which time intervals are 'occupied'?
-
+    # create an occupancy vector based on determined occupancy information
     occ_vec <- rep(0, length(training_data$eload))
-
-    if (length(occ_intervals) > 2) {
-      for (i in 1 : length(occ_intervals)) {
+    for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
-      }
     }
+
 
     # Create temperature matrix
     temp_mat <- create_temp_matrix(training_data$temp, model_input_options$calculated_temp_knots)
@@ -125,7 +120,6 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
       temp_mat_pred <- create_temp_matrix(prediction_data$temp, model_input_options$calculated_temp_knots)
       names(temp_mat_pred) <- temp_m_name
       # should the temperature knots be recalculated for the prediction dataframe?
-
       ftow <- factor(interval_of_week_pred)
       dframe_pred <- data.frame(prediction_data, ftow, temp_mat_pred)
 
@@ -144,6 +138,13 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     # Now make predictions for prediction period
     if (sum(ok_occ > 0)) {
 
+      if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
+        dframe <- dframe %>%
+          select(-"ftow")
+      } else {
+        dframe <- dframe
+      }
+
       # linear regression - subset for occupied periods
       amod <- lm(training_data$eload ~ . , data = dframe,
                  na.action = na.exclude, weights = model_input_options$train_weight_vec, subset = ok_occ)
@@ -159,6 +160,13 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     }
 
     if (sum(! ok_occ) > 0) {
+
+      if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
+        dframe <- dframe %>%
+          select(-"ftow")
+      } else {
+        dframe <- dframe
+      }
 
       # linear regression - subset for unoccupied periods
       bmod <- lm(training_data$eload ~ . , data = dframe, na.action = na.exclude,
