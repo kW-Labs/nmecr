@@ -10,10 +10,12 @@
 
 find_occ_unocc <- function(training_data = NULL, model_input_options = NULL) {
 
+  nterval <-  median(diff(as.numeric(training_data$time)))/60
+
   minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
     lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
 
-  interval_of_week <- 1 + floor(minute_of_week / model_input_options$interval_minutes)
+  interval_of_week <- 1 + floor(minute_of_week / nterval)
 
   uniq_time_of_week <- unique(interval_of_week)
   time_of_week_rows <- length(uniq_time_of_week)
