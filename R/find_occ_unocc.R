@@ -2,8 +2,8 @@
 #'
 #' \code{This function generates occupancy schedules for subsequent use in energy data fitting.}
 #'
-#' @param data  dataframe and operating mode dataframe. Output from create_dataframe
-
+#' @param training_data Training dataframe. Output from create_dataframe
+#' @param model_input_options Model input options generated from assign_model_inputs
 #' @return A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
 #'
 #' @export
