@@ -7,7 +7,9 @@
 find_occ_unocc(training_data = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{data}{dataframe and operating mode dataframe. Output from create_dataframe}
+\item{training_data}{Training dataframe. Output from create_dataframe}
+
+\item{model_input_options}{Model input options generated from assign_model_inputs}
 }
 \value{
 A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
