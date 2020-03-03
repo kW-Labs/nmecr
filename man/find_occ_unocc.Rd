@@ -4,17 +4,10 @@
 \alias{find_occ_unocc}
 \title{Occupancy detection algorithm for model_with_TOWT.}
 \usage{
-find_occ_unocc(interval_of_week = NULL, eload_col = NULL,
-  temp_col = NULL, interval_minutes = 15)
+find_occ_unocc(training_data = NULL, model_input_options = NULL)
 }
 \arguments{
-\item{interval_of_week}{Unique indicator for each 15-min interval of the week.}
-
-\item{eload_col}{eload column of training data.}
-
-\item{temp_col}{temp column of training data.}
-
-\item{interval_minutes}{Numeric of length of a Time Of Week interval as input variables. Deafult: 15.}
+\item{data}{dataframe and operating mode dataframe. Output from create_dataframe}
 }
 \value{
 A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
