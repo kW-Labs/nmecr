@@ -8,6 +8,7 @@
 #' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Deafult: 15.
 #' @return A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
 #'
+#' @export
 
 find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col = NULL,
                            interval_minutes=15) {
