@@ -56,16 +56,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
     # Determine occupancy information
 
-    ok_load <- !is.na(training_data$eload)
-
-    minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
-      lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
-
-    interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
-
-    occ_info <- find_occ_unocc(interval_of_week = interval_of_week[ok_load],
-                               eload_col = training_data$eload[ok_load], temp_col = training_data$temp[ok_load],
-                               interval_minutes = modeled_object$model_input_options$interval_minutes)
+    occ_info <- model_input_options$baseline_occupancy
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 
     occ_vec <- rep(0, length(training_data$eload))
