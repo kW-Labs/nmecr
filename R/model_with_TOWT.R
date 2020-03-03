@@ -20,6 +20,12 @@
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL){
 
+  if(model_input_options$regression_type == 'TOWT'){
+    if(!exists('baseline_occupancy', where = model_input_options)){
+        stop("Error: Please add 'baseline_occupancy' object to 'model_input_options'. Use the find_occ_unocc function to create this object.")
+    }
+  }
+
   nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 60){
