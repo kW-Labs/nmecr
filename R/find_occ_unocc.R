@@ -2,16 +2,18 @@
 #'
 #' \code{This function generates occupancy schedules for subsequent use in energy data fitting.}
 #'
-#' @param interval_of_week Unique indicator for each 15-min interval of the week.
-#' @param eload_col eload column of training data.
-#' @param temp_col temp column of training data.
-#' @param interval_minutes Numeric of length of a Time Of Week interval as input variables. Deafult: 15.
+#' @param data  dataframe and operating mode dataframe. Output from create_dataframe
+
 #' @return A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
 #'
 #' @export
 
-find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col = NULL,
-                           interval_minutes=15) {
+find_occ_unocc <- function(training_data = NULL, model_input_options = NULL) {
+
+  minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
+    lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+
+  interval_of_week <- 1 + floor(minute_of_week / model_input_options$interval_minutes)
 
   uniq_time_of_week <- unique(interval_of_week)
   time_of_week_rows <- length(uniq_time_of_week)
@@ -19,6 +21,9 @@ find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col =
   # Define 'occupied' and 'unoccupied' based on a regression
   # of load on outdoor temperature: times of week that the regression usually
   # underpredicts the load will be called 'occupied', the rest are 'unoccupied'
+
+  eload_col <- training_data$eload
+  temp_col <- training_data$temp
 
   temp_col_50 <- temp_col - 50
   temp_col_50[temp_col > 50] <- 0
@@ -38,10 +43,7 @@ find_occ_unocc <- function(interval_of_week = NULL, eload_col = NULL, temp_col =
     }
   }
 
-  # change to occ if less than 2 unocc
-  if (length(which(ok_occ==0)) < 2) {
-    ok_occ[ok_occ==0] <- 1
-  }
+  return(data.frame(cbind(uniq_time_of_week, ok_occ)))
 
-  return(cbind(uniq_time_of_week, ok_occ))
+
 }
