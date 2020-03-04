@@ -5,7 +5,7 @@
 \title{Time-of-Week and Temperature.}
 \usage{
 model_with_TOWT(training_data = NULL, prediction_data = NULL,
-  model_input_options = NULL)
+  model_input_options = NULL, occupancy_info = NULL)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
@@ -13,6 +13,10 @@ model_with_TOWT(training_data = NULL, prediction_data = NULL,
 \item{prediction_data}{Prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs}
+
+\item{occupancy_info}{An nx2 dataframe with the occupancy information of the training dataset. Column names should be: uniq_time_of_week and ok_occ
+uniq_time_of_week is the unique time of week (1 through 7 for daily data and 1 through 168 for hourly data).
+ok_occ is a binary: 1 for occupied and 0 for unoccupied}
 }
 \value{
 a list with the following components:
@@ -21,7 +25,7 @@ a list with the following components:
   \item{model_unoccupied}{an lm object generated when using TOWT algorithm when the unoccupied period is discernably different from the occupied period}
   \item{training_data}{training dataframe along with the model_fit values}
   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
-  \item{model_input_options}{model_input_options from the input along with the chosen modeling algorithm.}
+  \item{model_input_options}{model_input_options from the input along with additional model specifications.}
 }
 }
 \description{

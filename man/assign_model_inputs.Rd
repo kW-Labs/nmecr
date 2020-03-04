@@ -10,7 +10,8 @@ assign_model_inputs(timescale_days = NULL,
   initial_breakpoints = c(50, 65), regression_type = c("TOWT", "TOW",
   "SLR", "HDD-CDD Multivariate Regression", "HDD Regression",
   "CDD Regression", "Three Parameter Cooling", "Three Parameter Heating",
-  "Four Parameter Linear Model", "Five Parameter Linear Model"))
+  "Four Parameter Linear Model", "Five Parameter Linear Model"),
+  occupancy_threshold = 0.65)
 }
 \arguments{
 \item{timescale_days}{Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.}
@@ -28,7 +29,9 @@ Only used if has_temp_knots_defined is set to FALSE.}
 
 \item{initial_breakpoints}{Vector indicating the initial breakpoints (changepoints) to regress over.}
 
-\item{regression_type}{Character string indictating the modeling algorithm to run:}
+\item{regression_type}{Character string indictating the modeling algorithm to run}
+
+\item{occupancy_threshold}{a fractional value for calculating occupancy schedule of the training dataset}
 }
 \value{
 a list specifying the chosen algorithm inputs

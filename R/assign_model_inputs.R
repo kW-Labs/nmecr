@@ -10,7 +10,8 @@
 #' Only used if has_temp_knots_defined is set to FALSE.
 #' @param temp_knots_value Vector specifying manually defined temperature knots.  Only used if has_temp_knots_defined is set to TRUE.
 #' @param initial_breakpoints Vector indicating the initial breakpoints (changepoints) to regress over.
-#' @param regression_type Character string indictating the modeling algorithm to run:
+#' @param regression_type Character string indictating the modeling algorithm to run
+#' @param occupancy_threshold a fractional value for calculating occupancy schedule of the training dataset
 #'
 #' @return a list specifying the chosen algorithm inputs
 #'
