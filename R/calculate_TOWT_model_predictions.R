@@ -14,85 +14,101 @@
 
 calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL){
 
-  # Create training data temperature matrix
-  temp_mat <- create_temp_matrix(training_data$temp, modeled_object$model_input_options$calculated_temp_knots)
-  temp_m_name <- rep(NA, ncol(temp_mat))
-  for (i in 1 : ncol(temp_mat)) {
-    temp_m_name[i] <- paste("temp_mat", i, sep = "")
-  }
-  names(temp_mat) <- temp_m_name
-
-  # Create prediction data temperature matrix ----
-  temp_mat_pred <- create_temp_matrix(prediction_data$temp, modeled_object$model_input_options$calculated_temp_knots)
-  names(temp_mat_pred) <- temp_m_name
-
-  # Create prediction dataframe based on interval of week ----
-  minute_of_week_pred <- (lubridate::wday(prediction_data$time) - 1) * 24 * 60 +
-    lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
-
-  interval_of_week_pred <- 1 + floor(minute_of_week_pred / modeled_object$model_input_options$interval_minutes)
-
-  ftow <- factor(interval_of_week_pred)
-
-  dframe_pred <- data.frame(prediction_data, ftow)
-
-  if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
-    dframe_pred <- dframe_pred %>%
-      select(-c("time", "temp"))
-  } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
-    dframe_pred <- dframe_pred %>%
-      select(-c("time", "temp", "HDD", "CDD"))
-  }
-
-  # Time-of-Week ----
-
-  if (modeled_object$model_input_options$regression_type == "TOW") {
-
-    ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
-    predictions <- rep(NA, length(prediction_data$time))
-    predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
-
+  if(! is.null(modeled_object$model_input_options$timecale_days)) {
+    stop("Error: Cannot make predictions with a weighted model yet. This functionality will be available in future nmecr releases. Use model_with_TOWT() for predictions.")
   } else {
 
-    # Determine occupancy information
+    # Create training data temperature matrix
+    temp_mat <- create_temp_matrix(training_data$temp, modeled_object$model_input_options$calculated_temp_knots)
+    temp_m_name <- rep(NA, ncol(temp_mat))
+    for (i in 1 : ncol(temp_mat)) {
+      temp_m_name[i] <- paste("temp_mat", i, sep = "")
+    }
+    names(temp_mat) <- temp_m_name
 
-    occ_info <- model_input_options$baseline_occupancy
-    occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
+    # Create prediction data temperature matrix ----
+    temp_mat_pred <- create_temp_matrix(prediction_data$temp, modeled_object$model_input_options$calculated_temp_knots)
+    names(temp_mat_pred) <- temp_m_name
 
-    occ_vec <- rep(0, length(training_data$eload))
+    # Create prediction dataframe based on interval of week ----
+    minute_of_week_pred <- (lubridate::wday(prediction_data$time) - 1) * 24 * 60 +
+      lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
 
-    if (length(occ_intervals) > 2) {
+    interval_of_week_pred <- 1 + floor(minute_of_week_pred / modeled_object$model_input_options$interval_minutes)
+
+    ftow <- factor(interval_of_week_pred)
+
+    dframe_pred <- data.frame(prediction_data, ftow)
+
+    if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
+      dframe_pred <- dframe_pred %>%
+        select(-c("time", "temp"))
+    } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
+      dframe_pred <- dframe_pred %>%
+        select(-c("time", "temp", "HDD", "CDD"))
+    }
+
+    # Time-of-Week ----
+
+    if (modeled_object$model_input_options$regression_type == "TOW") {
+
+      ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
+      predictions <- rep(NA, length(prediction_data$time))
+      predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
+
+    } else {
+
+      # Determine occupancy information
+
+      occ_info <- modeled_object$model_input_options$occupancy_info
+      occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
+
+      # prepare interval of week
+      minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
+        lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+
+      interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
+
+      # create an occupancy vector for training dataset
+      occ_vec <- rep(0, length(training_data$eload))
       for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
       }
+
+
+      #create an occupancy vector for prediction dataframe
+      occ_vec_pred <- rep(0, length(prediction_data$eload))
+      for (i in 1 : length(occ_intervals)) {
+        occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
+      }
+
+      # Add temperature matrix information to the prediction dataframe
+      dframe_pred <- data.frame(dframe_pred, temp_mat_pred)
+
+      predictions <- rep(NA, length(prediction_data$time))
+
+      # create subsets by occupancy - predict for each subset
+      ok_occ <- occ_vec == 1
+      ok_occ[is.na(ok_occ)] <- TRUE
+
+      ok_occ_pred <- occ_vec_pred == 1
+      ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
+
+      if (sum(ok_occ > 0)) {
+        predictions[ok_occ_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_occ_pred, ])
+      }
+
+      if (sum(! ok_occ) > 0) {
+        predictions[! ok_occ_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[! ok_occ_pred, ])
+      }
+
     }
 
+    output <- NULL
+    predictions[predictions < 0] <- 0
+    output <-  predictions
 
-    # Add temperature matrix information to the prediction dataframe
-    dframe_pred <- data.frame(dframe_pred, temp_mat_pred)
-
-    predictions <- rep(NA, length(prediction_data$time))
-
-    # create subsets by occupancy - predict for each subset
-    ok_occ <- occ_vec == 1
-    ok_occ[is.na(ok_occ)] <- TRUE
-
-    if (sum(ok_occ > 0)) {
-      ok_tow_pred <- dframe_pred$ftow %in% modeled_object$model_occupied$xlevels$ftow
-      predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_tow_pred, ])
-    }
-
-    if (sum(! ok_occ) > 0) {
-      ok_tow_pred <- dframe_pred$ftow %in% modeled_object$model_unoccupied$xlevels$ftow
-      predictions[ok_tow_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[ok_tow_pred, ])
-    }
-
+    return(output)
   }
-
-  output <- NULL
-  predictions[predictions < 0] <- 0
-  output <-  predictions
-
-  return(output)
 
 }
