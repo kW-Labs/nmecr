@@ -6,6 +6,9 @@
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
+#' @param occupancy_info An nx2 dataframe with the occupancy information of the training dataset. Column names should be: uniq_time_of_week and ok_occ
+#' uniq_time_of_week is the unique time of week (1 through 7 for daily data and 1 through 168 for hourly data).
+#' ok_occ is a binary: 1 for occupied and 0 for unoccupied
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -18,15 +21,12 @@
 #'
 #' @export
 
-model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL){
-
-  if(model_input_options$regression_type == 'TOWT'){
-    if(!exists('baseline_occupancy', where = model_input_options)){
-        stop("Error: Please add 'baseline_occupancy' object to 'model_input_options'. Use the find_occ_unocc function to create this object.")
-    }
-  }
+model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL, occupancy_info = NULL){
 
   nterval <-  median(diff(as.numeric(training_data$time)))/60
+
+  #calculate interval minutes
+  model_input_options$interval_minutes <- nterval
 
   if (nterval == 60){
     nterval_value <- "Hourly"
@@ -42,11 +42,35 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
     stop("Error: model_with_TOWT cannot be used with Monthly data.")
   }
 
+
+  if(is.null(occupancy_info)) {
+    occupancy_info <- find_occ_unocc(training_data = training_data, model_input_options = model_input_options)
+  } else {
+
+    #checks for uploaded occupancy information
+
+    if(model_input_options$chosen_model == "Hourly" & nrow(occupancy_info) != 168) {
+      stop("Error: Please make sure the occupancy_info dataframe has 168 rows corresponding to 168 unique times of week")
+    } else if (model_input_options$chosen_model == "Daily" & nrow(occupancy_info) != 7){
+      stop("Error: Please make sure the occupancy_info dataframe has 7 rows corresponding to 7 unique times of week")
+    }
+
+    if(!assertive::is_data.frame(occupancy_info)){
+      stop("Error: Please make sure the uploaded occupancy infomation is a dataframe.")
+    }
+
+    if(colnames(occupancy_info)[1] != "uniq_time_of_week" | colnames(occupancy_info)[2] != "ok_occ"){
+      stop("Error: Please make sure the uploaded occupancy information is a dataframe with column names: 'uniq_time_of_week' and 'ok_occ'.")
+    }
+  }
+
+  # add_occupancy_info to model_input_options
+
+  model_input_options$occupancy_info <- occupancy_info
+
   # calculate temperature knots
   model_input_options$calculated_temp_knots <- calculate_temp_knots(training_data = training_data, model_input_options = model_input_options)
 
-  #calculate interval minutes
-  model_input_options$interval_minutes <- nterval
 
   # Run for energy modeling - timescale_days not used
   if (is.null(model_input_options$timescale_days)) {
