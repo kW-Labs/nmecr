@@ -17,7 +17,6 @@
 
 fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL) {
 
-
   # prepare interval of week for training data
   minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
     lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
@@ -75,19 +74,22 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
   } else { # run TOWT model
 
-    ok_load <- !is.na(training_data$eload)
-
     # Determine occupancy information
 
-    occ_info <- model_input_options$baseline_occupancy
+    occ_info <- model_input_options$occupancy_info
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1] # which time intervals are 'occupied'?
 
-    # create an occupancy vector based on determined occupancy information
+    # create an occupancy vector for training dataset
     occ_vec <- rep(0, length(training_data$eload))
     for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
     }
 
+    #create an occupancy vector for prediction dataframe
+    occ_vec_pred <- rep(0, length(prediction_data$eload))
+    for (i in 1 : length(occ_intervals)) {
+      occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
+    }
 
     # Create temperature matrix
     temp_mat <- create_temp_matrix(training_data$temp, model_input_options$calculated_temp_knots)
@@ -110,9 +112,13 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     training_load_pred <- rep(NA, nrow(dframe))
 
-    # create subsets by occupancy
+    # create subsets by occupancy (creating Booleans for subsetting)
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
+
+    ok_occ_pred <- occ_vec_pred == 1
+    ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
+
 
     # make data frame for explanatory variables in prediction period
     if(! is.null(prediction_data)) {
@@ -153,8 +159,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       # filter out times of week that are not in occupied training period.
       if(! is.null(prediction_data)) {
-        ok_tow_pred <- dframe_pred$ftow %in% amod$xlevels$ftow
-        pred_vec[ok_tow_pred] <- predict(amod, dframe_pred[ok_tow_pred, ])
+        pred_vec[ok_occ_pred] <- predict(amod, dframe_pred[ok_occ_pred, ])
       }
 
     }
@@ -176,8 +181,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       # filter out times of week that are not in unoccupied training period.
       if(! is.null(prediction_data)) {
-        ok_tow_pred <- dframe_pred$ftow %in% bmod$xlevels$ftow
-        pred_vec[ok_tow_pred] <- predict(bmod, dframe_pred[ok_tow_pred, ])
+        pred_vec[! ok_occ_pred] <- predict(bmod, dframe_pred[! ok_occ_pred, ])
 
       }
 
