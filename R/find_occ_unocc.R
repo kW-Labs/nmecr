@@ -6,16 +6,13 @@
 #' @param model_input_options Model input options generated from assign_model_inputs
 #' @return A matrix with unique times of week along with a 0 or 1, representing occupied and unoccupied modes.
 #'
-#' @export
 
 find_occ_unocc <- function(training_data = NULL, model_input_options = NULL) {
-
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
     lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
 
-  interval_of_week <- 1 + floor(minute_of_week / nterval)
+  interval_of_week <- 1 + floor(minute_of_week / model_input_options$interval_minutes)
 
   uniq_time_of_week <- unique(interval_of_week)
   time_of_week_rows <- length(uniq_time_of_week)
@@ -40,7 +37,7 @@ find_occ_unocc <- function(training_data = NULL, model_input_options = NULL) {
     # if the regression underpredicts the load more than 65% of the time
     # then assume it's an occupied period
     if (sum(residuals(amod)[ok_time_of_week] > 0, na.rm = TRUE) >
-        0.65 * sum(ok_time_of_week)) {
+        model_input_options$occupancy_threshold * sum(ok_time_of_week)) {
       ok_occ[row_index] <- 1
     }
   }
