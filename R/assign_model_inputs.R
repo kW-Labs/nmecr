@@ -24,7 +24,8 @@ assign_model_inputs <- function(timescale_days = NULL,
                              initial_breakpoints = c(50,65),
                              regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression", "HDD Regression", "CDD Regression",
                                                  "Three Parameter Cooling", "Three Parameter Heating", "Four Parameter Linear Model",
-                                                 "Five Parameter Linear Model")){
+                                                 "Five Parameter Linear Model"),
+                             occupancy_threshold = 0.65){
 
   if (! is.null(timescale_days)) {
     if(! assertive::is_numeric(timescale_days)) {
@@ -57,6 +58,14 @@ assign_model_inputs <- function(timescale_days = NULL,
     stop("Error: initial_breakpoints must be a numeric vector input. Default value: c(50,65)")
   }
 
+  if(! assertive::is_numeric(occupancy_threshold)){
+    stop("Error: occupancy_threshold must be between 0 and 1")
+  }
+
+  if(occupancy_threshold < 0  | occupancy_threshold > 1){
+    stop("Error: occupancy_threshold must be between 0 and 1")
+  }
+
   out <- list()
 
   out$timescale_days <- timescale_days
@@ -66,6 +75,7 @@ assign_model_inputs <- function(timescale_days = NULL,
   out$temp_knots_value <- temp_knots_value
   out$initial_breakpoints <- initial_breakpoints
   out$regression_type <- match.arg(regression_type)
+  out$occupancy_threshold <- occupancy_threshold
 
   return(out)
 
