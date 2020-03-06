@@ -119,8 +119,11 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
 
-    ok_occ_pred <- occ_vec_pred == 1
-    ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
+    if(! is.null(prediction_data)) {
+
+      ok_occ_pred <- occ_vec_pred == 1
+      ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
+    }
 
 
     # make data frame for explanatory variables in prediction period
