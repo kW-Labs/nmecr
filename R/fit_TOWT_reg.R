@@ -85,10 +85,13 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
     }
 
-    #create an occupancy vector for prediction dataframe
-    occ_vec_pred <- rep(0, length(prediction_data$eload))
-    for (i in 1 : length(occ_intervals)) {
-      occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
+    if(! is.null(prediction_data)) {
+
+      #create an occupancy vector for prediction dataframe
+      occ_vec_pred <- rep(0, length(prediction_data$eload))
+      for (i in 1 : length(occ_intervals)) {
+        occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
+      }
     }
 
     # Create temperature matrix
