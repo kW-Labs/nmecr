@@ -53,7 +53,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
     if (modeled_object$model_input_options$regression_type == "TOW") {
 
       ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
-      predictions <- rep(NA, length(prediction_data$time))
+      predictions <- rep(NA, nrow(prediction_data))
       predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
 
     } else {
@@ -70,14 +70,14 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
 
       # create an occupancy vector for training dataset
-      occ_vec <- rep(0, length(training_data$eload))
+      occ_vec <- rep(0, nrow(training_data))
       for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
       }
 
 
       #create an occupancy vector for prediction dataframe
-      occ_vec_pred <- rep(0, length(prediction_data$eload))
+      occ_vec_pred <- rep(0, nrow(prediction_data))
       for (i in 1 : length(occ_intervals)) {
         occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
       }
@@ -85,7 +85,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       # Add temperature matrix information to the prediction dataframe
       dframe_pred <- data.frame(dframe_pred, temp_mat_pred)
 
-      predictions <- rep(NA, length(prediction_data$time))
+      predictions <- rep(NA, nrow(prediction_data))
 
       # create subsets by occupancy - predict for each subset
       ok_occ <- occ_vec == 1
