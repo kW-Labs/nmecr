@@ -67,6 +67,9 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
       pred_vec <- rep(NA, nrow(prediction_data))
+
+      id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+      dframe_pred$ftow[id] <- NA
       pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
 
     }
@@ -165,6 +168,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       # filter out times of week that are not in occupied training period.
       if(! is.null(prediction_data)) {
+        if("ftow" %in% colnames(dframe)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+          dframe_pred$ftow[id] <- NA
+        }
         pred_vec[ok_occ_pred] <- predict(amod, dframe_pred[ok_occ_pred, ])
       }
 
@@ -187,6 +194,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       # filter out times of week that are not in unoccupied training period.
       if(! is.null(prediction_data)) {
+        if("ftow" %in% colnames(dframe)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+          dframe_pred$ftow[id] <- NA
+        }
         pred_vec[! ok_occ_pred] <- predict(bmod, dframe_pred[! ok_occ_pred, ])
 
       }

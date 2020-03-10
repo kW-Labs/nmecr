@@ -54,6 +54,9 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
       ok_tow_pred <- factor(ftow) %in% modeled_object$model_occupied$xlevels$ftow
       predictions <- rep(NA, nrow(prediction_data))
+
+      id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+      dframe_pred$ftow[id] <- NA
       predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
 
     } else {
@@ -95,10 +98,18 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
 
       if (sum(ok_occ > 0)) {
+        if("ftow" %in% colnames(dframe)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+          dframe_pred$ftow[id] <- NA
+        }
         predictions[ok_occ_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_occ_pred, ])
       }
 
       if (sum(! ok_occ) > 0) {
+        if("ftow" %in% colnames(dframe)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+          dframe_pred$ftow[id] <- NA
+        }
         predictions[! ok_occ_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[! ok_occ_pred, ])
       }
 
