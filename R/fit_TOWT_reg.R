@@ -66,7 +66,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
       }
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
-      pred_vec <- rep(NA, length(prediction_data$time))
+      pred_vec <- rep(NA, nrow(prediction_data))
       pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
 
     }
@@ -80,7 +80,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     occ_intervals <- occ_info[occ_info[, 2] == 1, 1] # which time intervals are 'occupied'?
 
     # create an occupancy vector for training dataset
-    occ_vec <- rep(0, length(training_data$eload))
+    occ_vec <- rep(0, nrow(training_data))
     for (i in 1 : length(occ_intervals)) {
         occ_vec[interval_of_week == occ_intervals[i]] <- 1
     }
@@ -88,7 +88,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     if(! is.null(prediction_data)) {
 
       #create an occupancy vector for prediction dataframe
-      occ_vec_pred <- rep(0, length(prediction_data$eload))
+      occ_vec_pred <- rep(0, nrow(prediction_data))
       for (i in 1 : length(occ_intervals)) {
         occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
       }
@@ -143,7 +143,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
           select(-c("time", "temp", "HDD", "CDD"))
       }
 
-      pred_vec <- rep(NA, length(prediction_data$time))
+      pred_vec <- rep(NA, nrow(prediction_data))
 
     }
 
