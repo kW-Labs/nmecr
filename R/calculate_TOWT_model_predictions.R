@@ -30,6 +30,15 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
     temp_mat_pred <- create_temp_matrix(prediction_data$temp, modeled_object$model_input_options$calculated_temp_knots)
     names(temp_mat_pred) <- temp_m_name
 
+    # prepare interval of week
+    minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
+      lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
+
+    interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
+
+    ftow <- factor(interval_of_week)
+    dframe <- data.frame(training_data, ftow)
+
     # Create prediction dataframe based on interval of week ----
     minute_of_week_pred <- (lubridate::wday(prediction_data$time) - 1) * 24 * 60 +
       lubridate::hour(prediction_data$time) * 60 + lubridate::minute(prediction_data$time)
@@ -37,7 +46,6 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
     interval_of_week_pred <- 1 + floor(minute_of_week_pred / modeled_object$model_input_options$interval_minutes)
 
     ftow <- factor(interval_of_week_pred)
-
     dframe_pred <- data.frame(prediction_data, ftow)
 
     if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
@@ -66,11 +74,6 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       occ_info <- modeled_object$model_input_options$occupancy_info
       occ_intervals <- occ_info[occ_info[, 2] == 1, 1]
 
-      # prepare interval of week
-      minute_of_week <- (lubridate::wday(training_data$time) - 1) * 24 * 60 +
-        lubridate::hour(training_data$time) * 60 + lubridate::minute(training_data$time)
-
-      interval_of_week <- 1 + floor(minute_of_week / modeled_object$model_input_options$interval_minutes)
 
       # create an occupancy vector for training dataset
       occ_vec <- rep(0, nrow(training_data))
