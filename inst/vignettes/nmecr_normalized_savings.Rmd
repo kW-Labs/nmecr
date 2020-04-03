@@ -6,6 +6,8 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "January 8, 2020"
 output:
+  html_document:
+    df_print: paged
   pdf_document: default
   word_document: default
 vignette: |
