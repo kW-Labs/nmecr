@@ -35,7 +35,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
   if (model_input_options$regression_type == "Three Parameter Cooling") {
 
-    dummy_cooling_model <- lm(dependent_variable  ~ 1)
+    dummy_cooling_model <- lm(dependent_variable  ~ 1) # constrained slope
     three_paramter_cooling_model <- segmented::segmented(dummy_cooling_model, seg.Z = ~independent_variable)
 
     out <- list()
@@ -45,8 +45,9 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
   } else if (model_input_options$regression_type == "Three Parameter Heating") {
 
-    dummy_heating_model <- lm(dependent_variable ~ - 1)
-    three_paramter_heating_model <- segmented::segmented(dummy_heating_model, seg.Z = ~independent_variable)
+    independent_variable <- - independent_variable # flipping the sign of the independent variable for a constrained sloped
+    dummy_heating_model <- lm(dependent_variable ~ 1)
+    three_paramter_heating_model <- segmented::segmented(dummy_heating_model, seg.Z = ~ independent_variable)
 
     out <- list()
     out$model <- three_paramter_heating_model
