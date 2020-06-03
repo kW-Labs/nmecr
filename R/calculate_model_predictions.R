@@ -54,10 +54,18 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     predictions_df <- data.frame(prediction_data, predictions)
 
-  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "Three Parameter Heating" |
-             modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "Five Parameter Linear Model") {
+  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" |
+             modeled_object$model_input_options$regression_type == "Five Parameter Linear Model") {
 
     dframe_pred <- data.frame(independent_variable = prediction_data$temp)
+
+    predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
+
+    predictions_df <- data.frame(prediction_data, predictions)
+
+  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating") {
+
+    dframe_pred <- data.frame(independent_variable = - prediction_data$temp)
 
     predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
 
