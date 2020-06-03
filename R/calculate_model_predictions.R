@@ -34,7 +34,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
     if (data_interval == "Monthly") {
 
       predictions <- predict(modeled_object$model, prediction_data) %>%
-        magrittr::multiply_by(training_data$days)
+        magrittr::multiply_by(prediction_data$days)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
