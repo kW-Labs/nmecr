@@ -151,7 +151,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     }
 
     # Now make predictions for prediction period
-    if (sum(ok_occ > 0)) {
+    if (sum(ok_occ) > 0) {
 
       if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
         dframe <- dframe %>%
