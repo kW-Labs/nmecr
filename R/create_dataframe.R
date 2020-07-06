@@ -1,14 +1,15 @@
-#' Generate training or prediction dataframe.
+#' Generate training or prediction xts objects
 #'
 #'
-#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
-#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily
+#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param operating_mode_data A dataframe with indicator variables for different energy use profiles withtin the stated time period.
-#' A time column, corresponding to eload_data and/or temp_data must be included.
+#' operating mode data's time interval must either be the maximum of the three uploaded datasets or be the same as that indicated in the parameter 'convert_to_data_interval' as operating mode data cannot be aggreagated.
 #' @param start_date  A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe
 #' @param end_date A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the intended dataframe
-#' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'
+#' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
+#' @param timestamps A string indicating whether the timestamps in eload_data and temp_data are the start times or the end times.
 #'
 #' @return a list with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
 #' @export
@@ -162,7 +163,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
 
   # begin aggregation
-  if (nterval == 60*15) { # if the convert_to_data_interval input is '15-min' and/or max_data_interval == 15 min
+  if (nterval == 60*15) { # if the convert_to_data_interval input is '15-min' or max_data_interval (max interval based on input datasets) == 15 min
 
     data_xts <- xts::merge.xts(eload_data_xts, temp_data_xts)
 
@@ -186,7 +187,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
     data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
 
-  } else if (nterval == 60*60*24) { # if the convert_to_data_interval input is 'Daily' or max_data_interval == 60*60*24
+  } else if (nterval == 60*60*24) { # if the convert_to_data_interval input is 'Daily' or max_data_interval == 60*60*24. HDD and CDDs being calculated as well.
 
     sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "days"), FUN = sum) %>%
       xts::align.time(n = 60*60*24)
@@ -211,138 +212,34 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     data_xts$CDD <- data_xts$temp - temp_balancepoint
     data_xts$CDD[data_xts$CDD < 0 ] <- 0
 
-  } else if (nterval == 60*60*24*mean(30,31) & max_data_interval == 60*15) { # if the convert_to_data_interval input is 'Monthly' and max_data_interval == 60*15
+  } else if (nterval == 60*60*24*mean(30,31)) { # if the convert_to_data_interval input is 'Monthly'
 
-    sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
-      xts::align.time(n = 60*60)
+    if(max_data_interval < 60*60*24*mean(30,31)) { # if max uploaded datasets' interval is less than monthly - aggregating up
 
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(sum_eload_data_xts) - 60*60
-      sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
-    }
-
-    mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
-      xts::align.time(n = 60*60)
-
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(mean_temp_data_xts) - (60*60)
-      mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
-    }
-
-    data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
-    data_xts$days <- lubridate::days_in_month(zoo::index(data_xts))
-
-    data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-    data_xts$HDD[data_xts$HDD < 0 ] <- 0
-    data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-    data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-    data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-    data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-    data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-    data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-    data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-  } else if (nterval == 60*60*24*mean(30,31) & max_data_interval == 60*60) { # if the convert_to_data_interval input is 'Monthly' and max_data_interval == 60*60
-
-    sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
-      xts::align.time(n = 60*60)
-
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(sum_eload_data_xts) - 60*60
-      sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
-    }
-
-    mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
-      xts::align.time(n = 60*60)
-
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(mean_temp_data_xts) - (60*60)
-      mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
-    }
-
-    data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
-    data_xts$days <- lubridate::days_in_month(zoo::index(data_xts))
-
-    data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-    data_xts$HDD[data_xts$HDD < 0 ] <- 0
-    data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-    data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-    data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-    data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-    data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-    data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-    data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-  } else if (nterval == 60*60*24*mean(30,31) & max_data_interval == 60*60*24) { # if the convert_to_data_interval input is 'Monthly' and max_data_interval == 60*60*24
-
-    sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
-      xts::align.time(n = 60*60*24)
-
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(sum_eload_data_xts) - (60*60*24)
-      sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
-    }
-
-    mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
-      xts::align.time(n = 60*60*24)
-
-    if(timestamps == 'end') {
-      corrected_index <- zoo::index(mean_temp_data_xts) - (60*60*24)
-      mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
-    }
-
-    data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
-    data_xts$days <- lubridate::days_in_month(zoo::index(data_xts))
-
-    data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-    data_xts$HDD[data_xts$HDD < 0 ] <- 0
-    data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-    data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-    data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-    data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-    data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-    data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-    data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-  } else if (nterval == 60*60*24*mean(30,31)) {
-
-    if(eload_data_interval == 60*60*24*mean(30,31)) { # if the convert_to_data_interval input is 'Monthly' and max_data_interval == 60*60*24*mean(30,31)
-
-      monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
-      names(monthly_data) <- c("time", "temp", "eload", "days")
-      monthly_data$time <- eload_data$time
-      monthly_data$eload <- eload_data$eload
-
-      for (i in 2:length(monthly_data$time)) {
-        monthly_data$temp[i] <- temp_data %>%
-          dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
-          dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
-          as.numeric()
-
-        monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
-          as.numeric()
+      if (max_data_interval == 60*15 | max_data_interval == 60*60) { # max uploaded datasets' interval: 15 min or 60 minutes
+        align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
+      } else if (max_data_interval == 60*60*24) { # max uploaded datasets' interval: 1 day
+        align_to_minutes <- 60*24
       }
 
-      n_sec <- median(diff(as.numeric(monthly_data$time)))
-      t_1 <- monthly_data$time[1] - n_sec
+      sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
+        xts::align.time(n = 60*align_to_minutes)
 
-      monthly_data$temp[1] <- temp_data %>%
-        dplyr::filter(time >= t_1 & time < monthly_data$time[1]) %>%
-        dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
-        as.numeric()
-
-      monthly_data$days[1] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
-        as.numeric()
-
-      data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
-
-      if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
-        corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
-        data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+      if(timestamps == 'end') {
+        corrected_index <- zoo::index(sum_eload_data_xts) - 60*align_to_minutes
+        sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
       }
+
+      mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
+        xts::align.time(n = 60*align_to_minutes)
+
+      if(timestamps == 'end') {
+        corrected_index <- zoo::index(mean_temp_data_xts) - (60*align_to_minutes)
+        mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
+      }
+
+      data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
+      data_xts$days <- lubridate::days_in_month(zoo::index(data_xts))
 
       data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
       data_xts$HDD[data_xts$HDD < 0 ] <- 0
@@ -355,52 +252,101 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
       data_xts$eload_per_day <- data_xts$eload / data_xts$days
 
-    } else if ( temp_data_interval == 60*60*24*mean(30,31)) { # if the convert_to_data_interval input is 'Monthly' and max_data_interval == 60*60*24*mean(30,31)
+    } else if (max_data_interval == 60*60*24*mean(30,31)) { # max uploaded datasets' interval: 1 month
 
-      monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
-      names(monthly_data) <- c("time", "temp", "eload", "days")
-      monthly_data$time <- temp_data$time
-      monthly_data$temp <- temp_data$temp
+        if(eload_data_interval == 60*60*24*mean(30,31)) { # eload is monthly - will need to aggregate temp
 
-      for (i in 2:length(monthly_data$time)) {
-        monthly_data$eload[i] <- eload_data %>%
-          dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
-          dplyr::summarize("temp" = round(sum(eload, na.rm = T),2)) %>%
+        monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
+        names(monthly_data) <- c("time", "temp", "eload", "days")
+        monthly_data$time <- eload_data$time
+        monthly_data$eload <- eload_data$eload
+
+        for (i in 2:length(monthly_data$time)) {
+          monthly_data$temp[i] <- temp_data %>%
+            dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
+            dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
+            as.numeric()
+
+          monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
+            as.numeric()
+        }
+
+        n_sec <- median(diff(as.numeric(monthly_data$time)))
+        t_1 <- monthly_data$time[1] - n_sec
+
+        monthly_data$temp[1] <- temp_data %>%
+          dplyr::filter(time >= t_1 & time < monthly_data$time[1]) %>%
+          dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
           as.numeric()
 
-        monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
+        monthly_data$days[1] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
           as.numeric()
 
+        data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
+
+        if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
+          corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
+          data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+        }
+
+        data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
+        data_xts$HDD[data_xts$HDD < 0 ] <- 0
+        data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
+        data_xts$CDD[data_xts$CDD < 0 ] <- 0
+
+        data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
+        data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
+        data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
+        data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
+        data_xts$eload_per_day <- data_xts$eload / data_xts$days
+
+      } else if (temp_data_interval == 60*60*24*mean(30,31)) { # temp is monthly - will need to aggregate eload
+
+        monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
+        names(monthly_data) <- c("time", "temp", "eload", "days")
+        monthly_data$time <- temp_data$time
+        monthly_data$temp <- temp_data$temp
+
+        for (i in 2:length(monthly_data$time)) {
+          monthly_data$eload[i] <- eload_data %>%
+            dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
+            dplyr::summarize("temp" = round(sum(eload, na.rm = T),2)) %>%
+            as.numeric()
+
+          monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
+            as.numeric()
+
+        }
+
+        n_sec <- median(diff(as.numeric(monthly_data$time)))
+        t_1 <- monthly_data$time[1] - n_sec
+
+        monthly_data$eload[1] <- eload_data %>%
+          dplyr::filter(time >= t_1 & time < eload_data$time[1]) %>%
+          dplyr::summarize("eload" = round(sum(eload, na.rm = T),2)) %>%
+          as.numeric()
+
+        monthly_data$days[2] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
+          as.numeric()
+
+        data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
+
+        if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
+          corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
+          data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+        }
+
+         data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
+         data_xts$HDD[data_xts$HDD < 0 ] <- 0
+         data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
+         data_xts$CDD[data_xts$CDD < 0 ] <- 0
+
+         data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
+         data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
+         data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
+         data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
+         data_xts$eload_per_day <- data_xts$eload / data_xts$days
       }
-
-      n_sec <- median(diff(as.numeric(monthly_data$time)))
-      t_1 <- monthly_data$time[1] - n_sec
-
-      monthly_data$eload[1] <- eload_data %>%
-        dplyr::filter(time >= t_1 & time < eload_data$time[1]) %>%
-        dplyr::summarize("eload" = round(sum(eload, na.rm = T),2)) %>%
-        as.numeric()
-
-      monthly_data$days[2] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
-        as.numeric()
-
-      data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
-
-      if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
-        corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
-        data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
-      }
-
-       data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-       data_xts$HDD[data_xts$HDD < 0 ] <- 0
-       data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-       data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-       data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-       data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-       data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-       data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-       data_xts$eload_per_day <- data_xts$eload / data_xts$days
     }
   }
 
