@@ -1,4 +1,4 @@
-#' Generate training or prediction xts objects
+#' Generate training or prediction dataframes
 #'
 #'
 #' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
@@ -379,6 +379,6 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     data_xts <- data_xts[zoo::index(data_xts) < lubridate::mdy_hm(end_date)]
   }
 
-  return(data_xts)
+  return(data_xts) # convert back to dataframe here to maintain compatibility
 
 }
