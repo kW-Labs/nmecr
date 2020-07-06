@@ -124,7 +124,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   }
 
-  # assign modeling interval
+  # assign modeling interval - based on either the user's input or max of uploaded datasets
   if (missing(convert_to_data_interval)) {
     nterval <- max_data_interval
   } else if(convert_to_data_interval == "15-min") {
@@ -155,6 +155,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
                 '15-min', 'Hourly', 'Daily', or 'Monthly'."))
   }
 
+
+  # check data interval of operating mode data - has to match modeling interval
   if (! is.null(operating_mode_data)) {
     if(operating_mode_data_interval != nterval) {
       stop(paste0("Please upload an operating mode data file with the data interval ", convert_to_data_interval))
