@@ -4,11 +4,11 @@ author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "January 8, 2020"
+date: "August 7, 2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -81,7 +81,7 @@ head(temp, n=5)
 
 ## Baseline Dataframe for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. The `timestamps` parameter is optional, with permissible values: 'start' and 'end', indicating whether the timestamps mark the start or the end of the period. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 ```{r baseline_df, results='markup'}
 
@@ -90,7 +90,8 @@ head(temp, n=5)
 baseline_df <- create_dataframe(eload_data = eload, temp_data = temp, 
                                 start_date = "03/01/2012 00:00", 
                                 end_date = "02/28/2013 23:59", 
-                                convert_to_data_interval = "Daily")
+                                convert_to_data_interval = "Daily", 
+                                timestamps = "start")
 
 head(baseline_df, 5)
 
@@ -103,7 +104,8 @@ head(baseline_df, 5)
 performance_df <- create_dataframe(eload_data = eload, temp_data = temp, 
                                    start_date = "03/01/2014 00:00", 
                                    end_date = "02/28/2015 23:59", 
-                                   convert_to_data_interval = "Daily")
+                                   convert_to_data_interval = "Daily", 
+                                   timestamps = "start")
 
 head(performance_df, 5)
 
@@ -134,13 +136,14 @@ The four modeling algorithms have many specifications in common that can be spec
 
 ```{r model inputs, results='markup'}
 
-model_input_options <- assign_model_inputs(timescale_days = NULL, interval_minutes = 1440, 
+model_input_options <- assign_model_inputs(timescale_days = NULL, 
                                            has_temp_knots_defined = FALSE, 
                                            equal_temp_segment_points = TRUE,
                                            temp_segments_numeric = 6, 
-                                           temp_knots_value = c(40, 55, 65, 80, 90), 
+                                           temp_knots_value = c(40, 45, 50, 60, 65, 90), 
                                            initial_breakpoints = c(50,65), 
-                                           regression_type = "TOWT")
+                                           regression_type = "TOWT",
+                                           occupancy_threshold = 0.65)
 
 ```
 
@@ -164,7 +167,7 @@ TOWT_baseline_df <- TOWT_baseline_model$training_data %>%
 ggplot2::ggplot(TOWT_baseline_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -188,7 +191,7 @@ TOWT_performance_df <- TOWT_performance_model$training_data %>%
 ggplot2::ggplot(TOWT_performance_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -228,7 +231,7 @@ Using the models' statistics and the uncertainity for 10% savings, we can determ
 1. CVRMSE (should be < 25%):
 
 * Baseline Model: 6.8%
-* Performance Period Model: 7.3%
+* Performance Period Model: 7.2%
 
 2. NDBE: should be < 0.005%
 
@@ -244,10 +247,10 @@ The California Public Utilities Commission requires savings to be detectable abo
 ```{r baseline savings_10 summary, results='markup'}
 
 TOWT_baseline_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                                              savings_fraction = 0.1,
-                                                  modeled_object = TOWT_baseline_model, 
-                                                  model_summary_statistics = TOWT_baseline_stats,
-                                                  confidence_level = 90)
+                            savings_fraction = 0.1,
+                            modeled_object = TOWT_baseline_model, 
+                            model_summary_statistics = TOWT_baseline_stats,
+                            confidence_level = 90)
 
 TOWT_baseline_savings_10$savings_summary_df
 
@@ -258,16 +261,16 @@ TOWT_baseline_savings_10$savings_summary_df
 
 ```{r performance savings_10 summary, results='markup'}
 TOWT_performance_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                                                 savings_fraction = 0.1,
-                                                  modeled_object = TOWT_performance_model, 
-                                                  model_summary_statistics = TOWT_performance_stats,
-                                                  confidence_level = 90)
+                               savings_fraction = 0.1,
+                               modeled_object = TOWT_performance_model, 
+                               model_summary_statistics = TOWT_performance_stats,
+                               confidence_level = 90)
 
 TOWT_performance_savings_10$savings_summary_df
 
 ```
 
-* Performance Period Model: 19.8%
+* Performance Period Model: 18.5%
 
 In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
 
@@ -297,12 +300,12 @@ Next, we calculate the baseline and the performance period energy use normalized
 ```{r normalized use, results='markup'}
 
 TOWT_baseline_normalized <- calculate_model_predictions(training_data = baseline_df, 
-                                                        prediction_data = TMY3_daily, 
-                                                        modeled_object = TOWT_baseline_model)
+                            prediction_data = TMY3_daily, 
+                            modeled_object = TOWT_baseline_model)
 
 TOWT_performance_normalized <- calculate_model_predictions(training_data = performance_df, 
-                                                           prediction_data = TMY3_daily, 
-                                                           modeled_object = TOWT_performance_model)
+                               prediction_data = TMY3_daily, 
+                               modeled_object = TOWT_performance_model)
 
 ```
 
@@ -335,33 +338,35 @@ Normalized savings uncertainty is calculated as the square-root of the sum of th
 
 ```{r normalized savings uncertainty, results='markup'}
 TOWT_baseline_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                                  savings_fraction = TOWT_normalized_savings_fraction,
-                                                  modeled_object = TOWT_baseline_model, 
-                                                  model_summary_statistics = TOWT_baseline_stats,
-                                                  confidence_level = 90)
+                                        savings_fraction = TOWT_normalized_savings_fraction,
+                                        modeled_object = TOWT_baseline_model, 
+                                        model_summary_statistics = TOWT_baseline_stats,
+                                        confidence_level = 90)
 
 TOWT_performance_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                                  savings_fraction = TOWT_normalized_savings_fraction,
-                                                  modeled_object = TOWT_performance_model, 
-                                                  model_summary_statistics = TOWT_performance_stats,
-                                                  confidence_level = 90)
+                                           savings_fraction = TOWT_normalized_savings_fraction,
+                                           modeled_object = TOWT_performance_model, 
+                                           model_summary_statistics = TOWT_performance_stats,
+                                           confidence_level = 90)
 
 
 TOWT_baseline_normalized_uncertainty_value <- 
-  TOWT_baseline_normalized_uncertainty$savings_summary_df$savings_uncertainty
+  
+TOWT_baseline_normalized_uncertainty$savings_summary_df$savings_uncertainty
 
 TOWT_performance_normalized_uncertainty_value <- 
-  TOWT_performance_normalized_uncertainty$savings_summary_df$savings_uncertainty
+  
+TOWT_performance_normalized_uncertainty$savings_summary_df$savings_uncertainty
 
 TOWT_normalized_savings_uncertainty <- sqrt(TOWT_baseline_normalized_uncertainty_value^2 + 
-                                              TOWT_performance_normalized_uncertainty_value^2)
+                                       TOWT_performance_normalized_uncertainty_value^2)
 
 TOWT_normalized_savings_uncertainty
 
 
 ```
 
-The Normalized Savings are found to be 9.1% with an associated uncertainty of 28.4%.
+The Normalized Savings are found to be 9.1% with an associated uncertainty of 27.5%.
 
 
 

@@ -4,11 +4,11 @@ author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "November 22, 2019"
+date: "August 7, 2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -17,7 +17,8 @@ vignette: |
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  warning = FALSE
 )
 
 library(nmecr)
@@ -64,7 +65,7 @@ data(school_op_mode)
 
 ## Baseline and Performance Period Dataframes for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If operating mode data^[Operating mode's data interval must be same as that of the intended model. For example, for TOWT models created using daily data, upload an operating mode dataset with daily data intervals] is supplied, this information is added to the dataframe created by `create_dataframe()`.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. The `timestamps` parameter is optional, with permissible values: 'start' and 'end', indicating whether the timestamps mark the start or the end of the period. If operating mode data^[Operating mode's data interval must be same as that of the intended model. For example, for TOWT models created using daily data, upload an operating mode dataset with daily data intervals] is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 
 
@@ -74,17 +75,18 @@ data(school_op_mode)
 
 baseline_df <- create_dataframe(eload_data = school_eload, 
                                 temp_data = school_temp,
-                                convert_to_data_interval = "Daily")
+                                convert_to_data_interval = "Daily", 
+                                timestamps = "start")
 
 baseline_df_with_op_mode <- create_dataframe(eload_data = school_eload, 
                                              temp_data = school_temp,
                                              operating_mode_data = school_op_mode,
-                                             convert_to_data_interval = "Daily")
+                                             convert_to_data_interval = "Daily", 
+                                             timestamps = "start")
 
 
 ```
 
-#### Baseline Energy Use
 
 ```{r baseline profile, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
@@ -127,7 +129,7 @@ SLR_model <- model_with_SLR(training_data = baseline_df,
 
 SLR_df <- SLR_model$training_data
 
-names(SLR_df) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_without_op.mode_info")
+names(SLR_df) <- c("time", "eload", "temp", "HDD", "CDD", "model_fit_without_op.mode_info")
 
 SLR_model_with_op_mode <- model_with_SLR(training_data = baseline_df_with_op_mode, 
                             model_input_options = 
@@ -135,7 +137,7 @@ SLR_model_with_op_mode <- model_with_SLR(training_data = baseline_df_with_op_mod
 
 SLR_df_with_op_mode <- SLR_model_with_op_mode$training_data
 
-names(SLR_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "school holidays", 
+names(SLR_df_with_op_mode) <- c("time", "eload", "temp", "HDD", "CDD", "school holidays", 
                                 "summer maintenance", "summer school", "pre-class ramp up",
                                 "model_fit_with_op.mode_info")
 
@@ -158,7 +160,7 @@ SLR_plot_data %>%
   ggplot2::ggplot(aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -174,7 +176,7 @@ SLR_plot_data %>%
   ggplot2::ggplot(aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -192,7 +194,7 @@ The model with the operating model information performs better than the one with
                                                       "pre-class ramp up"))) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -214,7 +216,7 @@ TOWT_model <- model_with_TOWT(training_data = baseline_df,
                                 assign_model_inputs(regression_type = "TOWT"))
 TOWT_df <- TOWT_model$training_data
 
-names(TOWT_df) <- c("time", "temp", "HDD", "CDD", "eload", "model_fit_without_op.mode_info")
+names(TOWT_df) <- c("time", "eload", "temp", "HDD", "CDD", "model_fit_without_op.mode_info")
 
 TOWT_model_with_op_mode <- model_with_TOWT(training_data = baseline_df_with_op_mode, 
                             model_input_options = 
@@ -222,7 +224,7 @@ TOWT_model_with_op_mode <- model_with_TOWT(training_data = baseline_df_with_op_m
 
 TOWT_df_with_op_mode <- TOWT_model_with_op_mode$training_data
 
-names(TOWT_df_with_op_mode) <- c("time", "temp", "HDD", "CDD", "eload", "school holidays", 
+names(TOWT_df_with_op_mode) <- c("time", "eload", "temp", "HDD", "CDD", "school holidays", 
                                  "summer maintenance", "summer school", "pre-class ramp up",
                                   "model_fit_with_op.mode_info")
 
@@ -245,7 +247,7 @@ TOWT_plot_data %>%
                                                       "pre-class ramp up"))) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -264,7 +266,7 @@ TOWT_plot_data %>%
                                                       "pre-class ramp up"))) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -280,7 +282,7 @@ Figure 7: Baseline Energy Use modeled with Time-of-week and Temperature over Tim
                                                       "pre-class ramp up"))) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -323,7 +325,7 @@ all_stats
 
 Using the modeling statistics and the savings uncertainity for 10%, we can determine the validity of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment
 
-1. CVRMSE: 17.8% (should be < 25%)
+1. CVRMSE: 22% (should be < 25%)
 2. NDBE: 0.0000 (should be < 0.005%)
 
 The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. It includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
@@ -339,7 +341,7 @@ TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = NULL,
 TOWT_savings$savings_summary_df
 ```
 
-3. Savings Uncertainty for 10% savings (at 68% confidence level): 19.5% (shoule be < 50%). 
+3. Savings Uncertainty for 10% savings (at 68% confidence level): 20.4% (shoule be < 50%). 
 
 The savings percentage required to meet the threshold of 50% uncertainty, at the 68% confidence level, is 3.9% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 

@@ -4,11 +4,11 @@ author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "January 6, 2020"
+date: "August 7, 2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -68,7 +68,7 @@ head(temp, n=5)
 
 ## Baseline Dataframe for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. The `timestamps` parameter is optional, with permissible values: 'start' and 'end', indicating whether the timestamps mark the start or the end of the period. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 ```{r baseline_df, results='markup'}
 
@@ -77,7 +77,7 @@ head(temp, n=5)
 baseline_df <- create_dataframe(eload_data = eload, temp_data = temp, 
                                 start_date = "03/01/2012 00:00", 
                                 end_date = "02/28/2013 23:59", 
-                                convert_to_data_interval = "Daily")
+                                convert_to_data_interval = "Daily", timestamps = "start")
 
 head(baseline_df, 5)
 
@@ -108,19 +108,18 @@ The four modeling algorithms have many specifications in common that can be spec
 
 ```{r model inputs, results='markup'}
 
-model_input_options <- assign_model_inputs(timescale_days = NULL, interval_minutes = 15, 
+model_input_options <- assign_model_inputs(timescale_days = NULL, 
                                            has_temp_knots_defined = FALSE, 
                                            equal_temp_segment_points = TRUE,
                                            temp_segments_numeric = 6, 
-                                           temp_knots_value = c(40, 55, 65, 80, 90), 
+                                           temp_knots_value = c(40, 45, 50, 60, 65, 90), 
                                            initial_breakpoints = c(50,65), 
-                                           regression_type = "TOWT")
+                                           regression_type = "TOWT",
+                                           occupancy_threshold = 0.65)
 
 ```
 
 Before creating data models, it is a good practice to visualize the energy use profiles:
-
-#### Baseline Energy Use
 
 ```{r baseline profile, results='markup', echo=FALSE, fig.height = 3, fig.width = 7}
 
@@ -168,7 +167,7 @@ SLR_df <- SLR_model$training_data %>%
 ggplot2::ggplot(SLR_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -182,7 +181,7 @@ Figure 3: Baseline Energy Use modeled with Simple Linear Regression over Time
  ggplot2::ggplot(SLR_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -212,7 +211,7 @@ Four_P_df <- Four_P_model$training_data %>%
 ggplot2::ggplot(Four_P_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -224,7 +223,7 @@ Figure 5: Baseline Energy Use modeled with Three Parameter Heating Regression ov
  ggplot2::ggplot(Four_P_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -251,7 +250,7 @@ TOWT_df <- TOWT_model$training_data %>%
 ggplot2::ggplot(TOWT_df, aes(x = time, y = value)) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
@@ -263,7 +262,7 @@ Figure 7: Baseline Energy Use modeled with Time-of-week and Temperature over Tim
  ggplot2::ggplot(TOWT_df, aes(x = temp, y = value)) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption and Model Fit", labels = scales::comma) +
+  scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   theme(legend.title = element_blank())
