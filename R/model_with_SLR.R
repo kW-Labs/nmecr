@@ -17,6 +17,8 @@
 
 model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
+  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+
   nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
   if (nterval == 60){

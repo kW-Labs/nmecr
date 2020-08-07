@@ -23,6 +23,8 @@
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL, occupancy_info = NULL){
 
+  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+
   nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   #calculate interval minutes
