@@ -379,6 +379,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     data_xts <- data_xts[zoo::index(data_xts) < lubridate::mdy_hm(end_date)]
   }
 
-  return(data_xts) # convert back to dataframe here to maintain compatibility
+  df <- timetk::tk_tbl(data = data_xts, preserve_index = TRUE, rename_index = "time") # return a df
+
+  return(df)
 
 }
