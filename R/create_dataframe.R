@@ -51,10 +51,6 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   }
 
-  if(missing(timestamps)){
-    stop("Missing Argument: 'timestamps'. Please indicate whether the timestamps represent the 'start' or the 'end' of the time period.")
-  }
-
   # convert to xts objects
   eload_data <- as.data.frame(eload_data)
   temp_data <- as.data.frame(temp_data)
