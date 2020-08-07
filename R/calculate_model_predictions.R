@@ -15,6 +15,10 @@
 
 calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
+  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+
+  prediction_data <- prediction_data[complete.cases(prediction_data), ] # remove any incomplete observations
+
   if(modeled_object$model_input_options$regression_type == "SLR" |
      modeled_object$model_input_options$regression_type == "HDD Regression" |
      modeled_object$model_input_options$regression_type == "CDD Regression") {

@@ -25,6 +25,10 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
 
   training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
 
+  if(! is.null(prediction_data)) {
+    prediction_data <- prediction_data[complete.cases(prediction_data), ]
+  } # remove any incomplete observations
+
   nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   #calculate interval minutes
