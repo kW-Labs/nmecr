@@ -339,7 +339,7 @@ TOWT_savings_10$savings_summary_df
 
 ```
 
-3. Savings Uncertainty for 10% savings (at 90% confidence level): 10.1% (shoule be < 50%). 
+3. Savings Uncertainty for 10% savings (at 90% confidence level): 16.7% (shoule be < 50%). 
 
 The savings percentage required to meet the threshold of 50% uncertainty, at the 90% confidence level, is 2% (as shown by the output above, see: savings_pct_for_50pct_uncertainty).
 
@@ -399,7 +399,7 @@ TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = TOWT_predictio
 TOWT_savings$savings_summary_df
 ```
 
-Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 14.5%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 68% confidence level. The 14.5% uncertainty is well below this threshold. 
+Savings achieved at the meter for this project amount to ~7% of the Adjusted Baseline Use with an associated savings uncertainty of 23.9%. ASHRAE requires that the savings uncertainty for a project be below 50% at the 68% confidence level. The 23.9% uncertainty is well below this threshold. 
 
 
 
