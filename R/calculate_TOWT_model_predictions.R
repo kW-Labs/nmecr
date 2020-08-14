@@ -101,6 +101,14 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       ok_occ_pred[is.na(ok_occ_pred)] <- TRUE
 
       if (sum(ok_occ > 0)) {
+
+        if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
+          dframe_occ <- dframe %>%
+            select(-"ftow")
+        } else {
+          dframe_occ <- dframe
+        }
+
         if("ftow" %in% colnames(dframe_occ)){
           id <- which(!(dframe_pred$ftow %in% levels(dframe_occ$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
@@ -109,6 +117,14 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
       }
 
       if (sum(! ok_occ) > 0) {
+
+        if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
+          dframe_unocc <- dframe %>%
+            select(-"ftow")
+        } else {
+          dframe_unocc <- dframe
+        }
+
         if("ftow" %in% colnames(dframe_unocc)){
           id <- which(!(dframe_pred$ftow %in% levels(dframe_unocc$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
