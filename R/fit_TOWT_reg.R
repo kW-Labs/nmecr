@@ -154,22 +154,22 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     if (sum(ok_occ) > 0) {
 
       if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
-        dframe <- dframe %>%
+        dframe_occ <- dframe %>%
           select(-"ftow")
       } else {
-        dframe <- dframe
+        dframe_occ <- dframe
       }
 
       # linear regression - subset for occupied periods
-      amod <- lm(training_data$eload ~ . , data = dframe,
+      amod <- lm(training_data$eload ~ . , data = dframe_occ,
                  na.action = na.exclude, weights = model_input_options$train_weight_vec, subset = ok_occ)
-      t_p <- predict(amod, dframe[ok_occ, ])
+      t_p <- predict(amod, dframe_occ[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
 
       # filter out times of week that are not in occupied training period.
       if(! is.null(prediction_data)) {
-        if("ftow" %in% colnames(dframe)){
-          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+        if("ftow" %in% colnames(dframe_occ)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe_occ$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
         pred_vec[ok_occ_pred] <- predict(amod, dframe_pred[ok_occ_pred, ])
@@ -180,22 +180,22 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     if (sum(! ok_occ) > 0) {
 
       if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
-        dframe <- dframe %>%
+        dframe_unocc <- dframe %>%
           select(-"ftow")
       } else {
-        dframe <- dframe
+        dframe_unocc <- dframe
       }
 
       # linear regression - subset for unoccupied periods
-      bmod <- lm(training_data$eload ~ . , data = dframe, na.action = na.exclude,
+      bmod <- lm(training_data$eload ~ . , data = dframe_unocc, na.action = na.exclude,
                  weights = model_input_options$train_weight_vec, subset = ! ok_occ)
-      t_p <- predict(bmod, dframe[! ok_occ, ])
+      t_p <- predict(bmod, dframe_unocc[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
 
       # filter out times of week that are not in unoccupied training period.
       if(! is.null(prediction_data)) {
-        if("ftow" %in% colnames(dframe)){
-          id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
+        if("ftow" %in% colnames(dframe_unocc)){
+          id <- which(!(dframe_pred$ftow %in% levels(dframe_unocc$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
         pred_vec[! ok_occ_pred] <- predict(bmod, dframe_pred[! ok_occ_pred, ])
