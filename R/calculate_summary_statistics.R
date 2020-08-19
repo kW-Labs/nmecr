@@ -73,13 +73,14 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     magrittr::multiply_by(100) %>%
     format(round(., 2), nsmall = 4)
 
-  goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 5))
-  names(goodness_of_fit) <- c("R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters")
+  goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 6))
+  names(goodness_of_fit) <- c("R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters", "deg_of_freedom")
   goodness_of_fit$R_squared <- R_squared
   goodness_of_fit$`CVRMSE %` <- CVRMSE
   goodness_of_fit$`NDBE %` <- NDBE
   goodness_of_fit$`NMBE %` <- NMBE
   goodness_of_fit$"#Parameters" <- nparameter
+  goodness_of_fit$"deg_of_freedom" <- effective_parameters
 
   return(goodness_of_fit)
 
