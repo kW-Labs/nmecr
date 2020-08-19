@@ -73,7 +73,9 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
   uncertainty_50 <- 0.5
 
-  t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, 100000)
+  deg_of_freedom <- model_summary_statistics$`deg_of_freedom`
+
+  t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
 
   if (modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
 
