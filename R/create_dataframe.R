@@ -180,7 +180,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
     if(timestamps == 'end') {
       corrected_index <- zoo::index(mean_temp_data_xts) - 60*60
-      mean_temp_data_xts <- xts::xts(mean_temp_data_xts$eload, order.by = corrected_index)
+      mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
     }
 
     data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
