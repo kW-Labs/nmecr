@@ -27,7 +27,7 @@ You can download nmecr from GitHub.
 
 ``` r
 install.packages("devtools")
-devtools::install_github("kW-Labs/nmecr")
+devtools::install_github("kW-Labs/nmecr", upgrade = "never")
 ```
 Please make sure R is updated on your system. Check [here](https://www.r-project.org/) for the latest release.
 
