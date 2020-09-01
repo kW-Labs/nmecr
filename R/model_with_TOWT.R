@@ -34,7 +34,9 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
   #calculate interval minutes
   model_input_options$interval_minutes <- nterval
 
-  if (nterval == 60){
+  if (nterval == 15){
+    nterval_value <- "15-min"
+  } else if (nterval == 60){
     nterval_value <- "Hourly"
   } else if (nterval == 1440) {
     nterval_value <- "Daily"

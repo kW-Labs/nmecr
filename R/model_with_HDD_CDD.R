@@ -21,7 +21,9 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
 
   nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
-  if (nterval == 60){
+  if (nterval == 15){
+    nterval_value <- "15-min"
+  } else if (nterval == 60){
     nterval_value <- "Hourly"
   } else if (nterval == 1440) {
     nterval_value <- "Daily"
