@@ -77,7 +77,8 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
   t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
 
-  if (modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
+  if (modeled_object$model_input_options$chosen_modeling_interval == "Hourly" |
+      modeled_object$model_input_options$chosen_modeling_interval == "15-min") {
 
     alpha <- 1.26
 
