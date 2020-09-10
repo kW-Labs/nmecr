@@ -4,8 +4,12 @@
 \alias{model_with_TOWT}
 \title{Time-of-Week and Temperature.}
 \usage{
-model_with_TOWT(training_data = NULL, prediction_data = NULL,
-  model_input_options = NULL, occupancy_info = NULL)
+model_with_TOWT(
+  training_data = NULL,
+  prediction_data = NULL,
+  model_input_options = NULL,
+  occupancy_info = NULL
+)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}

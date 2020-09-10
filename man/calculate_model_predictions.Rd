@@ -4,8 +4,11 @@
 \alias{calculate_model_predictions}
 \title{Calculate model predictions}
 \usage{
-calculate_model_predictions(training_data = NULL,
-  prediction_data = NULL, modeled_object = NULL)
+calculate_model_predictions(
+  training_data = NULL,
+  prediction_data = NULL,
+  modeled_object = NULL
+)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}

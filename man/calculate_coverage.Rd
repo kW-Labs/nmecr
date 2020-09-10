@@ -4,8 +4,12 @@
 \alias{calculate_coverage}
 \title{Calculate coverage of independent variables in the normalized conditions dataset.}
 \usage{
-calculate_coverage(dataframe = NULL, ref_temp_data = NULL,
-  outlier_threshold = NULL, extrapolation_limit = NULL)
+calculate_coverage(
+  dataframe = NULL,
+  ref_temp_data = NULL,
+  outlier_threshold = NULL,
+  extrapolation_limit = NULL
+)
 }
 \arguments{
 \item{dataframe}{Training or Prediction dataframe from create_dataframe}

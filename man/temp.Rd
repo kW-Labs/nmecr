@@ -4,12 +4,14 @@
 \name{temp}
 \alias{temp}
 \title{Temperature data.}
-\format{A data frame with 732 rows and 2 variables:
+\format{
+A data frame with 732 rows and 2 variables:
 \describe{
   \item{time}{timestamp, format mm/dd/yy}
   \item{temp}{outside air temperature corresponding to the timestamp, in deg F}
   ...
-}}
+}
+}
 \usage{
 temp
 }

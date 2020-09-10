@@ -4,8 +4,11 @@
 \alias{fit_TOWT_reg}
 \title{Utility function for model_with_TOWT}
 \usage{
-fit_TOWT_reg(training_data = NULL, prediction_data = NULL,
-  model_input_options = NULL)
+fit_TOWT_reg(
+  training_data = NULL,
+  prediction_data = NULL,
+  model_input_options = NULL
+)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}

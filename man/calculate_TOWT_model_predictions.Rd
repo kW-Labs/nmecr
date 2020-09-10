@@ -4,8 +4,11 @@
 \alias{calculate_TOWT_model_predictions}
 \title{Calculate TOWT model predictions}
 \usage{
-calculate_TOWT_model_predictions(training_data = NULL,
-  prediction_data = NULL, modeled_object = NULL)
+calculate_TOWT_model_predictions(
+  training_data = NULL,
+  prediction_data = NULL,
+  modeled_object = NULL
+)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}

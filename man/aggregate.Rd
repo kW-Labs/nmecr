@@ -4,9 +4,12 @@
 \alias{aggregate}
 \title{Aggregate energy consumption and temperature data. Can be used to aggregate temperature data only as well.}
 \usage{
-aggregate(eload_data = NULL, temp_data = NULL,
+aggregate(
+  eload_data = NULL,
+  temp_data = NULL,
   convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
-  temp_balancepoint = 65)
+  temp_balancepoint = 65
+)
 }
 \arguments{
 \item{eload_data}{A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly}

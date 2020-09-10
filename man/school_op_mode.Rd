@@ -4,7 +4,8 @@
 \name{school_op_mode}
 \alias{school_op_mode}
 \title{Operating mode information data of a school.}
-\format{A data frame with 8760 rows and 5 variables:
+\format{
+A data frame with 8760 rows and 5 variables:
 \describe{
   \item{time}{timestamp, format mm/dd/yy hh:mm:ss}
   \item{school_holidays}{indicator variable marking the school holidays in the given time period}
@@ -12,7 +13,8 @@
   \item{summer school}{indicator variable marking the days of summer school in the given time period}
   \item{pre-class ramp up}{indicator variable marking days of pre-class activity ramp up before the Fall session}
   ...
-}}
+}
+}
 \usage{
 school_op_mode
 }

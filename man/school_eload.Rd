@@ -4,12 +4,14 @@
 \name{school_eload}
 \alias{school_eload}
 \title{Energy Use data of a school.}
-\format{A data frame with 8760 rows and 2 variables:
+\format{
+A data frame with 8760 rows and 2 variables:
 \describe{
   \item{time}{timestamp, format mm/dd/yy hh:mm:ss}
   \item{eload}{energy consumption data aggregated to the hourly interval, in kWh}
   ...
-}}
+}
+}
 \usage{
 school_eload
 }

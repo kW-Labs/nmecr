@@ -4,12 +4,14 @@
 \name{school_temp}
 \alias{school_temp}
 \title{Temperature data for a school.}
-\format{A data frame with 8760 rows and 2 variables:
+\format{
+A data frame with 8760 rows and 2 variables:
 \describe{
   \item{time}{timestamp, format mm/dd/yy hh:mm:ss}
   \item{temp}{outside air temperature corresponding to the timestamp, in deg F}
   ...
-}}
+}
+}
 \usage{
 school_temp
 }
