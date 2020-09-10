@@ -1,7 +1,7 @@
 #' Generate training or prediction dataframes
 #'
 #'
-#' @param eload_data A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param operating_mode_data A dataframe with indicator variables for different energy use profiles withtin the stated time period.
 #' operating mode data's time interval must either be the maximum of the three uploaded datasets or be the same as that indicated in the parameter 'convert_to_data_interval' as operating mode data cannot be aggreagated.
@@ -11,7 +11,7 @@
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #' @param timestamps A string indicating whether the timestamps in eload_data and temp_data are the start times or the end times.
 #'
-#' @return a list with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
+#' @return a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
 #' @export
 
 create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode_data = NULL,

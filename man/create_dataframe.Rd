@@ -2,32 +2,40 @@
 % Please edit documentation in R/create_dataframe.R
 \name{create_dataframe}
 \alias{create_dataframe}
-\title{Generate training or prediction dataframe.}
+\title{Generate training or prediction dataframes}
 \usage{
-create_dataframe(eload_data = NULL, temp_data = NULL,
-  operating_mode_data = NULL, start_date = NULL, end_date = NULL,
-  convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
-  temp_balancepoint = 65)
+create_dataframe(
+  eload_data = NULL,
+  temp_data = NULL,
+  operating_mode_data = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
+  temp_balancepoint = 65,
+  timestamps = c("start", "end")
+)
 }
 \arguments{
-\item{eload_data}{A dataframe with energy/demand consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly}
+\item{eload_data}{A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.}
 
-\item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily}
+\item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.}
 
 \item{operating_mode_data}{A dataframe with indicator variables for different energy use profiles withtin the stated time period.
-A time column, corresponding to eload_data and/or temp_data must be included.}
+operating mode data's time interval must either be the maximum of the three uploaded datasets or be the same as that indicated in the parameter 'convert_to_data_interval' as operating mode data cannot be aggreagated.}
 
 \item{start_date}{A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe}
 
 \item{end_date}{A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the intended dataframe}
 
-\item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'}
+\item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'}
 
 \item{temp_balancepoint}{A numeric indicating the balancepoint for the temp_data dataframe}
+
+\item{timestamps}{A string indicating whether the timestamps in eload_data and temp_data are the start times or the end times.}
 }
 \value{
-a list with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
+a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
 }
 \description{
-Generate training or prediction dataframe.
+Generate training or prediction dataframes
 }
