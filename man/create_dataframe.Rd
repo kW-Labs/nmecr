@@ -8,6 +8,8 @@ create_dataframe(
   eload_data = NULL,
   temp_data = NULL,
   operating_mode_data = NULL,
+  additional_independent_variables = NULL,
+  additional_variable_aggregation = c(sum, median),
   start_date = NULL,
   end_date = NULL,
   convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
@@ -20,8 +22,11 @@ create_dataframe(
 
 \item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.}
 
-\item{operating_mode_data}{A dataframe with indicator variables for different energy use profiles withtin the stated time period.
-operating mode data's time interval must either be the maximum of the three uploaded datasets or be the same as that indicated in the parameter 'convert_to_data_interval' as operating mode data cannot be aggreagated.}
+\item{additional_independent_variables}{An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.}
+
+\item{additional_variable_aggregation}{A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
+Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
+and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median}
 
 \item{start_date}{A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe}
 
@@ -34,8 +39,9 @@ operating mode data's time interval must either be the maximum of the three uplo
 \item{timestamps}{A string indicating whether the timestamps in eload_data and temp_data are the start times or the end times.}
 }
 \value{
-a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval
+a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval. All data values are aligned to the period end of the indicated data interval.
 }
 \description{
-Generate training or prediction dataframes
+TODO: Test with monthly data
+TODO: Implement error handling for when the user does not provide additional_variable_aggregation appropriately.
 }
