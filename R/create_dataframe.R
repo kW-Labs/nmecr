@@ -1,4 +1,4 @@
-#' Generate training or prediction dataframes
+#' Generate training or prediction dataframes. NA values are ignored during aggregation.
 #'
 #'TODO: Test with monthly data
 #'TODO: Implement error handling for when the user does not provide additional_variable_aggregation appropriately.
@@ -163,79 +163,82 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   # Set up for aggregating the additional independent variables START -----
 
-  dfs <- list()
-  for (i in 1:length(additional_independent_variables_names)){
-    dfs[i] <- data.frame(additional_independent_variables[additional_independent_variables_names[i]])
-  }
+  if(! is.null(additional_independent_variables)) {
 
-  names(dfs) <- additional_independent_variables_names
-
-  apply_aggregation <- function(df, aggregation_function, nterval){ # Function for aggregating individual columns of the additional_independent_variables input
-
-    if (nterval == 60*60){
-      xts_index <- "hours"
-    } else if (nterval == 60*60*24) {
-      xts_index <- "days"
-    } else if (nterval <- 60*60*24*mean(30,31)) {
-      xts_index <- "months"
+    dfs <- list()
+    for (i in 1:length(additional_independent_variables_names)){
+      dfs[i] <- data.frame(additional_independent_variables[additional_independent_variables_names[i]])
     }
 
-    df <- data.frame(df)
-    df <- data.frame("time" = additional_independent_variables$time) %>%
-      bind_cols(df)
+    names(dfs) <- additional_independent_variables_names
 
-    # For monthly data START ----
+    apply_aggregation <- function(df, aggregation_function, nterval){ # Function for aggregating individual columns of the additional_independent_variables input
 
-    if (max_data_interval == 60*15 | max_data_interval == 60*60) { # max uploaded datasets' interval: 15 min or 60 minutes
-      align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
-    } else if (max_data_interval == 60*60*24) { # max uploaded datasets' interval: 1 day
-      align_to_minutes <- 60*24
-    }
-
-    # For monthly data END ----
-
-    df_xts <- xts::xts(x = df[, -1], order.by = df[, 1])
-
-    if(nterval == 60*60 | nterval == 60*60*24) { # hourly or daily
-
-      aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
-        xts::align.time(n = nterval)
-
-      if(timestamps == 'end') {
-        corrected_index <- zoo::index(aggregated_df_xts) - nterval
-        aggregated_df_xts <- xts::xts(aggregated_df_xts, order.by = corrected_index)
+      if (nterval == 60*60){
+        xts_index <- "hours"
+      } else if (nterval == 60*60*24) {
+        xts_index <- "days"
+      } else if (nterval <- 60*60*24*mean(30,31)) {
+        xts_index <- "months"
       }
 
+      df <- data.frame(df)
+      df <- data.frame("time" = additional_independent_variables$time) %>%
+        bind_cols(df)
 
-    } else {
+      # For monthly data START ----
 
-      if (max_data_interval < 60*60*24*mean(30,31)){ # monthly
+      if (max_data_interval == 60*15 | max_data_interval == 60*60) { # max uploaded datasets' interval: 15 min or 60 minutes
+        align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
+      } else if (max_data_interval == 60*60*24) { # max uploaded datasets' interval: 1 day
+        align_to_minutes <- 60*24
+      }
 
-        aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
-          xts::align.time(n = 60*align_to_minutes)
+      # For monthly data END ----
 
-        if(timestamps == 'end') {
-          corrected_index <- zoo::index(aggregated_df_xts) - 60*align_to_minutes
-          aggregated_df_xts <- xts::xts(aggregated_df_xts, order.by = corrected_index)
-        }
+      df_xts <- xts::xts(x = df[, -1], order.by = df[, 1])
 
-      } else {
+      if(nterval == 60*60 | nterval == 60*60*24) { # hourly or daily
 
         aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
           xts::align.time(n = nterval)
 
-        if(timestamps == 'start') {
+        if(timestamps == 'end') {
+          corrected_index <- zoo::index(aggregated_df_xts) - nterval
+          aggregated_df_xts <- xts::xts(aggregated_df_xts, order.by = corrected_index)
+        }
 
-          corrected_index <- zoo::index(data_xts) + nterval
-          data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+
+      } else {
+
+        if (max_data_interval < 60*60*24*mean(30,31)){ # monthly
+
+          aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
+            xts::align.time(n = 60*align_to_minutes)
+
+          if(timestamps == 'end') {
+            corrected_index <- zoo::index(aggregated_df_xts) - 60*align_to_minutes
+            aggregated_df_xts <- xts::xts(aggregated_df_xts, order.by = corrected_index)
+          }
+
+        } else {
+
+          aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
+            xts::align.time(n = nterval)
+
+          if(timestamps == 'start') {
+
+            corrected_index <- zoo::index(data_xts) + nterval
+            data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+
+          }
 
         }
 
       }
 
+      return(aggregated_df_xts)
     }
-
-    return(aggregated_df_xts)
   }
 
   # Set up for aggregating the additional independent variables END -----
