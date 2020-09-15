@@ -1,7 +1,5 @@
 #' Generate training or prediction dataframes. NA values are ignored during aggregation.
 #'
-#'TODO: Test with monthly data
-#'TODO: Implement error handling for when the user does not provide additional_variable_aggregation appropriately.
 #'
 #' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
@@ -29,7 +27,15 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     additional_independent_variables <- operating_mode_data
   }
 
-  # check input classes and formats
+  if(! is.null(additional_independent_variables)){
+    additional_variables_names <- colnames(additional_independent_variables)
+    additional_variables_count <- length(additional_variables_names) - 1
+    if(additional_variables_count > length(additional_variable_aggregation)) {
+      stop("Please provide an aggregation function for each of the additional variables input. Use argument 'additional_variabl_aggregation' to specify the aggregation functions.")
+    }
+  } # requires that the user input at least the same number of aggregation functions as the additional variables.
+
+  # check input classes and formats START ----
 
   if(! lubridate::is.POSIXct(eload_data$time)){
     stop("Timestamps in 'eload_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
@@ -61,7 +67,10 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   }
 
-  # convert to xts objects
+  # check input classes and formats END ----
+
+  # convert to xts objects START ----
+
   eload_data <- as.data.frame(eload_data)
   temp_data <- as.data.frame(temp_data)
   if(! is.null(additional_independent_variables)){
@@ -74,12 +83,20 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     additional_independent_variables_xts <- xts::xts(x = additional_independent_variables[, -1], order.by = additional_independent_variables[, 1])
   }
 
+  # convert to xts objects END ----
+
+  # Assigning column names START ----
+
   colnames(eload_data_xts) <- "eload"
   colnames(temp_data_xts) <- "temp"
   if(! is.null(additional_independent_variables)){
     additional_independent_variables_names <- colnames(additional_independent_variables)[-1]
     colnames(additional_independent_variables_xts) <- additional_independent_variables_names
   }
+
+  # Assigning column names END ----
+
+  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future. START ----
 
   if(xts::periodicity(eload_data_xts)['frequency'] < 15 & xts::periodicity(eload_data_xts)['scale'] == 'minute'){
     stop("Cannot input data with frequency of less than 15-minutes")
@@ -94,6 +111,10 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       stop("Cannot input data with frequency of less than 15-minutes")
     }
   }
+
+  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future. END ----
+
+  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification. START ----
 
   # determine data intervals of eload, temp, and operating mode data
   scale_eload <- xts::periodicity(eload_data_xts)['scale']
@@ -142,14 +163,14 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   } else if(convert_to_data_interval == "Hourly") {
     if (max_data_interval > 60*60) {
-      warning("Uploaded datasets have data intervals of greater than 15 minutes. Aggregating to the highest data interval.")
+      warning("Uploaded datasets have data intervals of greater than 1 hour. Aggregating to the highest data interval.")
       nterval <- max_data_interval
     } else {
       nterval <- 60*60
     }
   } else if (convert_to_data_interval == "Daily"){
     if (max_data_interval > 60*60*24) {
-      warning("Uploaded datasets have data intervals of greater than 15 minutes. Aggregating to the highest data interval.")
+      warning("Uploaded datasets have data intervals of greater than 1 day. Aggregating to the highest data interval.")
       nterval <- max_data_interval
     } else {
       nterval <- 60*60*24
@@ -160,6 +181,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     stop(paste0("Check spellings: convert_to_data_interval can be specified as one of the following:
                 '15-min', 'Hourly', 'Daily', or 'Monthly'."))
   }
+
+  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification. END ----
 
   # Set up for aggregating the additional independent variables START -----
 
@@ -186,16 +209,6 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       df <- data.frame("time" = additional_independent_variables$time) %>%
         bind_cols(df)
 
-      # For monthly data START ----
-
-      if (max_data_interval == 60*15 | max_data_interval == 60*60) { # max uploaded datasets' interval: 15 min or 60 minutes
-        align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
-      } else if (max_data_interval == 60*60*24) { # max uploaded datasets' interval: 1 day
-        align_to_minutes <- 60*24
-      }
-
-      # For monthly data END ----
-
       df_xts <- xts::xts(x = df[, -1], order.by = df[, 1])
 
       if(nterval == 60*60 | nterval == 60*60*24) { # hourly or daily
@@ -208,13 +221,12 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
           aggregated_df_xts <- xts::xts(aggregated_df_xts, order.by = corrected_index)
         }
 
-
       } else {
 
         if (max_data_interval < 60*60*24*mean(30,31)){ # monthly
 
           aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
-            xts::align.time(n = 60*align_to_minutes)
+            xts::align.time(n = 60*additional_variable_alignment)
 
           if(timestamps == 'end') {
             corrected_index <- zoo::index(aggregated_df_xts) - 60*align_to_minutes
@@ -224,25 +236,23 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
         } else {
 
           aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
-            xts::align.time(n = nterval)
+            xts::align.time(n = 60*additional_variable_alignment)
 
           if(timestamps == 'start') {
 
-            corrected_index <- zoo::index(data_xts) + nterval
-            data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
+            corrected_index <- zoo::index(aggregated_df_xts) + nterval
+            data_xts <- xts::xts(x = aggregated_df_xts[, -1], order.by = corrected_index)
 
           }
-
         }
-
       }
-
       return(aggregated_df_xts)
     }
   }
 
   # Set up for aggregating the additional independent variables END -----
-  # begin aggregation
+
+  # Begin aggregation
   if (nterval == 60*15) { # if the convert_to_data_interval input is '15-min' or max_data_interval (max interval based on input datasets) == 15 min
 
     if(! is.null(additional_independent_variables)){
@@ -324,176 +334,57 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
   } else if (nterval == 60*60*24*mean(30,31)) { # if the convert_to_data_interval input is 'Monthly'
 
-    if(max_data_interval < 60*60*24*mean(30,31)) { # if max uploaded datasets' interval is less than monthly - aggregating up
+   determine_alignment <- function(nterval) {
+     if (nterval == 60*15 | nterval == 60*60) {
+       align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
+     } else if (nterval == 60*60*24){
+       align_to_minutes <- 60*24
+     }
+     else {
+       align_to_minutes <- NULL
+     }
+   }
 
-      if (max_data_interval == 60*15 | max_data_interval == 60*60) { # max uploaded datasets' interval: 15 min or 60 minutes
-        align_to_minutes <- 60 # alinging to 60 minutes because when aggregating to Monthly level, we want to get the rounded hour
-      } else if (max_data_interval == 60*60*24) { # max uploaded datasets' interval: 1 day
-        align_to_minutes <- 60*24
-      }
+   eload_alignment <- determine_alignment(eload_data_interval)
+   temp_alignment <- determine_alignment(temp_data_interval)
+   if(! is.null(additional_independent_variables)) {
+     additional_variable_alignment <- determine_alignment(additional_independent_variables_interval)
+   }
 
-      sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
-        xts::align.time(n = 60*align_to_minutes)
+   if(! is.null(eload_alignment)) { # aggregate up if less than monthly
+     sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "months"), FUN = sum, na.rm = T) %>%
+       xts::align.time(n = 60*eload_alignment)
+     if(timestamps == 'end') {
+       corrected_index <- zoo::index(sum_eload_data_xts) - 60*eload_alignment
+       sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
+     }
+   } else {
+     sum_eload_data_xts <- eload_data_xts
+   }
 
-      if(timestamps == 'end') {
-        corrected_index <- zoo::index(sum_eload_data_xts) - 60*align_to_minutes
-        sum_eload_data_xts <- xts::xts(sum_eload_data_xts$eload, order.by = corrected_index)
-      }
+   if(! is.null(temp_alignment)){ # aggregate up if less than monthly
+     mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
+     xts::align.time(n = 60*temp_alignment)
+     if(timestamps == 'end') {
+       corrected_index <- zoo::index(mean_temp_data_xts) - (60*temp_alignment)
+       mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
+     }
+   } else {
+      mean_temp_data_xts <- temp_data_xts
+   }
 
-      mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
-        xts::align.time(n = 60*align_to_minutes)
-
-      if(timestamps == 'end') {
-        corrected_index <- zoo::index(mean_temp_data_xts) - (60*align_to_minutes)
-        mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
-      }
-
-      if(! is.null(additional_independent_variables)) {
-
-        aggregated_dfs_xts <- purrr::map2(.x = dfs, .y = additional_variable_aggregation, .f = apply_aggregation, nterval = 60*60*24*mean(30,31))
-
-        aggregated_df_xts <-  do.call('cbind', aggregated_dfs_xts)
-        names(aggregated_df_xts) <- additional_independent_variables_names
-
-        data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts, aggregated_df_xts)
-
-      } else {
-
-        data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
-      }
-
-      data_xts$days <- lubridate::days_in_month(zoo::index(data_xts))
-
-      data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-      data_xts$HDD[data_xts$HDD < 0 ] <- 0
-      data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-      data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-      data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-      data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-      data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-      data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-      data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-    } else if (max_data_interval == 60*60*24*mean(30,31)) { # max uploaded datasets' interval: 1 month
-
-        if(eload_data_interval == 60*60*24*mean(30,31)) { # eload is monthly - will need to aggregate temp
-
-        monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
-        names(monthly_data) <- c("time", "temp", "eload", "days")
-        monthly_data$time <- eload_data$time
-        monthly_data$eload <- eload_data$eload
-
-        for (i in 2:length(monthly_data$time)) {
-          monthly_data$temp[i] <- temp_data %>%
-            dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
-            dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
-            as.numeric()
-
-          monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
-            as.numeric()
-        }
-
-        n_sec <- median(diff(as.numeric(monthly_data$time)))
-        t_1 <- monthly_data$time[1] - n_sec
-
-        monthly_data$temp[1] <- temp_data %>%
-          dplyr::filter(time >= t_1 & time < monthly_data$time[1]) %>%
-          dplyr::summarize("temp" = round(mean(temp, na.rm = T),2)) %>%
-          as.numeric()
-
-        monthly_data$days[1] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
-          as.numeric()
-
-        data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
-
-        if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
-          corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
-          data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
-        }
-
-        data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-        data_xts$HDD[data_xts$HDD < 0 ] <- 0
-        data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-        data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-        data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-        data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-        data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-        data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-        data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-        if(! is.null(additional_independent_variables)) {
-
-          aggregated_dfs_xts <- purrr::map2(.x = dfs, .y = additional_variable_aggregation, .f = apply_aggregation, nterval = 60*60*24*mean(30,31))
-
-          aggregated_df_xts <-  do.call('cbind', aggregated_dfs_xts)
-          names(aggregated_df_xts) <- additional_independent_variables_names
-
-          data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts, aggregated_df_xts)
-
-        }
-
-
-      } else if (temp_data_interval == 60*60*24*mean(30,31)) { # temp is monthly - will need to aggregate eload
-
-        monthly_data <- data.frame(matrix(ncol = 4, nrow = length(eload_data$time)))
-        names(monthly_data) <- c("time", "temp", "eload", "days")
-        monthly_data$time <- temp_data$time
-        monthly_data$temp <- temp_data$temp
-
-        for (i in 2:length(monthly_data$time)) {
-          monthly_data$eload[i] <- eload_data %>%
-            dplyr::filter(time >= monthly_data$time[i-1] & time < monthly_data$time[i]) %>%
-            dplyr::summarize("temp" = round(sum(eload, na.rm = T),2)) %>%
-            as.numeric()
-
-          monthly_data$days[i] <- difftime(monthly_data$time[i], monthly_data$time[i-1], units = "days") %>%
-            as.numeric()
-
-        }
-
-        n_sec <- median(diff(as.numeric(monthly_data$time)))
-        t_1 <- monthly_data$time[1] - n_sec
-
-        monthly_data$eload[1] <- eload_data %>%
-          dplyr::filter(time >= t_1 & time < eload_data$time[1]) %>%
-          dplyr::summarize("eload" = round(sum(eload, na.rm = T),2)) %>%
-          as.numeric()
-
-        monthly_data$days[2] <- difftime(monthly_data$time[1], t_1, units = "days") %>%
-          as.numeric()
-
-        data_xts <- xts::xts(x = monthly_data[, -1], order.by = monthly_data[, 1])
-
-        if (timestamps == "start") { # if the input data timestamps represent start time, align the datasets to the next timestamp.
-          corrected_index <- zoo::index(data_xts) + (60*60*24*mean(30,31))
-          data_xts <- xts::xts(x = monthly_data[, -1], order.by = corrected_index)
-        }
-
-         data_xts$HDD <- data_xts$days * (temp_balancepoint - data_xts$temp)
-         data_xts$HDD[data_xts$HDD < 0 ] <- 0
-         data_xts$CDD <- data_xts$days * (data_xts$temp - temp_balancepoint)
-         data_xts$CDD[data_xts$CDD < 0 ] <- 0
-
-         data_xts$HDD_per_day <- temp_balancepoint - data_xts$temp
-         data_xts$HDD_per_day[data_xts$HDD_per_day < 0 ] <- 0
-         data_xts$CDD_per_day <- data_xts$temp - temp_balancepoint
-         data_xts$CDD_per_day[data_xts$CDD_per_day < 0 ] <- 0
-         data_xts$eload_per_day <- data_xts$eload / data_xts$days
-
-         if(! is.null(additional_independent_variables)) {
-
-           aggregated_dfs_xts <- purrr::map2(.x = dfs, .y = additional_variable_aggregation, .f = apply_aggregation, nterval = 60*60*24*mean(30,31))
-
-           aggregated_df_xts <-  do.call('cbind', aggregated_dfs_xts)
-           names(aggregated_df_xts) <- additional_independent_variables_names
-
-           data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts, aggregated_df_xts)
-
-         }
-      }
-    }
+   if(! is.null(additional_independent_variables)) {
+     if(! is.null(additional_variable_alignment)){ # aggregate up if less than monthly
+       aggregated_dfs_xts <- purrr::map2(.x = dfs, .y = additional_variable_aggregation, .f = apply_aggregation, nterval = 60*60*24*mean(30,31))
+       aggregated_df_xts <-  do.call('cbind', aggregated_dfs_xts)
+       names(aggregated_df_xts) <- additional_independent_variables_names
+     } else {
+       aggregated_df_xts <- additional_independent_variables_xts
+     }
+     data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts, aggregated_df_xts)
+   } else {
+    data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
+   }
   }
 
 
