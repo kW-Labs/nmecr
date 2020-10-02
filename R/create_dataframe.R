@@ -363,15 +363,110 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
    }
 
    if(! is.null(temp_alignment)){ # aggregate up if less than monthly
-     mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
-     xts::align.time(n = 60*temp_alignment)
-     if(timestamps == 'end') {
-       corrected_index <- zoo::index(mean_temp_data_xts) - (60*temp_alignment)
-       mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
+
+     if(eload_data_interval < 60*60*24*mean(30,31)) { # if eload data isn't imported as billing data, perform the regular xts aggregation
+
+       mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "months"), FUN = mean, na.rm = T) %>%
+       xts::align.time(n = 60*temp_alignment)
+       if(timestamps == 'end') {
+         corrected_index <- zoo::index(mean_temp_data_xts) - (60*temp_alignment)
+         mean_temp_data_xts <- xts::xts(mean_temp_data_xts$temp, order.by = corrected_index)
+
+         mean_temp_data_xts$HDD <- temp_balancepoint - mean_temp_data_xts$temp
+         mean_temp_data_xts$HDD[mean_temp_data_xts$HDD < 0 ] <- 0
+         mean_temp_data_xts$CDD <- mean_temp_data_xts$temp - temp_balancepoint
+         mean_temp_data_xts$CDD[mean_temp_data_xts$CDD < 0 ] <- 0
+       }
+
+     } else {
+
+       # first convert temp to daily data (aggregation using dplyr)
+
+       daily_temp <- temp_data %>%
+         dplyr::mutate(day = lubridate::floor_date(temp_data$time, "day")) %>%
+         dplyr::group_by("time" = day) %>%
+         dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
+         na.omit()
+
+       base_temp <- rep(temp_balancepoint, length(daily_temp$time))
+       HDD <- base_temp - daily_temp$temp
+       HDD[HDD < 0 ] <- 0
+       CDD <- daily_temp$temp - base_temp
+       CDD[CDD < 0 ] <- 0
+
+       daily_data <- dplyr::bind_cols(daily_temp, "HDD" = HDD, "CDD" = CDD)
+
+       monthly_temp <- data.frame("time" = eload_data$time)
+
+       monthly_temp <- data.frame(matrix(ncol = 5, nrow = length(eload_data$time)))
+       names(monthly_temp) <- c("time", "temp", "HDD", "CDD", "days")
+       monthly_temp$time <- eload_data$time
+
+       if (timestamps == 'start') {
+
+         for (i in 1:length(eload_data$time)) {
+
+            monthly_temp$temp[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i] & time < monthly_temp$time[i+1]) %>%
+             dplyr::summarize("temp" = round(mean(temp),2)) %>%
+             as.numeric()
+
+           monthly_temp$HDD[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i] & time < monthly_temp$time[i+1]) %>%
+             dplyr::summarize("HDD" = round(sum(HDD),2)) %>%
+             as.numeric
+
+           monthly_temp$CDD[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i] & time < monthly_temp$time[i+1]) %>%
+             dplyr::summarize("CDD" = round(sum(CDD),2)) %>%
+             as.numeric()
+
+           monthly_temp$days[i] <- difftime(monthly_temp$time[i+1], monthly_temp$time[i], units = "days") %>%
+             as.numeric()
+         }
+
+      } else if (timestamps == 'end') {
+
+        for (i in 2:length(eload_data$time)) {
+
+           monthly_temp$temp[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i-1] & time < monthly_temp$time[i]) %>%
+             dplyr::summarize("temp" = round(mean(temp),2)) %>%
+             as.numeric()
+
+           monthly_temp$HDD[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i-1] & time < monthly_temp$time[i]) %>%
+             dplyr::summarize("HDD" = round(sum(HDD),2)) %>%
+             as.numeric
+
+           monthly_temp$CDD[i] <- daily_data %>%
+             dplyr::filter(time >= monthly_temp$time[i-1] & time < monthly_temp$time[i]) %>%
+             dplyr::summarize("CDD" = round(sum(CDD),2)) %>%
+             as.numeric()
+
+           monthly_temp$days[i] <- difftime(monthly_temp$time[i], monthly_temp$time[i-1], units = "days") %>%
+             as.numeric()
+         }
+
+       }
+
+       monthly_temp <- monthly_temp[complete.cases(monthly_temp), ] %>%
+         dplyr::mutate(HDDperday = HDD / days) %>%
+         dplyr::mutate(CDDperday = CDD / days)
+
+       mean_temp_data_xts <-  xts::xts(x = monthly_temp[, -1], order.by = monthly_temp[, 1])
      }
+
    } else {
+
       mean_temp_data_xts <- temp_data_xts
+
+      mean_temp_data_xts$HDD <- temp_balancepoint - mean_temp_data_xts$temp
+      mean_temp_data_xts$HDD[mean_temp_data_xts$HDD < 0 ] <- 0
+      mean_temp_data_xts$CDD <- mean_temp_data_xts$temp - temp_balancepoint
+      mean_temp_data_xts$CDD[mean_temp_data_xts$CDD < 0 ] <- 0
    }
+
 
    if(! is.null(additional_independent_variables)) {
      if(! is.null(additional_variable_alignment)){ # aggregate up if less than monthly
