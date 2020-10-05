@@ -1,7 +1,7 @@
 #' Changepoint algorithms using outside air temperature.
 #'
-#' \code{This function builds an energy use model using the four changepoint algorithms: Three Parameter Cooling, Three Parameter Heating,
-#' Four Parameter Linear Model, Fice Parameter Linear Model.}
+#' \code{This function builds an energy use model using the four changepoint algorithms: Three Parameter Cooling (3PC), Three Parameter Heating (3PH),
+#' Four Parameter Linear Model (4P), Five Parameter Linear Model (5P).}
 #'
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
@@ -37,7 +37,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
   dependent_variable <- training_data$eload
   independent_variable <- training_data$temp
 
-  if (model_input_options$regression_type == "Three Parameter Cooling") {
+  if (model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "3PC") {
 
     dummy_cooling_model <- lm(dependent_variable  ~ 1) # constrained slope
     three_paramter_cooling_model <- segmented::segmented(dummy_cooling_model, seg.Z = ~independent_variable)
@@ -47,7 +47,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values)
     out$model_input_options <- model_input_options
 
-  } else if (model_input_options$regression_type == "Three Parameter Heating") {
+  } else if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH") {
 
     independent_variable <- - independent_variable # flipping the sign of the independent variable for a constrained sloped
     dummy_heating_model <- lm(dependent_variable ~ 1)
@@ -58,7 +58,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values)
     out$model_input_options <- model_input_options
 
-  } else if (model_input_options$regression_type == "Four Parameter Linear Model"){
+  } else if (model_input_options$regression_type == "Four Parameter Linear Model" | model_input_options$regression_type == "4P"){
 
     linear_4P_model <- lm(dependent_variable ~ independent_variable)
     four_paramter_linear_model <- segmented::segmented(linear_4P_model, seg.Z = ~independent_variable)
@@ -68,7 +68,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values)
     out$model_input_options <- model_input_options
 
-  } else if (model_input_options$regression_type == "Five Parameter Linear Model") {
+  } else if (model_input_options$regression_type == "Five Parameter Linear Model" | model_input_options$regression_type == "5P") {
 
     linear_5P_model <- lm(dependent_variable ~ independent_variable)
 

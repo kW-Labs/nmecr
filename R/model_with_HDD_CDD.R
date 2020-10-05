@@ -1,7 +1,7 @@
 #' Heating/Cooling Degree Days algorithms using outside air temperature.
 #'
-#' \code{This function builds an energy use model using one of three algorithms: HDD-CDD Multivariate Regression, HDD Regression,
-#' CDD Regression.}#'
+#' \code{This function builds an energy use model using one of three algorithms: HDD-CDD Multivariate Regression (HDD-CDD), HDD Regression (HDD),
+#' CDD Regression (CDD).}#'
 #'
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
@@ -43,7 +43,7 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
     data_interval <- "Daily"
   }
 
-  if (model_input_options$regression_type == "HDD-CDD Multivariate Regression") {
+  if (model_input_options$regression_type == "HDD-CDD Multivariate Regression" | model_input_options$regression_type == "HDD-CDD") {
 
     if (data_interval == "Monthly") {
 
@@ -66,7 +66,7 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
 
     }
 
-  } else if (model_input_options$regression_type == "HDD Regression") {
+  } else if (model_input_options$regression_type == "HDD Regression" | model_input_options$regression_type == "HDD") {
 
     linregress <- lm(eload ~ HDD, data = training_data)
 
@@ -75,7 +75,7 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
     out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
     out$model_input_options <- model_input_options
 
-  } else if (model_input_options$regression_type == "CDD Regression") {
+  } else if (model_input_options$regression_type == "CDD Regression" | model_input_options$regression_type == "CDD") {
 
     linregress <- lm(eload ~ CDD, data = training_data)
 

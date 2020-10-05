@@ -20,14 +20,14 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
   prediction_data <- prediction_data[complete.cases(prediction_data), ] # remove any incomplete observations
 
   if(modeled_object$model_input_options$regression_type == "SLR" |
-     modeled_object$model_input_options$regression_type == "HDD Regression" |
-     modeled_object$model_input_options$regression_type == "CDD Regression") {
+     modeled_object$model_input_options$regression_type == "HDD Regression" | modeled_object$model_input_options$regression_type == "HDD" |
+     modeled_object$model_input_options$regression_type == "CDD Regression" | modeled_object$model_input_options$regression_type == "CDD") {
 
     predictions <- predict(modeled_object$model, prediction_data)
 
     predictions_df <- data.frame(prediction_data, predictions)
 
-  } else if (modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression") {
+  } else if (modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
 
     if(exists("eloadperday", where = training_data)) {
       data_interval <- "Monthly"
@@ -58,8 +58,9 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     predictions_df <- data.frame(prediction_data, predictions)
 
-  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" |
-             modeled_object$model_input_options$regression_type == "Five Parameter Linear Model") {
+  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "3PC" |
+             modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "4P" |
+             modeled_object$model_input_options$regression_type == "Five Parameter Linear Model" | modeled_object$model_input_options$regression_type == "5P") {
 
     dframe_pred <- data.frame(independent_variable = prediction_data$temp)
 
@@ -67,7 +68,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     predictions_df <- data.frame(prediction_data, predictions)
 
-  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating") {
+  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating" | modeled_object$model_input_options$regression_type == "3PH"){
 
     dframe_pred <- data.frame(independent_variable = - prediction_data$temp)
 
