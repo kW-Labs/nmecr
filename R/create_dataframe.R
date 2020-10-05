@@ -35,7 +35,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   } # requires that the user input at least the same number of aggregation functions as the additional variables.
 
-  # check input classes and formats START ----
+  # check input classes and formats ----
 
   if(! lubridate::is.POSIXct(eload_data$time)){
     stop("Timestamps in 'eload_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
@@ -67,9 +67,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   }
 
-  # check input classes and formats END ----
-
-  # convert to xts objects START ----
+  # convert to xts objects ----
 
   eload_data <- as.data.frame(eload_data)
   temp_data <- as.data.frame(temp_data)
@@ -83,9 +81,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     additional_independent_variables_xts <- xts::xts(x = additional_independent_variables[, -1], order.by = additional_independent_variables[, 1])
   }
 
-  # convert to xts objects END ----
-
-  # Assigning column names START ----
+  # Assigning column names  ----
 
   colnames(eload_data_xts) <- "eload"
   colnames(temp_data_xts) <- "temp"
@@ -94,9 +90,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     colnames(additional_independent_variables_xts) <- additional_independent_variables_names
   }
 
-  # Assigning column names END ----
-
-  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future. START ----
+  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future.
 
   if(xts::periodicity(eload_data_xts)['frequency'] < 15 & xts::periodicity(eload_data_xts)['scale'] == 'minute'){
     stop("Cannot input data with frequency of less than 15-minutes")
@@ -112,9 +106,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   }
 
-  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future. END ----
-
-  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification. START ----
+  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification.  ----
 
   # determine data intervals of eload, temp, and operating mode data
   scale_eload <- xts::periodicity(eload_data_xts)['scale']
@@ -182,9 +174,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
                 '15-min', 'Hourly', 'Daily', or 'Monthly'."))
   }
 
-  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification. END ----
-
-  # Set up for aggregating the additional independent variables START -----
+  # Set up for aggregating the additional independent variables  -----
 
   if(! is.null(additional_independent_variables)) {
 
