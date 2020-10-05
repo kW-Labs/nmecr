@@ -251,6 +251,11 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       data_xts <- xts::merge.xts(eload_data_xts, temp_data_xts)
     }
 
+    if(timestamps == 'start') { # final merged list needs to have timestamps be the end of the period
+      corrected_index <- zoo::index(data_xts) + 60*15
+      data_xts <- xts::xts(data_xts, corrected_index)
+    }
+
   } else if (nterval == 60*60) { # if the convert_to_data_interval input is 'Hourly' or max_data_interval == 60*60
 
     sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "hours"), FUN = sum, na.rm = T) %>%
