@@ -12,6 +12,7 @@
 #' @param initial_breakpoints Vector indicating the initial breakpoints (changepoints) to regress over.
 #' @param regression_type Character string indictating the modeling algorithm to run
 #' @param occupancy_threshold a fractional value for calculating occupancy schedule of the training dataset
+#' @param day_normalized Logical specifying whether the monthly models should be day normalized or not. Default: FALSE (not day-normalized)
 #'
 #' @return a list specifying the chosen algorithm inputs
 #'
@@ -31,7 +32,8 @@ assign_model_inputs <- function(timescale_days = NULL,
                                                  "Three Parameter Heating", "3PH",
                                                  "Four Parameter Linear Model", "4P",
                                                  "Five Parameter Linear Model", "5P"),
-                             occupancy_threshold = 0.65){
+                             occupancy_threshold = 0.65,
+                             day_normalized = FALSE){
 
   if (! is.null(timescale_days)) {
     if(! assertive::is_numeric(timescale_days)) {
@@ -82,6 +84,7 @@ assign_model_inputs <- function(timescale_days = NULL,
   out$initial_breakpoints <- initial_breakpoints
   out$regression_type <- match.arg(regression_type)
   out$occupancy_threshold <- occupancy_threshold
+  out$day_normalized <- day_normalized
 
   return(out)
 
