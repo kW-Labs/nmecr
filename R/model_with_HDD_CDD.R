@@ -37,54 +37,60 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
     stop("Error: model_with_HDD_CDD cannot be used with Hourly data.")
   }
 
-  if(exists("eloadperday", where = training_data)) {
-      data_interval <- "Monthly"
-  } else {
-    data_interval <- "Daily"
-  }
-
   if (model_input_options$regression_type == "HDD-CDD Multivariate Regression" | model_input_options$regression_type == "HDD-CDD") {
 
-    if (data_interval == "Monthly") {
+    if (nterval_value == "Monthly") {
 
-    linregress <- lm(eloadperday ~ HDDperday + CDDperday, data = training_data)
-    model_fit <- linregress$fitted.values*training_data$days
+      if (model_input_options$day_normalized == TRUE){
+        linregress <- lm(eload_perday ~ HDD_perday + CDD_perday, data = training_data)
+      } else {
+        linregress <- lm(eload ~ HDD + CDD, data = training_data)
+      }
 
-    out <- list()
-    out$model <- linregress
-    out$training_data <- data.frame(training_data, "model_fit" = model_fit)
-    out$model_input_options <- model_input_options
-
-    } else if (data_interval == "Daily") {
+    } else if (nterval_value == "Daily") {
 
     linregress <- lm(eload ~ HDD + CDD, data = training_data)
-
-    out <- list()
-    out$model <- linregress
-    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
-    out$model_input_options <- model_input_options
 
     }
 
   } else if (model_input_options$regression_type == "HDD Regression" | model_input_options$regression_type == "HDD") {
 
-    linregress <- lm(eload ~ HDD, data = training_data)
+    if (nterval_value == "Monthly") {
 
-    out <- list()
-    out$model <- linregress
-    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
-    out$model_input_options <- model_input_options
+      if (model_input_options$day_normalized == TRUE){
+        linregress <- lm(eload_perday ~ HDD_perday, data = training_data)
+      } else {
+        linregress <- lm(eload ~ HDD, data = training_data)
+      }
+
+    } else if (nterval_value == "Daily") {
+
+      linregress <- lm(eload ~ HDD, data = training_data)
+    }
+
 
   } else if (model_input_options$regression_type == "CDD Regression" | model_input_options$regression_type == "CDD") {
 
-    linregress <- lm(eload ~ CDD, data = training_data)
+    if (nterval_value == "Monthly") {
 
-    out <- list()
-    out$model <- linregress
-    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
-    out$model_input_options <- model_input_options
+      if (model_input_options$day_normalized == TRUE){
+        linregress <- lm(eload_perday ~ CDD_perday, data = training_data)
+      } else {
+        linregress <- lm(eload ~ CDD, data = training_data)
+      }
+
+    } else if (nterval_value == "Daily") {
+
+      linregress <- lm(eload ~ CDD, data = training_data)
+    }
 
   }
+
+  out <- list()
+  out$model <- linregress
+  out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
+  out$model_input_options <- model_input_options
+
 
   return(out)
 }

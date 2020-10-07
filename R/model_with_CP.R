@@ -34,7 +34,19 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
   model_input_options$chosen_modeling_interval <- nterval_value
 
-  dependent_variable <- training_data$eload
+  if (nterval_value == "Monthly"){
+
+    if (model_input_options$day_normalized == TRUE) {
+      dependent_variable <- training_data$eload_perday
+    } else {
+      dependent_variable <- training_data$eload
+    }
+  }
+
+  if (nterval_value == "Daily" | nterval_value == "Hourly") {
+    dependent_variable <- training_data$eload
+  }
+
   independent_variable <- training_data$temp
 
   if (model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "3PC") {

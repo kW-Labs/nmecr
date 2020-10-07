@@ -33,23 +33,22 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
   model_input_options$chosen_modeling_interval <- nterval_value
 
+
   if (nterval_value == "Hourly") {
 
-    dframe <- training_data %>%
-      select (-c("time"))
-
-    linregress <- lm(eload ~ ., dframe)
+    linregress <- lm(eload ~ temp, training_data)
 
   } else if (nterval_value == "Daily") {
 
-    dframe <- training_data %>%
-      select(- c("time", "HDD", "CDD"))
-
-    linregress <- lm(eload ~ ., dframe)
+    linregress <- lm(eload ~ temp, training_data)
 
   } else if (nterval_value == "Monthly") {
 
-    linregress <- lm(eload ~ temp, training_data) # monthly data is not regressed using operating mode data
+    if (model_input_options$day_normalized == FALSE) {
+      linregress <- lm(eload ~ temp, training_data)
+    } else if (model_input_options$day_normalized == TRUE) {
+      linregress <- lm(eload_perday ~ temp, training_data)
+    }
 
   }
 
