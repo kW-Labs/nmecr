@@ -54,7 +54,12 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
   out <- list()
   out$model <- linregress
-  out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
+
+  if (model_input_options$day_normalized == TRUE) {
+    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values * training_data$days)
+  } else {
+    out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
+  }
   out$model_input_options <- model_input_options
 
   return(out)
