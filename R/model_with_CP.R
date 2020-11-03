@@ -56,11 +56,17 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- three_paramter_cooling_model
-    if (model_input_options$day_normalized == TRUE) {
-      out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values * training_data$days)
+
+    if (nterval_value == "Monthly"){
+      if (model_input_options$day_normalized == TRUE) {
+        out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values * training_data$days)
+      } else {
+        out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values)
+      }
     } else {
       out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values)
     }
+
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH") {
@@ -71,11 +77,17 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- three_paramter_heating_model
-    if (model_input_options$day_normalized == TRUE) {
-      out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values * training_data$days)
+
+    if (nterval_value == "Monthly"){
+      if (model_input_options$day_normalized == TRUE) {
+        out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values * training_data$days)
+      } else {
+        out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values)
+      }
     } else {
       out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values)
     }
+
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model" | model_input_options$regression_type == "4P"){
@@ -85,11 +97,17 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- four_paramter_linear_model
-    if (model_input_options$day_normalized == TRUE) {
-      out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values * training_data$days)
+
+    if (nterval_value == "Monthly"){
+      if (model_input_options$day_normalized == TRUE) {
+        out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values * training_data$days)
+      } else {
+        out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values)
+      }
     } else {
       out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values)
     }
+
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Five Parameter Linear Model" | model_input_options$regression_type == "5P") {
@@ -115,8 +133,13 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
    out <- list()
    out$model <- five_paramter_linear_model
-   if (model_input_options$day_normalized == TRUE) {
-     out$training_data <- data.frame(training_data, "model_fit" = five_paramter_linear_model$fitted.values * training_data$days)
+
+   if (nterval_value == "Monthly"){
+     if (model_input_options$day_normalized == TRUE) {
+       out$training_data <- data.frame(training_data, "model_fit" = five_paramter_linear_model$fitted.values * training_data$days)
+     } else {
+       out$training_data <- data.frame(training_data, "model_fit" = five_paramter_linear_model$fitted.values)
+     }
    } else {
      out$training_data <- data.frame(training_data, "model_fit" = five_paramter_linear_model$fitted.values)
    }
