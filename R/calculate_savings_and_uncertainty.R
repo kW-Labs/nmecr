@@ -1,4 +1,4 @@
-#' Calculate meter-based savings and associated uncertainty.
+#' Calculate meter-based savings and associated uncertainty as per ASHARE Guideline 14
 #'
 #' \code{This function calculates meter-based savings achieved and the associated uncertainty.}
 #'
