@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_dataframe.R
 \name{create_dataframe}
 \alias{create_dataframe}
-\title{Generate training or prediction dataframes}
+\title{Generate training or prediction dataframes.}
 \usage{
 create_dataframe(
   eload_data = NULL,
@@ -13,8 +13,7 @@ create_dataframe(
   start_date = NULL,
   end_date = NULL,
   convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
-  temp_balancepoint = 65,
-  timestamps = c("start", "end")
+  temp_balancepoint = 65
 )
 }
 \arguments{
@@ -35,13 +34,12 @@ and the median of the second variable will be taken over the specified data inte
 \item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'}
 
 \item{temp_balancepoint}{A numeric indicating the balancepoint for the temp_data dataframe}
-
-\item{timestamps}{A string indicating whether the timestamps in eload_data and temp_data are the start times or the end times.}
 }
 \value{
-a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval. All data values are aligned to the period end of the indicated data interval.
+a dataframe with energy consumption data, temperature data and additional variable data
 }
 \description{
-TODO: Test with monthly data
-TODO: Implement error handling for when the user does not provide additional_variable_aggregation appropriately.
+\code{This function creates a dataframe, combining eload, temp, and additional variable data.
+ It assumes that the input data is aligned to the start of a time period and outputs a dataframe aligned to the end of time periods.
+ NA values are ignored during aggregation.}
 }
