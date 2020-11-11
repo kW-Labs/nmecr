@@ -20,6 +20,6 @@ a list with the following components:
 }
 }
 \description{
-\code{This function builds an energy use model using one of three algorithms: HDD-CDD Multivariate Regression, HDD Regression,
-CDD Regression.}#'
+\code{This function builds an energy use model using one of three algorithms: HDD-CDD Multivariate Regression (HDD-CDD), HDD Regression (HDD),
+CDD Regression (CDD).}#'
 }

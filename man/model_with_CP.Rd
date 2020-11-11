@@ -20,6 +20,6 @@ a list with the following components:
 }
 }
 \description{
-\code{This function builds an energy use model using the four changepoint algorithms: Three Parameter Cooling, Three Parameter Heating,
-Four Parameter Linear Model, Fice Parameter Linear Model.}
+\code{This function builds an energy use model using the four changepoint algorithms: Three Parameter Cooling (3PC), Three Parameter Heating (3PH),
+Four Parameter Linear Model (4P), Five Parameter Linear Model (5P).}
 }

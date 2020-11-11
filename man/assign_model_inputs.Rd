@@ -12,10 +12,11 @@ assign_model_inputs(
   temp_knots_value = c(40, 55, 65, 80, 90),
   initial_breakpoints = c(50, 65),
   regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression",
-    "HDD Regression", "CDD Regression", "Three Parameter Cooling",
-    "Three Parameter Heating", "Four Parameter Linear Model",
-    "Five Parameter Linear Model"),
-  occupancy_threshold = 0.65
+    "HDD-CDD", "HDD Regression", "HDD", "CDD Regression", "CDD",
+    "Three Parameter Cooling", "3PC", "Three Parameter Heating", "3PH",
+    "Four Parameter Linear Model", "4P", "Five Parameter Linear Model", "5P"),
+  occupancy_threshold = 0.65,
+  day_normalized = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ Only used if has_temp_knots_defined is set to FALSE.}
 \item{regression_type}{Character string indictating the modeling algorithm to run}
 
 \item{occupancy_threshold}{a fractional value for calculating occupancy schedule of the training dataset}
+
+\item{day_normalized}{Logical specifying whether the monthly models should be day normalized or not. Default: FALSE (not day-normalized)}
 }
 \value{
 a list specifying the chosen algorithm inputs
