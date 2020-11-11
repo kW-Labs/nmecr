@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_savings_and_uncertainty.R
 \name{calculate_savings_and_uncertainty}
 \alias{calculate_savings_and_uncertainty}
-\title{Calculate meter-based savings and associated uncertainty.}
+\title{Calculate meter-based savings and associated uncertainty as per ASHARE Guideline 14}
 \usage{
 calculate_savings_and_uncertainty(
   prediction_df = NULL,
