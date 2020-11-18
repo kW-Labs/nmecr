@@ -46,8 +46,13 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   normalized_savings <- normalized_savings %>%
     rename(norm.baseline = predictions)
 
-  normalized_savings <- normalized_savings %>%
-    left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+  if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
+    normalized_savings <- normalized_savings %>%
+      left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+  } else {
+    normalized_savings <- normalized_savings %>%
+      left_join(performance_normalized, by = c("time", "temp"))
+  }
 
   normalized_savings <- normalized_savings %>%
     rename(norm.performance = predictions)
