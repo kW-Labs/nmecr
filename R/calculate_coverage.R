@@ -22,6 +22,10 @@
 calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
                                outlier_threshold = NULL, extrapolation_limit = NULL) {
 
+  # ensure complete rows
+  dataframe <- dataframe[complete.cases(dataframe), ]
+  ref_temp_data <- ref_temp_data[complete.cases(ref_temp_data), ]
+
   nterval <- difftime(dataframe$time[2], dataframe$time[1], units = "min")
 
   if (nterval == 60){
