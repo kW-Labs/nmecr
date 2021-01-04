@@ -60,6 +60,24 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   normalized_savings <- normalized_savings %>%
     mutate(norm.savings = norm.baseline - norm.performance)
 
+  if (baseline_model$model_input_options$chosen_modeling_interval == "Hourly" |
+      baseline_model$model_input_options$chosen_modeling_interval == "15-min") {
+
+    alpha <- 1.26
+
+  } else if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
+
+    observation_count <- 12
+
+    alpha <- ( - 0.00024 * (observation_count ^ 2) + (0.03535 * (observation_count) + 1.00286))
+
+  } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
+
+    observation_count <- 12
+
+    alpha <- (- 0.00022 * (observation_count ^ 2)) + (0.03306 * (observation_count)) + 0.94054
+  }
+
   # correlation coeff ----
 
   calculate_independent_points <- function(model_fit_df) {
@@ -79,41 +97,50 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
 
   }
 
-  baseline_n_dash <- calculate_independent_points(baseline_model$training_data)
-  performance_n_dash <- calculate_independent_points(performance_model$training_data)
+  n <- nrow(baseline_normalized)
+  m <- nrow(performance_normalized)
+  g <- nrow(normalized_weather)
+
+  n_dash <- calculate_independent_points(baseline_model$training_data)
+  m_dash <- calculate_independent_points(performance_model$training_data)
 
   baseline_dof <- baseline_stats$deg_of_freedom
   performance_dof <- performance_stats$deg_of_freedom
+  baseline_dof_dash <- n_dash - baseline_stats$`#Parameters`
+  performance_dof_dash <- m_dash - performance_stats$`#Parameters`
 
   baseline_t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof)
   performance_t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof)
+  baseline_t_stat_dash <- qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof_dash)
+  performance_t_stat_dash <- qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof_dash)
 
-  baseline_MSE <- sum((baseline_model$training_data$eload - baseline_model$training_data$model_fit)^2)/baseline_dof
-  performance_MSE <- sum((performance_model$training_data$eload - performance_model$training_data$model_fit)^2)/performance_dof
+  mean_baseline_eload = mean(baseline_model$training_data$eload, na.rm = T)
+  mean_baseline_normalized_eload = mean(baseline_normalized$predictions, na.rm = T)
+  mean_performance_eload = mean(performance_model$training_data$eload, na.rm = T)
+  mean_performance_normalized_eload = mean(performance_normalized$predictions, na.rm = T)
 
-  if (baseline_model$model_input_options$chosen_modeling_interval == "Hourly" |
-      baseline_model$model_input_options$chosen_modeling_interval == "15-min") {
+  baseline_squared_error <- (baseline_model$training_data$eload - baseline_model$training_data$model_fit) %>%
+    magrittr::raise_to_power(2)
 
-    alpha <- 1.26
+  performance_squared_error <- (performance_model$training_data$eload - performance_model$training_data$model_fit) %>%
+    magrittr::raise_to_power(2)
 
-  } else if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
+  baseline_MSE <-  sum(baseline_squared_error, na.rm = T)/baseline_dof
+  performance_MSE <- sum(performance_squared_error, na.rm = T)/performance_dof
+  baseline_MSE_dash <-  sum(baseline_squared_error, na.rm = T)/baseline_dof_dash
+  performance_MSE_dash <- sum(performance_squared_error, na.rm = T)/performance_dof_dash
 
-    observation_count <- 12
+  if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
 
-    alpha <- ( - 0.00024 * (observation_count ^ 2) + (0.03535 * (observation_count) + 1.00286))
+    baseline_normalized_uncertainty <- (baseline_t_stat * alpha)*(mean_baseline_normalized_eload/mean_baseline_eload) * sqrt(baseline_MSE * (1+(2/n))  * g)
+    performance_normalized_uncertainty <- (performance_t_stat * alpha)*(mean_performance_normalized_eload/mean_performance_eload) * sqrt(performance_MSE * (1+(2/m))  * g)
 
-  } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
+  } else {
 
-    observation_count <- 12
+    baseline_normalized_uncertainty <- (baseline_t_stat_dash * alpha)*(mean_baseline_normalized_eload/mean_baseline_eload) * sqrt(baseline_MSE_dash * (1+(2/n_dash))  * g)
+    performance_normalized_uncertainty <- (performance_t_stat_dash * alpha)*(mean_performance_normalized_eload/mean_performance_eload) * sqrt(performance_MSE_dash * (1+(2/m_dash))  * g)
 
-    alpha <- (- 0.00022 * (observation_count ^ 2)) + (0.03306 * (observation_count)) + 0.94054
   }
-
-  baseline_normalized_uncertainty <- alpha * baseline_t_stat *(mean(baseline_normalized$predictions)/mean(baseline_model$training_data$eload)) *
-                                                                 sqrt(baseline_MSE*(1+(2/baseline_n_dash))*365)
-
-  performance_normalized_uncertainty <- alpha * performance_t_stat *(mean(performance_normalized$predictions)/mean(performance_model$training_data$eload)) *
-    sqrt(performance_MSE*(1+(2/performance_n_dash))*365)
 
   normalized_uncertainty <- sqrt(baseline_normalized_uncertainty^2 + performance_normalized_uncertainty^2)
 
@@ -123,10 +150,14 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   results <- NULL
 
   results$normalized_savings <- normalized_savings
-  results$normalized_savings_frac <- sum(normalized_savings$norm.baseline - normalized_savings$norm.performance)/sum(normalized_savings$norm.baseline)
-  results$normalized_savings_unc <- normalized_uncertainty
-  results$normalized_savings_unc_pct <- normalized_uncertainty_pct
-  results$confidence_level <- confidence_level
+
+  normalized_savings_df <- list()
+  normalized_savings_df$normalized_savings_frac <- sum(normalized_savings$norm.baseline - normalized_savings$norm.performance)/sum(normalized_savings$norm.baseline)
+  normalized_savings_df$normalized_savings_unc <- normalized_uncertainty
+  normalized_savings_df$normalized_savings_unc_pct <- normalized_uncertainty_pct
+  normalized_savings_df$confidence_level <- confidence_level
+
+  results$normalized_savings_df <- normalized_savings_df
 
   return(results)
 }
