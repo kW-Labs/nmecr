@@ -73,10 +73,6 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
   uncertainty_50 <- 0.5
 
-  deg_of_freedom <- model_summary_statistics$`deg_of_freedom`
-
-  t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
-
   if (modeled_object$model_input_options$chosen_modeling_interval == "Hourly" |
       modeled_object$model_input_options$chosen_modeling_interval == "15-min") {
 
@@ -96,15 +92,31 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
     alpha <- (- 0.00022 * (observation_count ^ 2)) + (0.03306 * (observation_count)) + 0.94054
   }
 
-  if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly") {
+  mean_training_eload = mean(modeled_object$training_data$eload, na.rm = T)
+  squared_error <- (modeled_object$training_data$eload - modeled_object$training_data$model_fit) %>%
+    magrittr::raise_to_power(2)
 
-    savings_uncertainty <- t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + (2 / n)) *  (1 / m)) / savings_summary_df$savings_fraction
-    savings_frac_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt((1 + 2 / n) * (1 / m)) / uncertainty_50
+  deg_of_freedom = model_summary_statistics$deg_of_freedom
+  t_stat = qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
+  MSE = sum(squared_error, na.rm = T)/deg_of_freedom
+
+  deg_of_freedom_dash <- n_dash - model_summary_statistics$`#Parameters`
+  t_stat_dash <- suppressWarnings(qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom_dash))
+  MSE_dash = sum(squared_error, na.rm = T)/deg_of_freedom_dash
+
+  if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly" | rho < 0.5) { # ASHRAE Guideline14-104, pg 91
+
+    savings_uncertainty <- ((t_stat * alpha)/(m * mean_training_eload * savings_summary_df$savings_fraction)) * sqrt(MSE * (1+(2/n))  * m)
+    savings_frac_for_50pct_uncertainty <-  ((t_stat * alpha)/(m * mean_training_eload * uncertainty_50)) * sqrt(MSE * (1+(2/n))  * m)
 
   } else {
 
-    savings_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) *  (1 / m))) / savings_summary_df$savings_fraction
-    savings_frac_for_50pct_uncertainty <-  t_stat * alpha * model_summary_statistics$CVRMSE/100 * sqrt(((n / n_dash) * (1 + (2 / n_dash)) * (1 / m))) / uncertainty_50
+    if (deg_of_freedom_dash < 0) {
+      stop("Please review the model coefficients. Negative degrees of freedom found after accouting for autocorrelation.")
+    }
+
+    savings_uncertainty <- ((t_stat_dash * alpha)/(m * mean_training_eload * savings_summary_df$savings_fraction)) * sqrt(MSE_dash * (1+(2/n_dash))  * m)
+    savings_frac_for_50pct_uncertainty <-  ((t_stat_dash * alpha)/(m * mean_training_eload * uncertainty_50)) * sqrt(MSE_dash * (1+(2/n_dash))  * m)
 
   }
 
