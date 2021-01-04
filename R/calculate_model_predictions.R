@@ -29,7 +29,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
   } else if (modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
 
-    if(exists("eloadperday", where = training_data)) {
+    if(exists("eload_perday", where = training_data)) {
       data_interval <- "Monthly"
     } else {
       data_interval <- "Daily"
