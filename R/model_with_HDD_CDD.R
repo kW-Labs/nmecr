@@ -5,6 +5,8 @@
 #'
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
+#' @param HDD_balancepoint Heating specific balancepoint
+#' @param CDD_balancepoint Cooling specific balancepoint
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -15,9 +17,37 @@
 #'
 #' @export
 
-model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL){
+model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL, HDD_balancepoint = NULL, CDD_balancepoint = NULL){
 
   training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+
+  # Calculate HDD CDD balancepoints if not given
+  if (is.null(HDD_balancepoint)) {
+    HDD_df <- training_data[, c("time", "temp", "HDD")] %>%
+      filter(HDD != 0) %>%
+      mutate(HDD_balancepoint = temp+HDD)
+    HDD_temp <- median(HDD_df$HDD_balancepoint)
+  }
+
+  if (is.null(CDD_balancepoint)) {
+    CDD_df <- training_data[, c("time", "temp", "CDD")] %>%
+      filter(CDD != 0) %>%
+      mutate(CDD_balancepoint = temp-CDD)
+    CDD_temp <- median(CDD_df$CDD_balancepoint)
+  }
+
+  # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
+  if (! is.null(HDD_balancepoint)) {
+    training_data$HDD <- HDD_balancepoint - training_data$temp
+    training_data$HDD[training_data$HDD < 0 ] <- 0
+    HDD_temp <- HDD_balancepoint # rename to a common name for use in variable names later on
+  }
+
+  if (! is.null(CDD_balancepoint)) {
+    training_data$CDD <- training_data$temp - CDD_balancepoint
+    training_data$CDD[training_data$CDD < 0 ] <- 0
+    CDD_temp <- CDD_balancepoint # rename to a common name for use in variable names later on
+  }
 
   nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
@@ -88,6 +118,17 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
 
   out <- list()
   out$model <- linregress
+  out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary(linregress)$coeff), as.data.frame(summary(linregress)$coeff))
+
+  # Rename model variables appropriately
+  if ("HDD" %in% out$model_stats$Variable) {
+    out$model_stats["HDD", "Variable"] <- paste0("HDD_",HDD_temp)
+  }
+
+  if ("CDD" %in% out$model_stats$Variable) {
+    out$model_stats["CDD", "Variable"] <- paste0("CDD_",CDD_temp)
+  }
+
 
   if (nterval_value == "Monthly"){
     if (model_input_options$day_normalized == TRUE) {
@@ -99,6 +140,8 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL)
     out$training_data <- data.frame(training_data, "model_fit" = linregress$fitted.values)
   }
   out$model_input_options <- model_input_options
+
+
 
 
   return(out)
