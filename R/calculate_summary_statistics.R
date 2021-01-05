@@ -38,6 +38,12 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
   R_squared <- round(1 - SSR_over_SST,2)
 
+  # Adjusted R-sqaured (Absolute)
+
+  N <- length(fit_residuals_numeric)
+
+  Adjusted_R_squared <- round(1 - (((1-R_squared)*(N-1))/(effective_parameters - 1)),2)
+
   # Root Mean Sqaured Error (Absolute)
   RMSE <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
@@ -73,9 +79,10 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     magrittr::multiply_by(100) %>%
     format(round(., 2), nsmall = 4)
 
-  goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 6))
-  names(goodness_of_fit) <- c("R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters", "deg_of_freedom")
+  goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 7))
+  names(goodness_of_fit) <- c("R_squared", "Adjusted_R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters", "deg_of_freedom")
   goodness_of_fit$R_squared <- R_squared
+  goodness_of_fit$Adjusted_R_squared <- Adjusted_R_squared
   goodness_of_fit$`CVRMSE %` <- CVRMSE
   goodness_of_fit$`NDBE %` <- NDBE
   goodness_of_fit$`NMBE %` <- NMBE
