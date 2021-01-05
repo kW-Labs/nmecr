@@ -19,30 +19,19 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
   prediction_data <- prediction_data[complete.cases(prediction_data), ] # remove any incomplete observations
 
-  if(modeled_object$model_input_options$regression_type == "SLR" |
+  if (modeled_object$model_input_options$regression_type == "SLR" |
      modeled_object$model_input_options$regression_type == "HDD Regression" | modeled_object$model_input_options$regression_type == "HDD" |
-     modeled_object$model_input_options$regression_type == "CDD Regression" | modeled_object$model_input_options$regression_type == "CDD") {
+     modeled_object$model_input_options$regression_type == "CDD Regression" | modeled_object$model_input_options$regression_type == "CDD" |
+     modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
 
-    predictions <- predict(modeled_object$model, prediction_data)
-
-    predictions_df <- data.frame(prediction_data, predictions)
-
-  } else if (modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
-
-    if(exists("eload_perday", where = training_data)) {
-      data_interval <- "Monthly"
-    } else {
-      data_interval <- "Daily"
-    }
-
-    if (data_interval == "Monthly") {
+    if(exists("eload_perday", where = training_data)) { # Monthly data
 
       predictions <- predict(modeled_object$model, prediction_data) %>%
         magrittr::multiply_by(prediction_data$days)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
-    } else if (data_interval == "Daily") {
+    } else { # Hourly or Daily
 
       predictions <- predict(modeled_object$model, prediction_data)
 
@@ -50,32 +39,42 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     }
 
-  } else if(modeled_object$model_input_options$regression_type == "TOWT" |
-            modeled_object$model_input_options$regression_type == "TOW") {
+  } else if (modeled_object$model_input_options$regression_type == "TOWT" |
+            modeled_object$model_input_options$regression_type == "TOW") { # Hourly or Daily only
 
     predictions <- calculate_TOWT_model_predictions(training_data = training_data, prediction_data = prediction_data,
                                                     modeled_object = modeled_object)
 
     predictions_df <- data.frame(prediction_data, predictions)
 
-  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "3PC" |
-             modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "4P" |
-             modeled_object$model_input_options$regression_type == "Five Parameter Linear Model" | modeled_object$model_input_options$regression_type == "5P") {
+  } else {
 
-    dframe_pred <- data.frame(independent_variable = prediction_data$temp)
+    if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "3PC" |
+        modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "4P" |
+        modeled_object$model_input_options$regression_type == "Five Parameter Linear Model" | modeled_object$model_input_options$regression_type == "5P") {
 
-    predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
+      dframe_pred <- data.frame(independent_variable = prediction_data$temp)
 
-    predictions_df <- data.frame(prediction_data, predictions)
+    } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating" | modeled_object$model_input_options$regression_type == "3PH"){
 
-  } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating" | modeled_object$model_input_options$regression_type == "3PH"){
+      dframe_pred <- data.frame(independent_variable = - prediction_data$temp)
 
-    dframe_pred <- data.frame(independent_variable = - prediction_data$temp)
+    }
 
-    predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
+    if(exists("eload_perday", where = training_data)) { # Monthly
 
-    predictions_df <- data.frame(prediction_data, predictions)
+      predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred) %>%
+        magrittr::multiply_by(prediction_data$days)
 
+      predictions_df <- data.frame(prediction_data, predictions)
+
+    } else { # Hourly or Daily
+
+      predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
+
+      predictions_df <- data.frame(prediction_data, predictions)
+
+    }
   }
 
   return(predictions_df)
