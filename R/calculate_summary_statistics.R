@@ -8,22 +8,33 @@
 #'
 calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
-  model_fit <- modeled_data_obj$training_data$model_fit
-  eload <- modeled_data_obj$training_data$eload
-  fit_residuals_numeric <- eload - model_fit
+  # residuals' calculation based on day normalization
+  if (modeled_data_obj$model_input_options$day_normalized == FALSE) {
+
+    model_fit <- modeled_data_obj$training_data$model_fit
+    eload <- modeled_data_obj$training_data$eload
+    fit_residuals_numeric <- eload - model_fit
+
+  } else if (modeled_data_obj$model_input_options$day_normalized == TRUE) {
+
+    model_fit <- modeled_data_obj$training_data$model_fit/modeled_data_obj$training_data$days
+    eload <- modeled_data_obj$training_data$eload_perday
+    fit_residuals_numeric <- eload - model_fit
+
+  }
+
+  # Calculation of model parameter count
 
   if(modeled_data_obj$model_input_options$regression_type == "TOWT" | modeled_data_obj$model_input_options$regression_type == "TOW") {
 
     nparameter <- length(modeled_data_obj$model_occupied$coefficients)
 
-    if(exists("model_unoccupied", where = modeled_data_obj)){
+    if(exists("model_unoccupied", where = modeled_data_obj)) {
       nparameter <- nparameter + length(modeled_data_obj$model_unoccupied$coefficients)
     }
 
   } else {
-
     nparameter <- length(modeled_data_obj$model$coefficients)
-
   }
 
   effective_parameters <- length(fit_residuals_numeric) %>%
@@ -34,7 +45,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   SSR_over_SST <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
     mean(na.rm = T) %>%
-    magrittr::divide_by(var(modeled_data_obj$training_data$eload, na.rm = T))
+    magrittr::divide_by(var(eload, na.rm = T))
 
   R_squared <- round(1 - SSR_over_SST,2)
 
