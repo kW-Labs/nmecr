@@ -54,6 +54,7 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
   out <- list()
   out$model <- linregress
+  out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary(linregress)$coeff), as.data.frame(summary(linregress)$coeff))
 
   if (nterval_value == "Monthly") {
     if (model_input_options$day_normalized == TRUE) {
