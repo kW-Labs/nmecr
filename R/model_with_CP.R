@@ -56,6 +56,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- three_paramter_cooling_model
+    out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary.segmented(three_paramter_cooling_model)$coeff), as.data.frame(summary.segmented(three_paramter_cooling_model)$coeff))
+
 
     if (nterval_value == "Monthly"){
       if (model_input_options$day_normalized == TRUE) {
@@ -67,6 +69,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       out$training_data <- data.frame(training_data, "model_fit" = three_paramter_cooling_model$fitted.values)
     }
 
+    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(three_paramter_cooling_model)$psi), as.data.frame(summary.segmented(three_paramter_cooling_model)$psi))
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH") {
@@ -77,6 +80,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- three_paramter_heating_model
+    out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary.segmented(three_paramter_heating_model)$coeff), as.data.frame(summary.segmented(three_paramter_heating_model)$coeff))
 
     if (nterval_value == "Monthly"){
       if (model_input_options$day_normalized == TRUE) {
@@ -88,6 +92,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       out$training_data <- data.frame(training_data, "model_fit" = three_paramter_heating_model$fitted.values)
     }
 
+    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(three_paramter_heating_model)$psi), as.data.frame(summary.segmented(three_paramter_heating_model)$psi))
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model" | model_input_options$regression_type == "4P"){
@@ -97,6 +102,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
     out <- list()
     out$model <- four_paramter_linear_model
+    out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary.segmented(four_paramter_linear_model)$coeff), as.data.frame(summary.segmented(four_paramter_linear_model)$coeff))
 
     if (nterval_value == "Monthly"){
       if (model_input_options$day_normalized == TRUE) {
@@ -108,6 +114,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       out$training_data <- data.frame(training_data, "model_fit" = four_paramter_linear_model$fitted.values)
     }
 
+    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(four_paramter_linear_model)$psi), as.data.frame(summary.segmented(four_paramter_linear_model)$psi))
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Five Parameter Linear Model" | model_input_options$regression_type == "5P") {
@@ -133,6 +140,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
    out <- list()
    out$model <- five_paramter_linear_model
+   out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary.segmented(five_paramter_linear_model)$coeff), as.data.frame(summary.segmented(five_paramter_linear_model)$coeff))
 
    if (nterval_value == "Monthly"){
      if (model_input_options$day_normalized == TRUE) {
@@ -143,6 +151,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
    } else {
      out$training_data <- data.frame(training_data, "model_fit" = five_paramter_linear_model$fitted.values)
    }
+
+   model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(five_paramter_linear_model)$psi), as.data.frame(summary.segmented(five_paramter_linear_model)$psi))
    out$model_input_options <- model_input_options
 
   }
