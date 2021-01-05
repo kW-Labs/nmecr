@@ -132,9 +132,12 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
   # model fits and coefficient counts for models
   if(model_input_options$regression_type == "TOW") {
     results$model_occupied <- reg_out$model
+    results$model_occupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model)$coeff), as.data.frame(summary(reg_out$model)$coeff))
   } else {
       results$model_occupied <- reg_out$model_occupied
       results$model_unoccupied <- reg_out$model_unoccupied
+      results$model_occupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_occupied)$coeff), as.data.frame(summary(reg_out$model_occupied)$coeff))
+      results$model_unoccupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_unoccupied)$coeff), as.data.frame(summary(reg_out$model_unoccupied)$coeff))
   }
 
   results$model_input_options <- model_input_options
