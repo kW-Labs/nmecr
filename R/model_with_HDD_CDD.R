@@ -49,10 +49,6 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     CDD_temp <- CDD_balancepoint # rename to a common name for use in variable names later on
   }
 
-  if (CDD_temp < HDD_temp) {
-    stop("Cooling balancepoint cannot be lower than the heating balancepoint. Please reassign these.")
-  }
-
   nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
   if (nterval == 15){
