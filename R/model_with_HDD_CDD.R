@@ -21,34 +21,6 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
 
   training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
 
-  # Calculate HDD CDD balancepoints if not given
-  if (is.null(HDD_balancepoint)) {
-    HDD_df <- training_data[, c("time", "temp", "HDD")] %>%
-      filter(HDD != 0) %>%
-      mutate(HDD_balancepoint = temp+HDD)
-    HDD_temp <- median(HDD_df$HDD_balancepoint)
-  }
-
-  if (is.null(CDD_balancepoint)) {
-    CDD_df <- training_data[, c("time", "temp", "CDD")] %>%
-      filter(CDD != 0) %>%
-      mutate(CDD_balancepoint = temp-CDD)
-    CDD_temp <- median(CDD_df$CDD_balancepoint)
-  }
-
-  # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
-  if (! is.null(HDD_balancepoint)) {
-    training_data$HDD <- HDD_balancepoint - training_data$temp
-    training_data$HDD[training_data$HDD < 0 ] <- 0
-    HDD_temp <- HDD_balancepoint # rename to a common name for use in variable names later on
-  }
-
-  if (! is.null(CDD_balancepoint)) {
-    training_data$CDD <- training_data$temp - CDD_balancepoint
-    training_data$CDD[training_data$CDD < 0 ] <- 0
-    CDD_temp <- CDD_balancepoint # rename to a common name for use in variable names later on
-  }
-
   nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
 
   if (nterval == 15){
@@ -65,6 +37,71 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
 
   if(model_input_options$chosen_modeling_interval == "Hourly") {
     stop("Error: model_with_HDD_CDD cannot be used with Hourly data.")
+  }
+
+  if(model_input_options$chosen_modeling_interval == "Daily") {
+
+    # Calculate HDD CDD balancepoints if not given
+    if (is.null(HDD_balancepoint)) {
+      HDD_df <- training_data[, c("time", "temp", "HDD")] %>%
+        filter(HDD != 0) %>%
+        mutate(HDD_balancepoint = temp+HDD)
+      HDD_temp <- median(HDD_df$HDD_balancepoint)
+    }
+
+    if (is.null(CDD_balancepoint)) {
+      CDD_df <- training_data[, c("time", "temp", "CDD")] %>%
+        filter(CDD != 0) %>%
+        mutate(CDD_balancepoint = temp-CDD)
+      CDD_temp <- median(CDD_df$CDD_balancepoint)
+    }
+
+    # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
+    if (! is.null(HDD_balancepoint)) {
+      training_data$HDD <- HDD_balancepoint - training_data$temp
+      training_data$HDD[training_data$HDD < 0 ] <- 0
+      HDD_temp <- HDD_balancepoint # rename to a common name for use in variable names later on
+    }
+
+    if (! is.null(CDD_balancepoint)) {
+      training_data$CDD <- training_data$temp - CDD_balancepoint
+      training_data$CDD[training_data$CDD < 0 ] <- 0
+      CDD_temp <- CDD_balancepoint # rename to a common name for use in variable names later on
+    }
+
+  } else if (model_input_options$chosen_modeling_interval == "Monthly") {
+
+    # Calculate HDD CDD balancepoints if not given
+    if (is.null(HDD_balancepoint)) {
+      HDD_df <- training_data[, c("time", "temp", "HDD", "HDD_perday")] %>%
+        filter(HDD != 0) %>%
+        mutate(HDD_balancepoint = temp+HDD_perday)
+      HDD_temp <- median(HDD_df$HDD_balancepoint)
+    }
+
+    if (is.null(CDD_balancepoint)) {
+      CDD_df <- training_data[, c("time", "temp", "CDD", "CDD_perday")] %>%
+        filter(CDD != 0) %>%
+        mutate(CDD_balancepoint = temp-CDD_perday)
+      CDD_temp <- median(CDD_df$CDD_balancepoint)
+    }
+
+    # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
+    if (! is.null(HDD_balancepoint)) {
+      training_data$HDD_perday <- HDD_balancepoint - training_data$temp
+      training_data$HDD_perday[training_data$HDD_perday < 0 ] <- 0
+      training_data$HDD <- training_data$HDD_perday*training_data$days
+      HDD_temp <- HDD_balancepoint # rename to a common name for use in variable names later on
+    }
+
+    if (! is.null(CDD_balancepoint)) {
+      training_data$CDD_perday <- training_data$temp - CDD_balancepoint
+      training_data$CDD_perday[training_data$CDD_perday < 0 ] <- 0
+      training_data$CDD <- training_data$CDD_perday*training_data$days
+      CDD_temp <- CDD_balancepoint # rename to a common name for use in variable names later on
+    }
+
+
   }
 
   if (model_input_options$regression_type == "HDD-CDD Multivariate Regression" | model_input_options$regression_type == "HDD-CDD") {
