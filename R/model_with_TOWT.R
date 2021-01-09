@@ -136,8 +136,13 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
   } else {
       results$model_occupied <- reg_out$model_occupied
       results$model_unoccupied <- reg_out$model_unoccupied
-      results$model_occupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_occupied)$coeff), as.data.frame(summary(reg_out$model_occupied)$coeff))
-      results$model_unoccupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_unoccupied)$coeff), as.data.frame(summary(reg_out$model_unoccupied)$coeff))
+      if(exists("model_occupied", where = reg_out)) {
+        results$model_occupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_occupied)$coeff), as.data.frame(summary(reg_out$model_occupied)$coeff))
+      }
+
+      if (exists("model_unoccupied", where = reg_out)) {
+        results$model_unoccupied_stats <- dplyr::bind_cols("Variable" = rownames(summary(reg_out$model_unoccupied)$coeff), as.data.frame(summary(reg_out$model_unoccupied)$coeff))
+      }
   }
 
   results$model_input_options <- model_input_options
