@@ -4,12 +4,21 @@
 \alias{model_with_HDD_CDD}
 \title{Heating/Cooling Degree Days algorithms using outside air temperature.}
 \usage{
-model_with_HDD_CDD(training_data = NULL, model_input_options = NULL)
+model_with_HDD_CDD(
+  training_data = NULL,
+  model_input_options = NULL,
+  HDD_balancepoint = NULL,
+  CDD_balancepoint = NULL
+)
 }
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{model_input_options}{List with model inputs specified using assign_model_inputs}
+
+\item{HDD_balancepoint}{Heating specific balancepoint}
+
+\item{CDD_balancepoint}{Cooling specific balancepoint}
 }
 \value{
 a list with the following components:
