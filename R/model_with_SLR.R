@@ -33,8 +33,11 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
   model_input_options$chosen_modeling_interval <- nterval_value
 
+  if (nterval_value == "15-min") {
 
-  if (nterval_value == "Hourly") {
+    linregress <- lm(eload ~ temp, training_data)
+
+  }  else if (nterval_value == "Hourly") {
 
     linregress <- lm(eload ~ temp, training_data)
 

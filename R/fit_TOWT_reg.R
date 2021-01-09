@@ -39,7 +39,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     ftow <- factor(interval_of_week)
     dframe <- data.frame(training_data, ftow)
 
-    if(model_input_options$chosen_modeling_interval == "Hourly") {
+    if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
         select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
@@ -57,7 +57,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
       ftow <- factor(interval_of_week_pred)
       dframe_pred <- data.frame(prediction_data, ftow)
 
-      if(model_input_options$chosen_modeling_interval == "Hourly") {
+      if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
           select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {
@@ -108,7 +108,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
     ftow <- factor(interval_of_week)
     dframe <- data.frame(training_data, ftow, temp_mat)
 
-    if(model_input_options$chosen_modeling_interval == "Hourly") {
+    if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
         select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
@@ -138,7 +138,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
       ftow <- factor(interval_of_week_pred)
       dframe_pred <- data.frame(prediction_data, ftow, temp_mat_pred)
 
-      if(model_input_options$chosen_modeling_interval == "Hourly") {
+      if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
           select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {

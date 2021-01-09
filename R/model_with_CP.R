@@ -43,7 +43,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     }
   }
 
-  if (nterval_value == "Daily" | nterval_value == "Hourly") {
+  if (nterval_value == "Daily" | nterval_value == "Hourly" | nterval_value == "15-min") {
     dependent_variable <- training_data$eload
   }
 

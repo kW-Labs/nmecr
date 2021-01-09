@@ -35,8 +35,8 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
 
   model_input_options$chosen_modeling_interval <- nterval_value
 
-  if(model_input_options$chosen_modeling_interval == "Hourly") {
-    stop("Error: model_with_HDD_CDD cannot be used with Hourly data.")
+  if(model_input_options$chosen_modeling_interval == "15-min" | model_input_options$chosen_modeling_interval == "Hourly") {
+    stop("Error: model_with_HDD_CDD cannot be used with sub-daily data.")
   }
 
   if(model_input_options$chosen_modeling_interval == "Daily") {
