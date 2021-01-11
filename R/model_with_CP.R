@@ -81,6 +81,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     out <- list()
     out$model <- three_paramter_heating_model
     out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary.segmented(three_paramter_heating_model)$coeff), as.data.frame(summary.segmented(three_paramter_heating_model)$coeff))
+    out$model_stats$Estimate[c(2)] = - out$model_stats$Estimate[c(2)] # flip the sign of the slope back
 
     if (nterval_value == "Monthly"){
       if (model_input_options$day_normalized == TRUE) {
@@ -93,6 +94,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     }
 
     model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(three_paramter_heating_model)$psi), as.data.frame(summary.segmented(three_paramter_heating_model)$psi))
+    model_input_options$estimated_breakpoint[c(2,3)] <- - model_input_options$estimated_breakpoint[c(2,3)] # flip the sign of the breakpoint back
     out$model_input_options <- model_input_options
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model" | model_input_options$regression_type == "4P"){
