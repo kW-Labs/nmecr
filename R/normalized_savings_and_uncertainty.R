@@ -34,7 +34,11 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   if(baseline_model$model_input_options$chosen_modeling_interval != performance_model$model_input_options$chosen_modeling_interval) {
     stop('Baseline and Performance Period models need to be over the same data interval')
   } else {
-    normalized_weather <- nmecr::aggregate(temp_data = normalized_weather, convert_to_data_interval = baseline_model$model_input_options$chosen_modeling_interval)
+
+    if (baseline_model$model_input_options$chosen_modeling_interval != "15-min") {
+      normalized_weather <- nmecr::aggregate(temp_data = normalized_weather, convert_to_data_interval = baseline_model$model_input_options$chosen_modeling_interval)
+    }
+
   }
 
   baseline_normalized <- nmecr::calculate_model_predictions(training_data = baseline_model$training_data, prediction_data = normalized_weather,
@@ -62,7 +66,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
     } else {
       stop('Both models need to be either day-normalized or not. Cannot process a mix of the two options.')
     }
-  } else {
+  } else { # Hourly or 15-min
     normalized_savings <- normalized_savings %>%
       left_join(performance_normalized, by = c("time", "temp"))
   }
