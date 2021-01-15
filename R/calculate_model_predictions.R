@@ -24,7 +24,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
      modeled_object$model_input_options$regression_type == "CDD Regression" | modeled_object$model_input_options$regression_type == "CDD" |
      modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
 
-    if(exists("eload_perday", where = training_data)) { # Monthly data
+    if(modeled_object$model_input_options$day_normalized) { # Day-Normalized
 
       predictions <- predict(modeled_object$model, prediction_data) %>%
         magrittr::multiply_by(prediction_data$days)
@@ -61,7 +61,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     }
 
-    if(exists("eload_perday", where = training_data)) { # Monthly
+    if(modeled_object$model_input_options$day_normalized) { # Day-Normalized
 
       predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred) %>%
         magrittr::multiply_by(prediction_data$days)
