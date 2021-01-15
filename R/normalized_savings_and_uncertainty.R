@@ -31,8 +31,10 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
     stop("Error: confidence level needs to be a numeric input between 0 and 100")
   }
 
-  if (baseline_model$model_input_options$chosen_modeling_interval != "Hourly") {
-    normalized_weather <- nmecr::aggregate(temp_data = normalized_weather, convert_to_data_interval = "Daily")
+  if(baseline_model$model_input_options$chosen_modeling_interval != performance_model$model_input_options$chosen_modeling_interval) {
+    stop('Baseline and Performance Period models need to be over the same data interval')
+  } else {
+    normalized_weather <- nmecr::aggregate(temp_data = normalized_weather, convert_to_data_interval = baseline_model$model_input_options$chosen_modeling_interval)
   }
 
   baseline_normalized <- nmecr::calculate_model_predictions(training_data = baseline_model$training_data, prediction_data = normalized_weather,
@@ -53,7 +55,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
 
     if (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) { # Both models are day-normalized
       normalized_savings <- normalized_savings %>%
-        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday"))
+        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
     } else if (! (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) ) { # None of the models are day-normalized
       normalized_savings <- normalized_savings %>%
         left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
