@@ -35,7 +35,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
     normalized_weather <- nmecr::aggregate(temp_data = normalized_weather, convert_to_data_interval = "Daily")
   }
 
-  baseline_normalized = nmecr::calculate_model_predictions(training_data = baseline_model$training_data, prediction_data = normalized_weather,
+  baseline_normalized <- nmecr::calculate_model_predictions(training_data = baseline_model$training_data, prediction_data = normalized_weather,
                                                            modeled_object = baseline_model)
 
   performance_normalized <- nmecr::calculate_model_predictions(training_data = performance_model$training_data, prediction_data = normalized_weather,
@@ -49,6 +49,17 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
     normalized_savings <- normalized_savings %>%
       left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+  } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
+
+    if (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) { # Both models are day-normalized
+      normalized_savings <- normalized_savings %>%
+        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday"))
+    } else if (! (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) ) { # None of the models are day-normalized
+      normalized_savings <- normalized_savings %>%
+        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+    } else {
+      stop('Both models need to be either day-normalized or not. Cannot process a mix of the two options.')
+    }
   } else {
     normalized_savings <- normalized_savings %>%
       left_join(performance_normalized, by = c("time", "temp"))
