@@ -352,6 +352,25 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
          as.numeric()
      }
 
+     # Fill in the first row
+     monthly_temp$temp[1] <- daily_data %>%
+       dplyr::filter(time >= monthly_temp$time[1] - 2592000 & time < monthly_temp$time[1]) %>%
+       dplyr::summarize("temp" = round(mean(temp),2)) %>%
+       as.numeric()
+
+     monthly_temp$HDD[1] <- daily_data %>%
+       dplyr::filter(time >= monthly_temp$time[1] - 2592000 & time < monthly_temp$time[1]) %>%
+       dplyr::summarize("HDD" = round(sum(HDD),2)) %>%
+       as.numeric
+
+     monthly_temp$CDD[1] <- daily_data %>%
+       dplyr::filter(time >= monthly_temp$time[1] - 2592000 & time < monthly_temp$time[1]) %>%
+       dplyr::summarize("CDD" = round(sum(CDD),2)) %>%
+       as.numeric()
+
+     monthly_temp$days[1] <- difftime(monthly_temp$time[1], monthly_temp$time[1] - 2592000, units = "days") %>%
+       as.numeric()
+
      mean_temp_data_xts <-  xts::xts(x = monthly_temp[, -1], order.by = monthly_temp[, 1])
 
    } else {
