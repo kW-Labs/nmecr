@@ -104,8 +104,8 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
 
       monthly_temp <- monthly_temp %>%
         dplyr::mutate(days = lubridate::days_in_month(monthly_temp$time)) %>%
-        dplyr::mutate(HDDperday = HDD / days) %>%
-        dplyr::mutate(CDDperday = CDD / days) %>%
+        dplyr::mutate(HDD_perday = HDD / days) %>%
+        dplyr::mutate(CDD_perday = CDD / days) %>%
         na.omit()
 
     } else if (! is.null(eload_data)) {
@@ -123,8 +123,8 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
 
         monthly_temp <- monthly_temp %>%
           dplyr::mutate(days = lubridate::days_in_month(monthly_temp$time)) %>%
-          dplyr::mutate(HDDperday = HDD / days) %>%
-          dplyr::mutate(CDDperday = CDD / days) %>%
+          dplyr::mutate(HDD_perday = HDD / days) %>%
+          dplyr::mutate(CDD_perday = CDD / days) %>%
           na.omit()
 
       } else {
@@ -156,8 +156,8 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
         }
 
         monthly_temp <- monthly_temp[complete.cases(monthly_temp), ] %>%
-          dplyr::mutate(HDDperday = HDD / days) %>%
-          dplyr::mutate(CDDperday = CDD / days)
+          dplyr::mutate(HDD_perday = HDD / days) %>%
+          dplyr::mutate(CDD_perday = CDD / days)
       }
     }
       if(! is.null(eload_data)) {
@@ -179,7 +179,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_inter
 
         aggregated_data <- monthly_temp %>%
           dplyr::inner_join(monthly_eload, by = "time") %>%
-          dplyr::mutate(eloadperday = eload/days) %>%
+          dplyr::mutate(eload_perday = eload/days) %>%
           dplyr::distinct()
 
       return(aggregated_data)
