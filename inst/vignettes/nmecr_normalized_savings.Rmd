@@ -4,7 +4,7 @@ author:
 - Mrinalini Sharma^[msharma@kw-engineering.com]
 - David Jump^[djump@kw-engineering.com]
 - Devan Johnson^[johnson@kw-engineering.com]
-date: "August 7, 2020"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   pdf_document: default
   html_document:
@@ -81,7 +81,7 @@ head(temp, n=5)
 
 ## Baseline Dataframe for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. It lines up all data such that each timestamp represents attributes up until that point, e.g. an eload value corresponding to 03/02/2012 represents the energy consumption up until then - the energy consumption of 03/01/2012.. The `timestamps` parameter is optional, with permissible values: 'start' and 'end', indicating whether the timestamps mark the start or the end of the period. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. It lines up all data such that each timestamp represents attributes up until that point, e.g. an eload value corresponding to 03/02/2012 represents the energy consumption up until then - the energy consumption of 03/01/2012. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 ```{r baseline_df, results='markup'}
 
@@ -90,8 +90,7 @@ head(temp, n=5)
 baseline_df <- create_dataframe(eload_data = eload, temp_data = temp, 
                                 start_date = "03/01/2012 00:00", 
                                 end_date = "02/28/2013 23:59", 
-                                convert_to_data_interval = "Daily", 
-                                timestamps = "start")
+                                convert_to_data_interval = "Daily")
 
 head(baseline_df, 5)
 
@@ -104,8 +103,7 @@ head(baseline_df, 5)
 performance_df <- create_dataframe(eload_data = eload, temp_data = temp, 
                                    start_date = "03/01/2014 00:00", 
                                    end_date = "02/28/2015 23:59", 
-                                   convert_to_data_interval = "Daily", 
-                                   timestamps = "start")
+                                   convert_to_data_interval = "Daily")
 
 head(performance_df, 5)
 
@@ -125,11 +123,12 @@ The baseline period dataframe can be used for energy data modeling using one of 
 
 The common arguments for these four algorithms are:
 
-1. training_list (output from `create_dataframe()`)
+1. training_data (output from `create_dataframe()`)
 2. model_input_options (see below)
 
-`*model_with_TOWT()` has an additional argument (prediction_list) for creating data models and predictions together. 
+`model_with_TOWT()` has two additional arguments: prediction_data and occupancy_info. prediction_data (output from create_dataframe()) provides the independent variable data over which the model can be applied to compute predictions. occupancy_info is an optional parameter to manually define the occupancy for the time-of-week aspect of the algorithm. 
 
+`model_with_HDD_CDD()` has two additional optional arguments: HDD_balancepoint and CDD_balancepoint. As the name suggests, these define the balancepoints for heating and cooling degree days. If left undefined, HDD and CDD values are calculated using a balancepoint of 65.
 ### model_input_options()
 
 The four modeling algorithms have many specifications in common that can be specified using the `assign_model_inputs()` function. The following code chunk shows the default values for these model inputs
@@ -143,7 +142,8 @@ model_input_options <- assign_model_inputs(timescale_days = NULL,
                                            temp_knots_value = c(40, 45, 50, 60, 65, 90), 
                                            initial_breakpoints = c(50,65), 
                                            regression_type = "TOWT",
-                                           occupancy_threshold = 0.65)
+                                           occupancy_threshold = 0.65,
+                                           day_normalized = FALSE)
 
 ```
 
@@ -231,14 +231,14 @@ Using the models' statistics and the uncertainity for 10% savings, we can determ
 1. CVRMSE (should be < 25%):
 
 * Baseline Model: 6.8%
-* Performance Period Model: 7.2%
+* Performance Period Model: 7.3%
 
-2. NDBE: should be < 0.005%
+2. NMBE: should be < 0.5%
 
-* Baseline Model: 0.0000
-* Performance Period Model: 0.000
+* Baseline Model: ~0.00%
+* Performance Period Model: ~0.00%
 
-The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2002's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar[^1] for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
+The California Public Utilities Commission requires savings to be detectable above model variations. `nmecr` interprets this using ASHRAE Guideline 14 - 2014's formulation for savings uncertainty, which relates the savings uncertainty to the model goodness of fit metric CV(RMSE), the confidence level, the amount of savings, the amount of data used to develop the model, and the amount of data required to report savings. The formulation includes the correction polynomial developed by Sun and Balthazar[^1] for daily and monthly models. It also includes a correction when autocorrelation is present (which occurs mainly in models developed from daily and hourly data). LBNL has shown this uncertainty formulation with correction for autocorrelation underestimates the savings uncertainty. More work on this issue is needed. Until a better formulation is available, `nmecr` uses ASHRAE's method only as an estimation. 
 
 [^1]: Sun, Y. and Baltazar, J.C., "Analysis and Improvement of the Estimation of Building Energy Savings Uncertainty," ASHRAE Transactions, vol. 119, May 2013
 
@@ -257,20 +257,7 @@ TOWT_baseline_savings_10$savings_summary_df
 
 ```
 
-* Baseline Model: 16.7%
-
-```{r performance savings_10 summary, results='markup'}
-TOWT_performance_savings_10 <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                               savings_fraction = 0.1,
-                               modeled_object = TOWT_performance_model, 
-                               model_summary_statistics = TOWT_performance_stats,
-                               confidence_level = 90)
-
-TOWT_performance_savings_10$savings_summary_df
-
-```
-
-* Performance Period Model: 18.5%
+* Baseline Model: 18.6%
 
 In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
 
@@ -295,78 +282,23 @@ TMY3_daily <- aggregate(eload_data = NULL, temp_data = TMY3,
 
 ```
 
-Next, we calculate the baseline and the performance period energy use normalized to TMY3 condotions.
+Previously, nmecr did not provide a direct calculation for normalized savings and these had to be calculated manually by the user. The following function, added recently, provides this calculation now.
 
-```{r normalized use, results='markup'}
 
-TOWT_baseline_normalized <- calculate_model_predictions(training_data = baseline_df, 
-                            prediction_data = TMY3_daily, 
-                            modeled_object = TOWT_baseline_model)
+```{r norm savings, results='markup'}
 
-TOWT_performance_normalized <- calculate_model_predictions(training_data = performance_df, 
-                               prediction_data = TMY3_daily, 
-                               modeled_object = TOWT_performance_model)
+norm_savings <- calculate_norm_savings_and_uncertainty(baseline_model = TOWT_baseline_model, 
+                baseline_stats = TOWT_baseline_stats,
+                performance_model = TOWT_performance_model, 
+                performance_stats = TOWT_performance_stats,
+                normalized_weather = TMY3_daily, 
+                confidence_level = 90)
 
-```
-
-The normalized energy savings are calculated as:
-
-```{r normalized energy savings, results='markup'}
-
-TOWT_normalized_savings <- data.frame("Savings" = 
-                                        TOWT_baseline_normalized$predictions - 
-                                        TOWT_performance_normalized$predictions)
-
-TOWT_normalized_savings_fraction <- sum(TOWT_normalized_savings, na.rm = T) / 
-                                      sum(TOWT_baseline_normalized$predictions, na.rm = T)
+as.data.frame(norm_savings$normalized_savings_df)
 
 ```
 
-```{r, normalized energy savings summary, results='markup', echo = FALSE}
-TOWT_normalized_savings_value <- sum(TOWT_normalized_savings, na.rm = T)
-
-normalized_savings_summary_df <- data.frame(matrix(nrow=1, ncol = 2))
-colnames(normalized_savings_summary_df) <- c("Normalized Savings", "Normalized Savings Fraction")
-normalized_savings_summary_df$`Normalized Savings` <- TOWT_normalized_savings_value
-normalized_savings_summary_df$`Normalized Savings Fraction` <- TOWT_normalized_savings_fraction
-
-normalized_savings_summary_df
-
-```
-
-Normalized savings uncertainty is calculated as the square-root of the sum of the baseline and performance period models' squared uncertainties. These two values can be calculated using the `calculate_savings_and_uncertainty()` function:
-
-```{r normalized savings uncertainty, results='markup'}
-TOWT_baseline_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                        savings_fraction = TOWT_normalized_savings_fraction,
-                                        modeled_object = TOWT_baseline_model, 
-                                        model_summary_statistics = TOWT_baseline_stats,
-                                        confidence_level = 90)
-
-TOWT_performance_normalized_uncertainty <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                           savings_fraction = TOWT_normalized_savings_fraction,
-                                           modeled_object = TOWT_performance_model, 
-                                           model_summary_statistics = TOWT_performance_stats,
-                                           confidence_level = 90)
-
-
-TOWT_baseline_normalized_uncertainty_value <- 
-  
-TOWT_baseline_normalized_uncertainty$savings_summary_df$savings_uncertainty
-
-TOWT_performance_normalized_uncertainty_value <- 
-  
-TOWT_performance_normalized_uncertainty$savings_summary_df$savings_uncertainty
-
-TOWT_normalized_savings_uncertainty <- sqrt(TOWT_baseline_normalized_uncertainty_value^2 + 
-                                       TOWT_performance_normalized_uncertainty_value^2)
-
-TOWT_normalized_savings_uncertainty
-
-
-```
-
-The Normalized Savings are found to be 9.1% with an associated uncertainty of 27.5%.
+The Normalized Savings are found to be 9.1% with an associated uncertainty of 30.3%.
 
 
 
