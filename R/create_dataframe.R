@@ -10,8 +10,8 @@
 #' @param additional_variable_aggregation A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
 #' Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
 #' and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median
-#' @param start_date  A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe
-#' @param end_date A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the intended dataframe
+#' @param start_date  A character string, of the format "mm/dd/yyyy hh:mm", indictating start date and time of the intended dataframe
+#' @param end_date A character string, of the format "mm/dd/yyyy hh:mm", indictating end date and time of the intended dataframe
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #'
