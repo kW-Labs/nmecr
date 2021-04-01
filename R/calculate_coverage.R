@@ -129,7 +129,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   # Calculating Coverage Factor
 
   max_obs_OA_bin <- max(as.numeric(temp_coverage$bins[temp_coverage$n_site_data >= outlier_threshold]))
-  min_obs_OA_bin <- min(as.numeric(temp_coverage$bins[temp_coverage$n_site_data > outlier_threshold]))
+  min_obs_OA_bin <- min(as.numeric(temp_coverage$bins[temp_coverage$n_site_data >= outlier_threshold]))
 
   max_ref_OA_bin <- max(as.numeric(temp_coverage$bins[temp_coverage$n_ref_data > 0.1]))
   min_ref_OA_bin <- min(as.numeric(temp_coverage$bins[temp_coverage$n_ref_data > 0.1]))
