@@ -49,6 +49,8 @@ align_data <- function(data = NULL, original_alignment = NULL) {
     stop("original_alignment can one of two: 'start' or 'end'. Please check your input")
   }
 
+  names(aligned_data) <- names(data)
+
   return(aligned_data)
 
 }
