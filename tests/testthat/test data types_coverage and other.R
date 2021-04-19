@@ -1,5 +1,5 @@
-# #Source Data
-# source("test data types_definitions.R")
+#Source Data
+source("test data types_definitions.R")
 
 #Calculate_coverage Function Testing -----
 expect_type(expected_coverage_daily, "list")

@@ -1,5 +1,5 @@
-# #Source Data
-# source("test data types_definitions.R")
+#Source Data
+source("test data types_definitions.R")
 
 # model_with_SLR Function Testing
 for (i in 1:length(SLR_model_list)) {
