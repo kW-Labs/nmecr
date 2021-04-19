@@ -1,0 +1,296 @@
+---
+title: "Predictability Analysis for `r project_name`"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  word_document: default
+---
+
+## Predictability Analysis Purpose 
+
+The purpose of the model predictability analysis is to determine whether the building's baseline energy use can be reliably determined over the duration of the project. Using empirical models,  a building is considered predictable if:
+
+*	A model can be developed that meets certain goodness of fit and accuracy metrics as defined in this report, and 
+*	The risk of non-routine events is limited or non-existent.  
+
+The purpose of this report is to document the findings of the model predictability analysis as a criterion for participation in the `r program_name` Program. This report documents the data received, the weather data station from which corresponding weather was selected, summary descriptions of the models developed, and a summary table of the key model goodness of fit and accuracy metrics for each model.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+require(nmecr)
+require(plotly)
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("Helper Functions.R")
+```
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, include=FALSE}
+# Data Read In
+setwd('..')
+temp_data <- readxl::read_xlsx(temp_file)
+eload_data <- readxl::read_xlsx(eload_file)
+
+# Determine valid analysis intervals for each energy source
+
+valid_analysis_intervals <-  determine_lowest_interval(eload_data)
+
+# Create Dataframes for Analysis
+
+dfs <- purrr::pmap(.l = list(eload_data = list(eload_data),
+                             temp_data = list(temp_data),
+                             convert_to_data_interval = valid_analysis_intervals),
+                   .f = nmecr::create_dataframe,
+                   start_date = start_date,
+                   end_date = end_date)
+
+names(dfs) <- valid_analysis_intervals
+
+# Run Models
+
+models <- purrr::map2(.x = dfs, .y = names(dfs), .f = run_all_models)
+
+results_df <- bind_rows(lapply(models, `[[`, 1))
+names(results_df) <- c('Model', 'Interval', 'R^2', 'Adjusted R^2', 'CV(RMSE) %', 'NDBE %', 'NMBE %', '#Parameters', 'dof', 'Savings Fraction', 'Uncertainty for 10% Savings', 'Savings Frac for 50% Unc', 'CL')
+
+results_df <- results_df[, c('Model', 'Interval', 'R^2', 'Adjusted R^2', 'CV(RMSE) %', 'NMBE %', 'Uncertainty for 10% Savings', 'Savings Frac for 50% Unc', 'CL')]
+
+results_df[, c(3:8)] <- lapply(results_df[, c(3:8)], as.numeric)
+results_df[, c(3:8)] <- lapply(results_df[, c(3:8)], round, 2)
+results_df[, 6] <- lapply(results_df[, 6], format, nsmall = 3)
+
+if ("Daily" %in% results_df$Interval) { # first check for daily
+  
+  chosen_model <- results_df %>%
+    filter(Interval == "Daily") %>%
+    filter(`CV(RMSE) %` == min(`CV(RMSE) %`))
+  
+  if (nrow(chosen_model) > 1){
+    chosen_model <- chosen_model %>%
+    filter(`Uncertainty for 10% Savings` == min(`Uncertainty for 10% Savings`))
+  }
+  
+  if (nrow(chosen_model) > 1){
+    chosen_model <- chosen_model[1,]
+  }
+  
+  chosen_algo <- chosen_model$Model
+  
+  model <- models$Daily$model_fit_df[, c('time', 'temp', 'HDD', 'CDD', 'eload', paste0(chosen_algo, '_fit'))]
+  colnames(model) <- c('time', 'temp', 'HDD', 'CDD', 'eload', 'model_fit')
+  
+} else if ("Monthly" %in% results_df$Interval) { # next check for monthly
+  
+  chosen_model <- results_df %>%
+    filter(Interval == "Daily") %>%
+    filter(`CV(RMSE) %` == min(`CV(RMSE) %`))
+  
+    
+  if (nrow(chosen_model) > 1){
+    chosen_model <- chosen_model %>%
+    filter(`Uncertainty for 10% Savings` == min(`Uncertainty for 10% Savings`))
+  }
+  
+  if (nrow(chosen_model) > 1){
+    chosen_model <- chosen_model[1,]
+  }
+  
+  chosen_algo <- chosen_model$Model
+  
+  model <- models$Daily$model_fit_df[, c('time', 'temp', 'HDD', 'CDD', 'eload', paste0(chosen_algo, '_fit'))]
+  colnames(model) <- c('time', 'temp', 'HDD', 'CDD', 'HDD_perday', 'CDD_perday', 'eload', 'eload_perday', 'model_fit')
+  
+}
+
+# Write Out Results
+
+model_dfs <- lapply(models, `[[`, 2)
+
+result_list <- rlist::list.append(model_dfs, "Summary" = results_df)
+
+openxlsx::write.xlsx(result_list, paste0('Results/', project_name, '-Predictability Analysis.xlsx'))
+
+
+```
+
+
+\newpage
+
+## Data Summary
+
+```{r, echo = FALSE, message=FALSE, purl = FALSE}
+
+total_points_eload <- nrow(eload_data)
+missing_points_eload <- sum(is.na(eload_data$eload))
+  
+eload_data_summary <- data.frame(matrix(nrow = 8, ncol = 2))
+names(eload_data_summary) <- c("", "Utility Data Specification")
+
+eload_data_summary[1, ] <- c("eload", utility)
+eload_data_summary[2, ] <- c("Source", utility_source)
+eload_data_summary[3, ] <- c("Received Date", utility_data_received_date)
+eload_data_summary[4, ] <- c("Data Interval", paste(round(median(diff(as.numeric(eload_data$time)))/60,0), "min"))
+eload_data_summary[5, ] <- c("Start Date", format(eload_data$time[1], "%m/%d/%Y %H:%M"))
+eload_data_summary[6, ] <- c("End Date", format(eload_data$time[nrow(eload_data)], "%m/%d/%Y %H:%M"))
+eload_data_summary[7, ] <- c("# Missing Data Points", format(round(as.numeric(missing_points_eload),0), nsmall = 1, big.mark = ","))
+eload_data_summary[8, ] <- c("# Total Data Points", format(round(as.numeric(total_points_eload),0), nsmall = 1, big.mark = ","))
+
+total_points_temp <- nrow(temp_data)
+missing_points_temp <- sum(is.na(temp_data$temp))
+
+temp_data_summary <- data.frame(matrix(nrow = 9, ncol = 2))
+names(temp_data_summary) <- c("", "Temperature Data Specification")
+
+temp_data_summary[1, ] <- c("Weather Station", weather_station)
+temp_data_summary[2, ] <- c("Approx. Distance to Site", distance_to_site)
+temp_data_summary[3, ] <- c("Data Download Date", data_download_date)
+temp_data_summary[4, ] <- c("Data Interval", paste(round(median(diff(as.numeric(temp_data$time)))/60,0), "min"))
+temp_data_summary[5, ] <- c("Start Date", format(temp_data$time[1], "%m/%d/%Y %H:%M"))
+temp_data_summary[6, ] <- c("End Date", format(temp_data$time[nrow(temp_data)], "%m/%d/%Y %H:%M"))
+temp_data_summary[7, ] <- c("# Missing Data Points",format(round(as.numeric( missing_points_temp),0), nsmall = 1, big.mark = ","))
+temp_data_summary[8, ] <- c("# Total Data Points", format(round(as.numeric(total_points_temp),0), nsmall = 1, big.mark = ","))
+temp_data_summary[9, ] <- c("TMY data available?", TMY_data_available)
+
+training_period <-  data.frame(matrix(nrow = 1, ncol = 2))
+names(training_period) <- c('Start Date', 'End Date')
+training_period$`Start Date` <- start_date
+training_period$`End Date` <- end_date
+
+```
+
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+knitr::kable(eload_data_summary)
+
+```
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+ knitr::kable(temp_data_summary)
+```
+
+\
+
+### Predictability Analysis Period
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+ knitr::kable(training_period)
+```
+\newpage
+
+## Training Period Models
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, purl=FALSE}
+knitr::kable(results_df)
+```
+
+The model chosen for this project is `r chosen_algo`.
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, fig.width=8, fig.height=5, purl=FALSE}
+
+model <- model %>%
+  mutate(residuals = eload - model_fit)
+
+colors <- c("eload" = "#F8766D", "model_fit" = "#00BFC4", "residuals" = "black")
+
+model_plot <- ggplot2::ggplot(model, aes(x = time)) +
+  geom_line(aes(y = eload, colour = "eload"), size = 1) +
+  geom_line(aes(y = model_fit, colour = "model_fit"), size = 1) +
+  geom_point(aes(y = residuals, colour = "residuals"), size = 1) +
+  xlab("Time") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+model_scatterplot_temp <- ggplot2::ggplot(model, aes(x = temp)) +
+  geom_point(aes(y = eload, colour = "eload")) +
+  geom_point(aes(y = model_fit, colour = "model_fit")) +
+  xlab("Temperature") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma)+
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+
+model_plot
+model_scatterplot_temp
+
+```
+
+## Assessment of NREs
+
+
+***Add findings here***
+
+\newpage
+
+## Goodness-of-Fit Metrics
+
+**Coefficient of Variation of the root mean squared error, CV(RMSE)**
+
+$$CV(RMSE) = \frac{(\frac{\sum_{i=1}^{n}{(E_i - \hat{E_i}})^{2}}{n-p})^{1/2}}{\bar{E}}$$
+CV(RMSE) is a measure of random error between a model's predictions and the actual data. Generally, we want to minimize this error as much as possible.
+
+**Net Mean Bias Error (NMBE)**
+
+$$NMBE = \frac{\sum_{i=1}^{n}{(E_i - \hat{E_i}})}{(n-p) \cdot \bar{E}}$$
+NMBE is a measure of the difference between the model's predictions of training period total energy use and the actual energy use. This error should be very low.
+
+**Coefficient of Determination, ${R^2}$**
+
+$$ R^2 = 1- \frac{\sum_{i=1}^{n}{(E_i - \hat{E_i}})^2}{\sum_{i=1}^{n}{(E_i - \bar{E_i}})^2}$$
+
+The coefficient of determination describes how well the independent variables explain the variations in the dependent (energy) variable. Higher R2 means the independent variables have more explanatory power. This is an informative metric only, not a criterion, because while the energy use sometimes may not have high variation, an independent variable may adequately 'explain' the existing variation in the energy use, despite a low R2.
+
+
+**Fractional Savings Uncertainty**
+
+ASHRAE Guideline 14-2014 provided the following 'fractional savings uncertainty' formulas as a means to estimate the uncertainty of the savings estimated with this modeling approach. The formulas also enable the estimation of how well we will know savings based only on the baseline model's goodness of fit, the number of points in the baseline and post-installation periods, the amount of savings, and the level of confidence at which we estimate the uncertainty. For daily or hourly models, they include a correction for autocorrelation. Using these formulas, we can estimate what the savings uncertainty, at 90% confidence, would be for a project that yields 10% savings, with a year of post-installation period monitoring, using a baseline model with its MSE or MSE' value and a year of baseline data. We want the uncertainty to be low, but the minimum level of uncertainty cannot be greater than +/- 50% at the 90% confidence level. Note the percentage refers to the amount of savings, not to the baseline energy use. 
+
+Additional research by LBNL showed that ASHRAE's formula underestimated uncertainty when used on hourly models, due to the high degree of autocorrelation in the data. This is why uncertainty in hourly models is not reported in the predictability report.
+
+Savings Uncertainty, models with autocorrelation (hourly or daily): 
+
+$$ U = \frac{\Delta E_{save,m}}{E_{save,m}} = \frac{ \alpha * t_{(1 - \alpha)/2, n'-p}}{m * \bar{E_{base, n}}*F} \biggl[{MSE'(1+2/n')*m}\biggr]^{1/2}$$
+$$ MSE' = \frac{1}{n'-p} \sum_{i}^{n} (E_i - \hat{E}_i)^{2}$$
+where MSE' is the mean squared error of the model. 
+
+Savings Uncertainty, models without autocorrelation (monthly):  
+
+$$ U = \frac{\Delta E_{save,m}}{E_{save,m}} = \frac{ \alpha * t_{(1 - \alpha)/2, n-p}}{m * \bar{E_{base, n}}*F} \biggl[{MSE(1+2/n)*m}\biggr]^{1/2} $$
+Energy Savings Required for Uncertainty @ 90% Confidence Interval (10%) = 0.1*E
+
+
+Where:
+
+* $E_i$ is the measured energy use in any time interval, in energy units
+
+* $\hat{E_i}$ is the model's predicted energy use in any time interval, in energy units
+
+* $\bar{E}$ is the average energy use over all the time intervals, in energy units
+
+* $\Delta E_{save,m}$ is the absolute precision of the savings estimate over m time periods, in energy units
+
+* $E_{save,m}$ is the estimated energy savings over m time periods, in energy units
+
+* $n$ is the number of data points in the training period
+
+* $p$ is the number of parameters in the model
+
+* $t$ is student's t-statistic for the specified confidence level and n-p degrees of freedom
+
+* $alpha$ is an equation depending on the analysis time interval:
+
+    * $\alpha = 1.26$ for hourly interval data
+    * $\alpha = -0.00024M^2 + 0.03535M + 1.00286$ for daily interval data
+    * $\alpha = -0.00022M^2 + 0.03606M + 1.94054$ for monthly interval data
+    
+    M is the number of months in the reporting period
+    
+* $n'$ is the number of data points in the model training period, corrected for autocorrelation
+
+* $m$ is the number of data points in the proposed post-installation period
+
+* $F$ is the expected savings, expressed as a fraction of training period energy use
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, results='hide'}
+knitr::purl(input = 'Predictability.Rmd', output = 'Predictability.R') # Delete this from the output R script
+```

@@ -1,0 +1,336 @@
+---
+title: "Avoided Energy Use Analysis for `r project_name`"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  word_document: default
+---
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+require(nmecr)
+require(plotly)
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("Helper Functions.R")
+```
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+# Data Read In
+
+setwd('..')
+
+temp_data <- readxl::read_xlsx(temp_file)
+eload_data <- readxl::read_xlsx(eload_file)
+if (! is.null(additional_variable_data_file)) {
+  additional_data <- readxl::read_xlsx(additional_variable_data_file)
+} else {
+  additional_data <- NULL
+}
+
+# Weather Data QC
+
+temp_data_QC_summary <- temp_data %>%
+  dplyr::mutate(date = as.Date(time)) %>%
+  dplyr::group_by(date) %>%
+  summarize(count_of_NAs = sum(is.na(temp))) %>%
+  filter(count_of_NAs != 0)
+
+temp_data_QC_summary <- temp_data %>%
+  dplyr::mutate(date = as.Date(time)) %>%
+  dplyr::group_by(date) %>%
+  summarize(count_of_NAs = sum(is.na(temp))) %>%
+  filter(count_of_NAs != 0 & count_of_NAs >= 4)
+
+names(temp_data_QC_summary) <- c("", "Hours/Day with Missing Temperature Data")
+
+temp_data <- temp_data %>%
+  dplyr::mutate(date = as.Date(time))
+
+temp_data <- within(temp_data, temp[date %in% temp_data_QC_summary$date] <- NA) 
+
+temp_data <- temp_data[, c('time', 'temp')]
+
+# Create Dataframes for Analysis
+
+baseline_df <- nmecr::create_dataframe(eload_data = eload_data, temp_data = temp_data, 
+                                       additional_independent_variables = additional_data,
+                                       additional_variable_aggregation = additional_variable_aggregation,
+                                       convert_to_data_interval = convert_to_data_interval,
+                                       start_date = baseline_start_date, end_date = baseline_end_date)
+
+
+performance_df <- nmecr::create_dataframe(eload_data = eload_data, temp_data = temp_data, 
+                                          additional_independent_variables = additional_data,
+                                          additional_variable_aggregation = additional_variable_aggregation,
+                                          convert_to_data_interval = convert_to_data_interval,
+                                          start_date = performance_start_date, end_date = performance_end_date)
+
+# Run Models
+
+model_inputs <- nmecr::assign_model_inputs(timescale_days = NULL, has_temp_knots_defined = FALSE,
+                                           equal_temp_segment_points = TRUE, temp_segments_numeric = 6,
+                                           temp_knots_value = c(40, 55, 65, 80, 90), initial_breakpoints = c(50, 65), 
+                                           regression_type = modeling_algorithm)
+
+baseline_model <- modeling_function(training_data = baseline_df, model_input_options = model_inputs)
+
+## Model Stats
+
+baseline_stats <- nmecr::calculate_summary_statistics(baseline_model)
+
+baseline_uncertainty <- nmecr::calculate_savings_and_uncertainty(savings_fraction = 0.1, modeled_object = baseline_model, 
+                                                                 model_summary_statistics = baseline_stats)
+
+# Avoided Use
+
+baseline_predictions <- nmecr::calculate_model_predictions(training_data = baseline_df, prediction_data = performance_df,
+                                                           modeled_object = baseline_model)
+
+avoided_use <- nmecr::calculate_savings_and_uncertainty(prediction_df = baseline_predictions, modeled_object = baseline_model,
+                                                        model_summary_statistics = baseline_stats, confidence_level = 90)
+
+baseline_results_df <- data.frame(matrix(nrow = 1, ncol = 8))
+
+names(baseline_results_df) <- c('Model', 'Interval', 'R^2', 'Adjusted R^2', 'CV(RMSE) %', 'NMBE %', 'Uncertainty for 10% Savings', 'CL')
+
+
+baseline_results_df$Model <- modeling_algorithm
+baseline_results_df$Interval <- convert_to_data_interval
+
+baseline_results_df[1, c(3:6)] <- baseline_stats[1, c(1:3,5)]
+baseline_results_df[1, c(7:8)] <- baseline_uncertainty$savings_summary_df[1, c(2,4)]
+
+baseline_results_df$`NMBE %` <- as.numeric(baseline_results_df$`NMBE %`)
+baseline_results_df$`NMBE %` <- round(baseline_results_df$`NMBE %`, 2)
+baseline_results_df$`NMBE %` <-  format(baseline_results_df$`NMBE %`, nsmall = 3)
+
+baseline_results_df$`Uncertainty for 10% Savings` <- as.numeric(baseline_results_df$`Uncertainty for 10% Savings`)
+baseline_results_df$`Uncertainty for 10% Savings` <- round(baseline_results_df$`Uncertainty for 10% Savings`, 2)
+baseline_results_df$`Uncertainty for 10% Savings` <-  format(baseline_results_df$`Uncertainty for 10% Savings`, nsmall = 3)
+
+baseline_results_df <- baseline_results_df %>%
+  mutate("Period" = "Baseline") %>%
+  select(Period, everything())
+
+avoided_use_df <- avoided_use$savings_summary_df[c(1:5, 7)]
+names(avoided_use_df) <- c("Perf. Period Use", "Adjusted Baseline", "Savings", "Savings Fraction", "Savings Uncertainty", "CL")
+
+avoided_use_df$`Expected Avoided Use` <- expected_avoided_use
+
+avoided_use_df <- avoided_use_df %>%
+  select(c("Perf. Period Use", "Adjusted Baseline","Expected Avoided Use"), everything())
+
+summary_df <- dplyr::bind_cols(baseline_results_df, as.data.frame(avoided_use$savings_summary_df))
+
+# Write Out Results
+
+result_list <- list("Summary" = summary_df, "Model Fit" = baseline_model$training_data, "Model Predictions" = avoided_use$savings_df)
+
+openxlsx::write.xlsx(result_list, paste0('Results/', project_name, '-Avoided Use.xlsx'))
+
+
+```
+
+## Data Summary
+
+```{r, echo = FALSE, message=FALSE, purl = FALSE}
+
+total_points_eload <- nrow(eload_data)
+missing_points_eload <- sum(is.na(eload_data$eload))
+  
+eload_data_summary <- data.frame(matrix(nrow = 8, ncol = 2))
+names(eload_data_summary) <- c("", "Utility Data Specification")
+
+eload_data_summary[1, ] <- c("eload", utility)
+eload_data_summary[2, ] <- c("Source", utility_source)
+eload_data_summary[3, ] <- c("Received Date", utility_data_received_date)
+eload_data_summary[4, ] <- c("Data Interval", paste(round(median(diff(as.numeric(eload_data$time)))/60,0), "min"))
+eload_data_summary[5, ] <- c("Start Date", format(eload_data$time[1], "%m/%d/%Y %H:%M"))
+eload_data_summary[6, ] <- c("End Date", format(eload_data$time[nrow(eload_data)], "%m/%d/%Y %H:%M"))
+eload_data_summary[7, ] <- c("# Missing Data Points", format(round(as.numeric(missing_points_eload),0), nsmall = 1, big.mark = ","))
+eload_data_summary[8, ] <- c("# Total Data Points", format(round(as.numeric(total_points_eload),0), nsmall = 1, big.mark = ","))
+
+total_points_temp <- nrow(temp_data)
+missing_points_temp <- sum(is.na(temp_data$temp))
+
+temp_data_summary <- data.frame(matrix(nrow = 9, ncol = 2))
+names(temp_data_summary) <- c("", "Temperature Data Specification")
+
+temp_data_summary[1, ] <- c("Weather Station", weather_station)
+temp_data_summary[2, ] <- c("Approx. Distance to Site", distance_to_site)
+temp_data_summary[3, ] <- c("Data Download Date", data_download_date)
+temp_data_summary[4, ] <- c("Data Interval", paste(round(median(diff(as.numeric(temp_data$time)))/60,0), "min"))
+temp_data_summary[5, ] <- c("Start Date", format(temp_data$time[1], "%m/%d/%Y %H:%M"))
+temp_data_summary[6, ] <- c("End Date", format(temp_data$time[nrow(temp_data)], "%m/%d/%Y %H:%M"))
+temp_data_summary[7, ] <- c("# Missing Data Points",format(round(as.numeric( missing_points_temp),0), nsmall = 1, big.mark = ","))
+temp_data_summary[8, ] <- c("# Total Data Points", format(round(as.numeric(total_points_temp),0), nsmall = 1, big.mark = ","))
+temp_data_summary[9, ] <- c("TMY data available?", TMY_data_available)
+
+if (! is.null(additional_variable_data_file)){
+  total_points_additional_data <- nrow(additional_data)
+  
+  additional_data_summary1 <- data.frame(matrix(nrow = 4, ncol = 2))
+  
+  additional_data_summary1[1, ] <- c("Data Interval", paste(round(median(diff(as.numeric(additional_data$time)))/60,0), "min"))
+  additional_data_summary1[2, ] <- c("# Total Data Points", format(round(as.numeric(total_points_additional_data),0), nsmall = 1, big.mark = ","))
+  additional_data_summary1[3, ] <- c("Start Date", format(additional_data$time[1], "%m/%d/%Y %H:%M"))
+  additional_data_summary1[4, ] <- c("End Date", format(additional_data$time[nrow(additional_data)], "%m/%d/%Y %H:%M"))
+  
+  names(additional_data_summary1) <- c("", "Additional Variable Data Specification")
+  
+  
+  missing_points_additional_data <- colSums(is.na(additional_data[, -1]))
+  
+  additional_data_summary2 <- data.frame(matrix(nrow = 1, ncol = ncol(additional_data)))
+  names(additional_data_summary2) <- names(additional_data)
+  colnames(additional_data_summary2)[1] <- ""
+  
+  additional_data_summary2[1, ] <- c("# Missing Data Points",format(round(as.numeric(missing_points_additional_data),0), nsmall = 1, big.mark = ","))
+  
+}
+
+periods <- data.frame(matrix(nrow = 2, ncol = 3))
+names(periods) <- c("Modeling Period", "Start", "End")
+periods[1, ] <- c("Baseline", baseline_start_date, baseline_end_date)
+periods[2, ] <- c("Performance", performance_start_date, performance_end_date)
+
+```
+
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+knitr::kable(eload_data_summary)
+
+```
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+ knitr::kable(temp_data_summary)
+```
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+if (nrow(temp_data_QC_summary) != 0) {
+  knitr::kable(temp_data_QC_summary)
+}
+```
+
+
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+if (! is.null(additional_variable_data_file)) {
+  knitr::kable(additional_data_summary1)
+}
+```
+\
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+if (! is.null(additional_variable_data_file)) {
+  knitr::kable(additional_data_summary2)
+}
+```
+\
+```{r, echo = FALSE, message=FALSE, purl=FALSE}
+knitr::kable(periods)
+```
+
+\newpage
+
+## Baseline Period Model
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, purl=FALSE}
+knitr::kable(baseline_results_df)
+```
+
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, fig.width=8, fig.height=5, purl=FALSE}
+
+model <- baseline_model$training_data %>%
+  mutate(residuals = eload - model_fit)
+
+colors <- c("eload" = "#F8766D", "model_fit" = "#00BFC4", "residuals" = "black")
+
+model_plot <- ggplot2::ggplot(model, aes(x = time)) +
+  geom_line(aes(y = eload, colour = "eload"), size = 1) +
+  geom_line(aes(y = model_fit, colour = "model_fit"), size = 1) +
+  geom_point(aes(y = residuals, colour = "residuals"), size = 1) +
+  xlab("Time") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+model_scatterplot_temp <- ggplot2::ggplot(model, aes(x = temp)) +
+  geom_point(aes(y = eload, colour = "eload")) +
+  geom_point(aes(y = model_fit, colour = "model_fit")) +
+  xlab("Temperature") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma)+
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+
+model_plot
+model_scatterplot_temp
+
+```
+
+\newpage
+
+## Avoided Energy Use
+
+
+If additional independent variables were used in the analysis, the avoided use is calculated based on the models developed with the additional variables.
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, purl=FALSE}
+knitr::kable(avoided_use_df)
+```
+
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, fig.width=8, fig.height=5, purl=FALSE}
+
+avoided_use_df <- avoided_use$savings_df %>%
+  dplyr::left_join(performance_df[, c('time', 'temp')]) 
+  
+avoided_use_df <- avoided_use_df %>%
+  mutate("Cumulative Savings" = cumsum(savings)) %>%
+  mutate('Expected Savings' = expected_avoided_use/nrow(avoided_use_df)) %>%
+  mutate("Cumulative Expected Savings" = cumsum(`Expected Savings`))
+
+colors <- c("eload" = "#F8766D", "predictions" = "slateblue", "savings" = "green4")
+
+avoided_use_plot <- ggplot2::ggplot(avoided_use_df, aes(x = time)) +
+  geom_line(aes(y = eload, colour = "eload"), size = 1) +
+  geom_line(aes(y = predictions, colour = "predictions"), size = 1) +
+  geom_point(aes(y = savings, colour = "savings"), size = 1) +
+  xlab("Time") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+avoided_use_scatterplot_temp <- ggplot2::ggplot(avoided_use_df, aes(x = temp)) +
+  geom_point(aes(y = eload, colour = "eload")) +
+  geom_point(aes(y = predictions, colour = "predictions")) +
+  xlab("Temperature") +
+  scale_y_continuous(name = paste(utility, "Consumption", "-", utility_units), labels = scales::comma)+
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+    scale_color_manual(name = "", values = colors)
+
+cumsum_plot <- ggplot2::ggplot(avoided_use_df, aes(x = time)) +
+  geom_area(aes(y = `Cumulative Savings`), stat = "identity", fill = "green4") +
+  geom_line(aes(y = `Cumulative Expected Savings`), colour = "black", size = 0.5) +
+  xlab("Time") +
+  scale_y_continuous(name = paste(utility, "Savings over Time", "-", utility_units), labels = scales::comma) +
+  theme_minimal()
+
+
+avoided_use_plot
+avoided_use_scatterplot_temp
+
+
+```
+
+```{r, echo = FALSE, warning=FALSE,message=FALSE,error=FALSE, fig.width=8, fig.height=5, purl=FALSE}
+cumsum_plot
+```
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE, results='hide'}
+knitr::purl(input = 'Avoided Use.Rmd', output = 'Avoided Use.R')
+```
