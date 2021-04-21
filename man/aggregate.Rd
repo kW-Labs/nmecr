@@ -25,5 +25,6 @@ a dataframe with energy consumption data and corresponding temperature data, agg
 aggregated temperature data is returned.
 }
 \description{
-\code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.}
+\code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.
+This function uses dplyr for aggregation as opposed to xts. As a result, the timestamps are not shifted after aggregation.}
 }
