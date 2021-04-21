@@ -8,7 +8,6 @@
 #' @return a dataframe with data aligned to the start of the period
 #' @export
 
-
 align_data <- function(data = NULL, original_alignment = NULL) {
 
   if(is.null(data)) {
@@ -25,18 +24,18 @@ align_data <- function(data = NULL, original_alignment = NULL) {
 
     data <- as.data.frame(data)
     data_xts <- xts::xts(x = data[, -1], order.by = data[, 1])
-    data_scale <- xts::periodicity(data_xts)['scale']
+    data_periodicity <- xts::periodicity(data_xts)
 
-   if (data_scale == "monthly"){
+   if (data_periodicity$scale == "monthly"){
       correction <- 60*60*24*mean(30,31)
       corrected_index <- lubridate::floor_date(zoo::index(data_xts) - correction, "month")
-    } else if(data_scale == "minute"){
-      correction <- 60*15
+    } else if(data_periodicity$scale == "minute"){
+      correction <- 60*data_periodicity$frequency
       corrected_index <- zoo::index(data_xts) - correction
-    } else if (data_scale == "hourly"){
+    } else if (data_periodicity$scale == "hourly"){
       correction <- 60*60
       corrected_index <- zoo::index(data_xts) - correction
-    } else if (data_scale == "daily"){
+    } else if (data_periodicity$scale == "daily"){
       correction <- 60*60*24
       corrected_index <- zoo::index(data_xts) - correction
     }
