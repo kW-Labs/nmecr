@@ -27,9 +27,9 @@ create_dataframe(
 Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
 and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median}
 
-\item{start_date}{A character string, of the format "mm/dd/yyy hh:mm", indictating start date and time of the intended dataframe}
+\item{start_date}{A character string, of the format "mm/dd/yyyy hh:mm", indictating start date and time of the intended dataframe}
 
-\item{end_date}{A character string, of the format "mm/dd/yyy hh:mm", indictating end date and time of the intended dataframe}
+\item{end_date}{A character string, of the format "mm/dd/yyyy hh:mm", indictating end date and time of the intended dataframe}
 
 \item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'}
 
@@ -41,5 +41,6 @@ a dataframe with energy consumption data, temperature data and additional variab
 \description{
 \code{This function creates a dataframe, combining eload, temp, and additional variable data.
  It assumes that the input data is aligned to the start of a time period and outputs a dataframe aligned to the end of time periods.
- NA values are ignored during aggregation.}
+ NA values are ignored during aggregation.
+ xts is used for aggregation, meaning that timestamps are aligned to the end of the period after aggregation.}
 }

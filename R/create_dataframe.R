@@ -2,7 +2,8 @@
 #'
 #' \code{This function creates a dataframe, combining eload, temp, and additional variable data.
 #'  It assumes that the input data is aligned to the start of a time period and outputs a dataframe aligned to the end of time periods.
-#'  NA values are ignored during aggregation.}
+#'  NA values are ignored during aggregation.
+#'  xts is used for aggregation, meaning that timestamps are aligned to the end of the period after aggregation.}
 #'
 #' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
@@ -91,57 +92,42 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     colnames(additional_independent_variables_xts) <- additional_independent_variables_names
   }
 
-  # Check if input is less than 15-min data. Not allowing less than 15-min data as of now. May change in the future.
-
-  if(xts::periodicity(eload_data_xts)['frequency'] < 15 & xts::periodicity(eload_data_xts)['scale'] == 'minute'){
-    stop("Cannot input data with frequency of less than 15-minutes")
-  }
-
-  if(xts::periodicity(temp_data_xts)['frequency'] < 15 & xts::periodicity(temp_data_xts)['scale'] == 'minute'){
-    stop("Cannot input data with frequency of less than 15-minutes")
-  }
-
-  if(! is.null(additional_independent_variables)){
-    if(xts::periodicity(additional_independent_variables_xts)['frequency'] < 15 & xts::periodicity(additional_independent_variables_xts)['scale'] == 'minute'){
-      stop("Cannot input data with frequency of less than 15-minutes")
-    }
-  }
-
   # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification.  ----
 
   # determine data intervals of eload, temp, and operating mode data
-  scale_eload <- xts::periodicity(eload_data_xts)['scale']
-  scale_temp <- xts::periodicity(temp_data_xts)['scale']
+  periodicity_eload <- xts::periodicity(eload_data_xts)
+  periodicity_temp <- xts::periodicity(temp_data_xts)
   if(! is.null(additional_independent_variables)){
-    scale_additional_independent_variables <- xts::periodicity(additional_independent_variables_xts)['scale']
+    periodicity_additional_independent_variables <- xts::periodicity(additional_independent_variables_xts)
   }
 
-  determine_data_interval_sec <- function(data_scale_info){
+  determine_data_interval_sec <- function(data_periodicity){ # determine the data interval in seconds
 
-    if(data_scale_info$scale == "minute"){
-      data_interval <- 60*15
-    } else if (data_scale_info$scale == "hourly"){
+    if(data_periodicity$scale == "minute"){
+      data_interval <- 60*data_periodicity$frequency
+    } else if (data_periodicity$scale == "hourly"){
       data_interval <- 60*60
-    } else if (data_scale_info$scale == "daily"){
+    } else if (data_periodicity$scale == "daily"){
       data_interval <- 60*60*24
-    } else if (data_scale_info$scale == "monthly"){
+    } else if (data_periodicity$scale == "monthly"){
       data_interval <- 60*60*24*mean(30,31)
     }
 
     return(data_interval)
   }
 
-  eload_data_interval <- determine_data_interval_sec(scale_eload)
-  temp_data_interval <- determine_data_interval_sec(scale_temp)
+  # determine the data interval (in seconds) of eload, temp, and additional variable dataframes
+  eload_data_interval <- determine_data_interval_sec(periodicity_eload)
+  temp_data_interval <- determine_data_interval_sec(periodicity_temp)
   if(! is.null(additional_independent_variables)){
-    additional_independent_variables_interval <- determine_data_interval_sec(scale_additional_independent_variables)
+    additional_independent_variables_interval <- determine_data_interval_sec(periodicity_additional_independent_variables)
   }
 
+  # determine the maximum data interval (in seconds) from the available dataframes
   if(! is.null(additional_independent_variables)){
     max_data_interval <- max(eload_data_interval, temp_data_interval, additional_independent_variables_interval)
   } else {
     max_data_interval <- max(eload_data_interval, temp_data_interval)
-
   }
 
   # assign modeling interval - based on either the user's input or max of uploaded datasets
@@ -194,6 +180,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
         xts_index <- "days"
       } else if (nterval <- 60*60*24*mean(30,31)) {
         xts_index <- "months"
+      } else if (nterval == 60*15){
+        xts_index <- "min"
       }
 
       df <- data.frame(df)
@@ -207,10 +195,15 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
         aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
           xts::align.time(n = nterval)
 
-      } else {
+      } else if (nterval == 60*60*24*mean(30,31)) {
 
         aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index), FUN = aggregation_function, na.rm = T) %>%
           xts::align.time(n = 60*additional_variable_alignment)
+
+      } else if (nterval == 60*15){
+
+        aggregated_df_xts <- xts::period.apply(df_xts, INDEX = xts::endpoints(df_xts, xts_index, k = 15), FUN = aggregation_function, na.rm = T) %>%
+          xts::align.time(n = nterval)
       }
 
       return(aggregated_df_xts)
@@ -222,15 +215,26 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   # Begin aggregation
   if (nterval == 60*15) { # if the convert_to_data_interval input is '15-min' or max_data_interval (max interval based on input datasets) == 15 min
 
-    if(! is.null(additional_independent_variables)){
-      data_xts <- xts::merge.xts(eload_data_xts, temp_data_xts, additional_independent_variables_xts)
-    } else {
-      data_xts <- xts::merge.xts(eload_data_xts, temp_data_xts)
-    }
+    sum_eload_data_xts <- xts::period.apply(eload_data_xts$eload, INDEX = xts::endpoints(eload_data_xts, "mins", k = 15), FUN = sum, na.rm = T) %>%
+      xts::align.time(n = 60*15)
 
-   # final merged list needs to have timestamps be the end of the period - TODO: see if this can be replaced with an xts::align.time
-    corrected_index <- zoo::index(data_xts) + 60*15
-    data_xts <- xts::xts(data_xts, corrected_index)
+    mean_temp_data_xts <- xts::period.apply(temp_data_xts$temp, INDEX = xts::endpoints(temp_data_xts, "mins", k = 15), FUN = mean, na.rm = T) %>%
+      xts::align.time(n = 60*15)
+
+    if(! is.null(additional_independent_variables)){
+
+      aggregated_dfs_xts <- purrr::map2(.x = dfs, .y = additional_variable_aggregation, .f = apply_aggregation, nterval = 60*15) # dfs calculated above
+
+      aggregated_df_xts <-  do.call('cbind', aggregated_dfs_xts)
+      names(aggregated_df_xts) <- additional_independent_variables_names
+
+      data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts, aggregated_df_xts)
+
+    } else {
+
+      data_xts <- xts::merge.xts(sum_eload_data_xts, mean_temp_data_xts)
+
+    }
 
 
   } else if (nterval == 60*60) { # if the convert_to_data_interval input is 'Hourly' or max_data_interval == 60*60
