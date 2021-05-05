@@ -9,18 +9,18 @@
 calculate_summary_statistics <- function(modeled_data_obj = NULL) {
 
   # residuals' calculation based on day normalization
-  if (modeled_data_obj$model_input_options$day_normalized == FALSE) {
 
-    model_fit <- modeled_data_obj$training_data$model_fit
-    eload <- modeled_data_obj$training_data$eload
-    fit_residuals_numeric <- eload - model_fit
-
-  } else if (modeled_data_obj$model_input_options$day_normalized == TRUE) {
+  if (modeled_data_obj$model_input_options$day_normalized == TRUE &
+             modeled_data_obj$model_input_options$chosen_modeling_interval == "Monthly") {
 
     model_fit <- modeled_data_obj$training_data$model_fit/modeled_data_obj$training_data$days
     eload <- modeled_data_obj$training_data$eload_perday
     fit_residuals_numeric <- eload - model_fit
 
+  } else {
+    model_fit <- modeled_data_obj$training_data$model_fit
+    eload <- modeled_data_obj$training_data$eload
+    fit_residuals_numeric <- eload - model_fit
   }
 
   # Calculation of model parameter count
