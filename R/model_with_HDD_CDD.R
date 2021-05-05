@@ -21,7 +21,7 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
 
   training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
 
-  nterval <- difftime(training_data$time[2], training_data$time[1], units = "min")
+  nterval <-  median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 15){
     nterval_value <- "15-min"
