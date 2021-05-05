@@ -6,9 +6,7 @@
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param modeled_object List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #'
-#' @return a list with the following components:
-#' \describe{
-#'   \item{predictions}{dataframe with model predictions}
+#' @return a dataframe with model predictions
 #' }
 #'
 #' @export
