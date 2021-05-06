@@ -109,14 +109,32 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     if (nterval_value == "Monthly") {
 
       if (model_input_options$day_normalized == TRUE){
-        linregress <- lm(eload_perday ~ HDD_perday + CDD_perday, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD", "CDD", "days"))
+
+        df <- df %>%
+          select(contains("_perday"))
+
+        linregress <- lm(eload_perday ~ ., data = df)
+
       } else {
-        linregress <- lm(eload ~ HDD + CDD, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days"))
+
+        df <- df %>%
+          select(!contains("_perday"))
+
+        linregress <- lm(eload ~ ., data = df)
       }
 
     } else if (nterval_value == "Daily") {
 
-    linregress <- lm(eload ~ HDD + CDD, data = training_data)
+      df <- training_data %>%
+        select(-c("time", "temp"))
+
+      linregress <- lm(eload ~ ., data = df)
 
     }
 
@@ -125,14 +143,34 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     if (nterval_value == "Monthly") {
 
       if (model_input_options$day_normalized == TRUE){
-        linregress <- lm(eload_perday ~ HDD_perday, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD", "CDD", "days", "CDD_perday"))
+
+        df <- df %>%
+          select(contains("_perday"))
+
+        linregress <- lm(eload_perday ~ ., data = df)
+
       } else {
-        linregress <- lm(eload ~ HDD, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "CDD"))
+
+        df <- df %>%
+          select(!contains("_perday"))
+
+        linregress <- lm(eload ~ ., data = df)
+
       }
 
     } else if (nterval_value == "Daily") {
 
-      linregress <- lm(eload ~ HDD, data = training_data)
+      df <- training_data %>%
+        select(-c("time", "temp", "CDD"))
+
+      linregress <- lm(eload ~ ., data = df)
+
     }
 
 
@@ -141,14 +179,34 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     if (nterval_value == "Monthly") {
 
       if (model_input_options$day_normalized == TRUE){
-        linregress <- lm(eload_perday ~ CDD_perday, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD", "CDD", "days", "HDD_perday"))
+
+        df <- df %>%
+          select(contains("_perday"))
+
+        linregress <- lm(eload_perday ~ ., data = df)
+
       } else {
-        linregress <- lm(eload ~ CDD, data = training_data)
+
+        df <- training_data %>%
+          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "HDD"))
+
+        df <- df %>%
+          select(!contains("_perday"))
+
+        linregress <- lm(eload ~ ., data = df)
+
       }
 
     } else if (nterval_value == "Daily") {
 
-      linregress <- lm(eload ~ CDD, data = training_data)
+      df <- training_data %>%
+        select(-c("time", "temp", "HDD"))
+
+      linregress <- lm(eload ~ ., data = df)
+
     }
 
   }
