@@ -9,7 +9,7 @@ model_with_SLR(training_data = NULL, model_input_options = NULL)
 \arguments{
 \item{training_data}{Training dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{model_input_options}{List with model inputs specified using assign_model_inputs#'}
+\item{model_input_options}{List with model inputs specified using assign_model_inputs}
 }
 \value{
 a list with the following components:

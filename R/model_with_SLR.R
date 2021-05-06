@@ -3,7 +3,7 @@
 #' \code{This function builds an energy use model using the simple linear regression algorithm.}
 #'
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
-#' @param model_input_options List with model inputs specified using assign_model_inputs#'
+#' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
 #' @return a list with the following components:
 #' \describe{
