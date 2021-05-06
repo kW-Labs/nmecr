@@ -76,8 +76,10 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
 
   model_input_options$occupancy_info <- occupancy_info
 
-  # calculate temperature knots
-  model_input_options$calculated_temp_knots <- calculate_temp_knots(training_data = training_data, model_input_options = model_input_options)
+  # calculate temperature knots (only for TOWT)
+  if (model_input_options$regression_type == 'TOWT') {
+    model_input_options$calculated_temp_knots <- calculate_temp_knots(training_data = training_data, model_input_options = model_input_options)
+  }
 
 
   # Run for energy modeling - timescale_days not used
