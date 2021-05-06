@@ -35,22 +35,46 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
   if (nterval_value == "15-min") {
 
-    linregress <- lm(eload ~ temp, training_data)
+    df <- training_data %>%
+      select(-c("time"))
+
+    linregress <- lm(eload ~ ., df)
 
   }  else if (nterval_value == "Hourly") {
 
-    linregress <- lm(eload ~ temp, training_data)
+    df <- training_data %>%
+      select(-c("time"))
+
+    linregress <- lm(eload ~ ., df)
 
   } else if (nterval_value == "Daily") {
 
-    linregress <- lm(eload ~ temp, training_data)
+    df <- training_data %>%
+      select(-c("time", "HDD", "CDD"))
+
+    linregress <- lm(eload ~ ., df)
 
   } else if (nterval_value == "Monthly") {
 
     if (model_input_options$day_normalized == FALSE) {
-      linregress <- lm(eload ~ temp, training_data)
+
+      df <- training_data %>%
+        select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+
+      df <- df %>%
+        select(!contains("_perday"))
+
+      linregress <- lm(eload ~ ., df)
+
     } else if (model_input_options$day_normalized == TRUE) {
-      linregress <- lm(eload_perday ~ temp, training_data)
+
+      df <- training_data %>%
+        select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+
+      df <- df %>%
+        select(contains("_perday") | contains("temp"))
+
+      linregress <- lm(eload_perday ~ ., df)
     }
 
   }
