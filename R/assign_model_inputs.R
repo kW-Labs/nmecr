@@ -10,7 +10,7 @@
 #' Only used if has_temp_knots_defined is set to FALSE.
 #' @param temp_knots_value Vector specifying manually defined temperature knots.  Only used if has_temp_knots_defined is set to TRUE.
 #' @param initial_breakpoints Vector indicating the initial breakpoints (changepoints) to regress over.
-#' @param regression_type Character string indictating the modeling algorithm to run
+#' @param regression_type Character string indicating the modeling algorithm to run
 #' @param occupancy_threshold a fractional value for calculating occupancy schedule of the training dataset
 #' @param day_normalized Logical specifying whether the monthly models should be day normalized or not. Default: FALSE (not day-normalized)
 #'
@@ -31,7 +31,8 @@ assign_model_inputs <- function(timescale_days = NULL,
                                                  "Three Parameter Cooling", "3PC",
                                                  "Three Parameter Heating", "3PH",
                                                  "Four Parameter Linear Model", "4P",
-                                                 "Five Parameter Linear Model", "5P"),
+                                                 "Five Parameter Linear Model", "5P",
+                                                 "Mean"),
                              occupancy_threshold = 0.65,
                              day_normalized = FALSE){
 

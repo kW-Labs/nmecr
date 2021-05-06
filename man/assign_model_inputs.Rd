@@ -14,7 +14,7 @@ assign_model_inputs(
   regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression",
     "HDD-CDD", "HDD Regression", "HDD", "CDD Regression", "CDD",
     "Three Parameter Cooling", "3PC", "Three Parameter Heating", "3PH",
-    "Four Parameter Linear Model", "4P", "Five Parameter Linear Model", "5P"),
+    "Four Parameter Linear Model", "4P", "Five Parameter Linear Model", "5P", "Mean"),
   occupancy_threshold = 0.65,
   day_normalized = FALSE
 )
@@ -35,7 +35,7 @@ Only used if has_temp_knots_defined is set to FALSE.}
 
 \item{initial_breakpoints}{Vector indicating the initial breakpoints (changepoints) to regress over.}
 
-\item{regression_type}{Character string indictating the modeling algorithm to run}
+\item{regression_type}{Character string indicating the modeling algorithm to run}
 
 \item{occupancy_threshold}{a fractional value for calculating occupancy schedule of the training dataset}
 
