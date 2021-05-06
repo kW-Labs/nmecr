@@ -7,7 +7,6 @@
 #' @param modeled_object List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #'
 #' @return a dataframe with model predictions
-#' }
 #'
 #' @export
 

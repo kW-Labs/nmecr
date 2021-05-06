@@ -18,10 +18,7 @@ calculate_model_predictions(
 \item{modeled_object}{List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.}
 }
 \value{
-a list with the following components:
-\describe{
-  \item{predictions}{dataframe with model predictions}
-}
+a dataframe with model predictions
 }
 \description{
 \code{This function calculates predictions from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT}
