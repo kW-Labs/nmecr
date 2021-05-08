@@ -62,6 +62,10 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
       remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
 
+      if("dependent_variable" %in% remaining_columns) { # for normalized predictions
+        remaining_columns <- remaining_columns[remaining_columns != "dependent_variable"]
+      }
+
       if (length(remaining_columns) == 1) {
         if (remaining_columns == 'U1.independent_variable') {
           dframe_pred <- dframe_pred %>%
@@ -78,6 +82,10 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
       breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
 
       remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if("dependent_variable" %in% remaining_columns) { # for normalized predictions
+        remaining_columns <- remaining_columns[remaining_columns != "dependent_variable"]
+      }
 
       if (length(remaining_columns) == 1) {
         if (remaining_columns == 'U1.independent_variable') {
@@ -96,6 +104,10 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
       remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
 
+      if("dependent_variable" %in% remaining_columns) { # for normalized predictions
+        remaining_columns <- remaining_columns[remaining_columns != "dependent_variable"]
+      }
+
       if (length(remaining_columns) == 1) {
         if (remaining_columns == 'U1.independent_variable') {
           dframe_pred <- dframe_pred %>%
@@ -112,6 +124,10 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
       breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
 
       remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if("dependent_variable" %in% remaining_columns) { # for normalized predictions
+        remaining_columns <- remaining_columns[remaining_columns != "dependent_variable"]
+      }
 
       if (length(remaining_columns) == 2) {
         if (remaining_columns[1] == 'U1.independent_variable' &
