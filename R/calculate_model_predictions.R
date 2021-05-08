@@ -46,33 +46,107 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
   } else {
 
-    if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "3PC" |
-        modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "4P" |
-        modeled_object$model_input_options$regression_type == "Five Parameter Linear Model" | modeled_object$model_input_options$regression_type == "5P") {
+    if (modeled_object$model_input_options$day_normalized == TRUE & modeled_object$model_input_options$chosen_modeling_interval == "Monthly") {
+      names(prediction_data)[names(prediction_data) == "eload_perday"] <- "dependent_variable"
+    } else {
+      names(prediction_data)[names(prediction_data) == "eload"] <- "dependent_variable"
+    }
 
-      dframe_pred <- data.frame(independent_variable = prediction_data$temp)
+    names(prediction_data)[names(prediction_data) == "temp"] <- "independent_variable"
 
-    } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating" | modeled_object$model_input_options$regression_type == "3PH"){
+    if (modeled_object$model_input_options$regression_type == "Three Parameter Cooling" | modeled_object$model_input_options$regression_type == "3PC") {
 
-      dframe_pred <- data.frame(independent_variable = - prediction_data$temp)
+      dframe_pred <- prediction_data
+
+      breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
+
+      remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if (length(remaining_columns) == 1) {
+        if (remaining_columns == 'U1.independent_variable') {
+          dframe_pred <- dframe_pred %>%
+            dplyr::mutate(U1.independent_variable = pmax(independent_variable - breakpoint, 0))
+        }
+      } else {
+        dframe_pred <- dframe_pred
+      }
+
+    } else if (modeled_object$model_input_options$regression_type == "Three Parameter Heating" | modeled_object$model_input_options$regression_type == "3PH") {
+
+      dframe_pred <- prediction_data
+
+      breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
+
+      remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if (length(remaining_columns) == 1) {
+        if (remaining_columns == 'U1.independent_variable') {
+          dframe_pred <- dframe_pred %>%
+            dplyr::mutate(U1.independent_variable = pmax(breakpoint - independent_variable, 0))
+        }
+      } else {
+        dframe_pred <- dframe_pred
+      }
+
+    } else if (modeled_object$model_input_options$regression_type == "Four Parameter Linear Model" | modeled_object$model_input_options$regression_type == "4P") {
+
+      dframe_pred <- prediction_data
+
+      breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
+
+      remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if (length(remaining_columns) == 1) {
+        if (remaining_columns == 'U1.independent_variable') {
+          dframe_pred <- dframe_pred %>%
+            dplyr::mutate(U1.independent_variable = pmax(independent_variable - breakpoint, 0))
+        }
+      } else {
+        dframe_pred <- dframe_pred
+      }
+
+    } else if (modeled_object$model_input_options$regression_type == "Five Parameter Linear Model" | modeled_object$model_input_options$regression_type == "5P") {
+
+      dframe_pred <- prediction_data
+
+      breakpoint <- modeled_object$model_input_options$estimated_breakpoint$Est.
+
+      remaining_columns <- names(modeled_object$model$model)[! names(modeled_object$model$model) %in% names(dframe_pred)]
+
+      if (length(remaining_columns) == 2) {
+        if (remaining_columns[1] == 'U1.independent_variable' &
+            remaining_columns[2] == 'U2.independent_variable') {
+          dframe_pred <- dframe_pred %>%
+            dplyr::mutate(U1.independent_variable = pmax(independent_variable - breakpoint[1], 0),
+                        U2.independent_variable = pmax(independent_variable - breakpoint[2], 0))
+        }
+      } else {
+        dframe_pred <- dframe_pred
+      }
 
     }
 
-    if(modeled_object$model_input_options$day_normalized) { # Day-Normalized
+    if(modeled_object$model_input_options$day_normalized & modeled_object$model_input_options$chosen_modeling_interval == "Monthly") { # Day-Normalized
 
-      predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred) %>%
+      predictions <- predict(object = modeled_object$model, newdata = dframe_pred) %>%
         magrittr::multiply_by(prediction_data$days)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
+      names(predictions_df)[names(predictions_df) == "dependent_variable"] <- "eload_perday"
+
     } else { # Hourly or Daily
 
-      predictions <- segmented::predict.segmented(object = modeled_object$model, newdata = dframe_pred)
+      predictions <- predict(object = modeled_object$model, newdata = dframe_pred)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
+      names(predictions_df)[names(predictions_df) == "dependent_variable"] <- "eload"
+
     }
   }
+
+  names(predictions_df)[names(predictions_df) == "independent_variable"] <- "temp"
 
   return(predictions_df)
 
