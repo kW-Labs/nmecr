@@ -145,9 +145,9 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   if (dataframe_interval == "Daily") {
 
     days_covered <- temp_coverage %>%
-      dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
+      dplyr::filter(between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
-    days_covered <- sum(days_covered$n_ref_data)
+    days_covered <- min(sum(days_covered$n_ref_data), 365)
 
     days_not_covered <- 365 - days_covered
     daily_coverage_factor <- signif((days_covered / 365) * 100, 4)
@@ -155,9 +155,9 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   } else {
 
     hours_covered <- temp_coverage %>%
-      dplyr::filter(bins <= extrapolated_max_obs_OA_bin & bins >= extrapolated_min_obs_OA_bin)
+      dplyr::filter(between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
-    hours_covered <- sum(hours_covered$n_ref_data)
+    hours_covered <- min(sum(hours_covered$n_ref_data), 8760)
 
     hours_not_covered <- 8760 - hours_covered
     hourly_coverage_factor <- signif((hours_covered / 8760) * 100, 4)
