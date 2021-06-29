@@ -21,7 +21,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
      modeled_object$model_input_options$regression_type == "CDD Regression" | modeled_object$model_input_options$regression_type == "CDD" |
      modeled_object$model_input_options$regression_type == "HDD-CDD Multivariate Regression" | modeled_object$model_input_options$regression_type == "HDD-CDD") {
 
-    if(modeled_object$model_input_options$day_normalized) { # Day-Normalized
+    if(modeled_object$model_input_options$day_normalized & modeled_object$model_input_options$chosen_modeling_interval == "Monthly") { # Day-Normalized
 
       predictions <- predict(modeled_object$model, prediction_data) %>%
         magrittr::multiply_by(prediction_data$days)
