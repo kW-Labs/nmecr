@@ -88,7 +88,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(three_paramter_cooling_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0 | `Pr(>|t|)` > 0.05)
+      filter(Estimate == 0)
 
     df <- three_paramter_cooling_model$model[! names(three_paramter_cooling_model$model) %in% remove$Variable]
 
@@ -108,7 +108,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(three_paramter_heating_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0 | `Pr(>|t|)` == 0)
+      filter(Estimate == 0)
 
     df <- three_paramter_heating_model$model[! names(three_paramter_heating_model$model) %in% remove$Variable]
 
@@ -126,17 +126,17 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(four_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0 | `Pr(>|t|)` == 0)
+      filter(Estimate == 0)
 
     df <- four_paramter_linear_model$model[! names(four_paramter_linear_model$model) %in% remove$Variable]
 
   } else if (model_input_options$regression_type == "Five Parameter Linear Model" | model_input_options$regression_type == "5P") {
 
-    if (min(model_input_options$initial_breakpoints) < min(independent_variable)) {
+    if (min(model_input_options$initial_breakpoints) < min(independent_variable, na.rm = T)) {
       stop("Changepoint 1 is lower than the minimum temperature value available in the data")
     }
 
-    if (max(model_input_options$initial_breakpoints) > max(independent_variable)) {
+    if (max(model_input_options$initial_breakpoints) > max(independent_variable, na.rm = T)) {
       stop("Changepoint 2 is higher than the maximum temperature value available in the data")
     }
 
@@ -160,7 +160,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(five_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0 | `Pr(>|t|)` == 0)
+      filter(Estimate == 0)
 
     df <- five_paramter_linear_model$model[! names(five_paramter_linear_model$model) %in% remove$Variable]
 
