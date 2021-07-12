@@ -33,5 +33,10 @@ Please make sure R is updated on your system. Check [here](https://www.r-project
 
 ## Getting help
 
-If you have a question or encounter a bug, please file a minimal reproducible example on [github](https://github.com/kW-Labs/nmecr/issues). 
+
+
+If you have a question or encounter a bug, please file a minimal reproducible example on [github](https://github.com/kW-Labs/nmecr/issues).
+
+
+
 
