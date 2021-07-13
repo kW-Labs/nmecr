@@ -2,7 +2,7 @@
 
 ## Overview
 
-nmecr is a Measurement & Verfication practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
+nmecr is a Measurement & Verification practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
 
 There are ten energy modeling algorithms available in nmecr:
 
@@ -33,5 +33,10 @@ Please make sure R is updated on your system. Check [here](https://www.r-project
 
 ## Getting help
 
-If you have a question or encounter a bug, please file a minimal reproducible example on [github](https://github.com/kW-Labs/nmecr/issues). 
+
+
+If you have a question or encounter a bug, please file a minimal reproducible example on [github](https://github.com/kW-Labs/nmecr/issues).
+
+
+
 
