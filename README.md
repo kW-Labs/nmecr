@@ -2,7 +2,7 @@
 
 ## Overview
 
-nmecr is a Measurement & Verfication practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
+nmecr is a Measurement & Verification practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
 
 There are ten energy modeling algorithms available in nmecr:
 
