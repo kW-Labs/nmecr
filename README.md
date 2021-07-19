@@ -2,7 +2,7 @@
 
 ## Overview
 
-nmecr is a Measurement & Verfication practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
+nmecr is a Measurement & Verfication (M&V) practitioner's toolbox that builds upon the energy efficiency community's past efforts to model complex and nuanced building energy use profiles. While intended for use in the commercial and institutional sectors, its functions can be extended to model the energy use profile of industrial systems.
 
 There are ten energy modeling algorithms available in nmecr:
 
@@ -13,12 +13,12 @@ There are ten energy modeling algorithms available in nmecr:
   - Five Parameter Linear Model
   
 2. For use with hourly and daily time interval data:
-  - Time-of-Week Model
-  - Temperature & Time-of-Week Model
+  - Time-of-Week Model (TOW)
+  - Temperature & Time-of-Week Model (TOWT)
   
 3. For use with monthly time interval data only:
-  - Heating Degree Day Model
-  - Cooling Degree Day Model
+  - Heating Degree Day Model (HDD)
+  - Cooling Degree Day Model (CDD)
   - Heating & Cooling Degree Day Model
 
 ## Installation
