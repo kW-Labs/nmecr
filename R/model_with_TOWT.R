@@ -18,7 +18,7 @@
 #'   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
 #'   \item{model_input_options}{model_input_options from the input along with additional model specifications.}
 #' }
-#'
+#' @note training_data is only a required parameter to run TOWT others are passed only if given 
 #' @export
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL, occupancy_info = NULL){
