@@ -1,13 +1,8 @@
 # Setting up objects for testing
 
-#Read in processed data for testing -----
-eload_file <- "Processed Data/Processed Eload - Electric - kWh.xlsx"
-temp_file <- "Processed Data/Processed Temp.xlsx"
-tmy3_file <- "Processed Data/TMY3.xlsx"
-
-eload_data <- readxl::read_xlsx(eload_file)
-temp_data <- readxl::read_xlsx(temp_file)
-tmy3_data <- readxl::read_xlsx(tmy3_file)
+eload_data <- readRDS("Processed Data/Processed Eload.rds")
+temp_data <- readRDS("Processed Data/Processed Temp.rds")
+tmy3_data <- readRDS("Processed Data/Processed TMY3.rds")
 
 #Inputs -----
 baseline_start_date <- "01/01/2019 00:00"
