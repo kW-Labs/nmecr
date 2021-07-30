@@ -3,9 +3,9 @@
 #' \code{This function builds an energy use/demand models using two algorithms: TOWT and MW.
 #' This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 #'
-#' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
-#' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
-#' @param model_input_options List with model inputs specified using assign_model_inputs
+#' @param training_data Training dataframe.Output from create_dataframe function
+#' @param prediction_data Prediction dataframe. Output from create_dataframe function
+#' @param model_input_options List with model inputs specified using assign_model_inputs function
 #' @param occupancy_info An nx2 dataframe with the occupancy information of the training dataset. Column names should be: uniq_time_of_week and ok_occ
 #' uniq_time_of_week is the unique time of week (1 through 7 for daily data and 1 through 168 for hourly data).
 #' ok_occ is a binary: 1 for occupied and 0 for unoccupied
@@ -18,7 +18,7 @@
 #'   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
 #'   \item{model_input_options}{model_input_options from the input along with additional model specifications.}
 #' }
-#'
+#' @note training_data is a required argument for the function. 
 #' @export
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL, occupancy_info = NULL){

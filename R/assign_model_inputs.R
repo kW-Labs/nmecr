@@ -1,5 +1,5 @@
 #' Assign inputs for various modeling algorithms within nmecr.
-#'
+#' Passed in the argument model_input_options for all models in nmecr
 #'
 #' @param timescale_days Numeric corresponding to the timescale for weighting function - used in demand predictions. Default to NULL for energy predictions.
 #' @param has_temp_knots_defined Logical specifying whether the temp_knots are pre-defined or will be calculated by the algorithm. Default: FALSE.
@@ -15,7 +15,7 @@
 #' @param day_normalized Logical specifying whether the monthly models should be day normalized or not. Default: FALSE (not day-normalized)
 #'
 #' @return a list specifying the chosen algorithm inputs
-#'
+#' 
 #' @export
 
 assign_model_inputs <- function(timescale_days = NULL,
