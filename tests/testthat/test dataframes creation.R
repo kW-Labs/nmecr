@@ -1,4 +1,3 @@
-context('testing energy and temp dataframes')
 
 # Expectations---
 simple_df <- readRDS("Expectations/simple_df.rds")
