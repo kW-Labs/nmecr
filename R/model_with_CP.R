@@ -172,7 +172,13 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
   df <- df %>%
     dplyr::bind_cols(keep_temp)
 
-  linregress <- lm(dependent_variable ~ ., data = df)
+  if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH" |
+      model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "3PC" ) {
+
+    linregress <- lm(dependent_variable ~ U1.independent_variable, data = df)
+  } else {
+    linregress <- lm(dependent_variable ~ ., data = df)
+  }
 
   out$model <- linregress
   out$model_stats <- dplyr::bind_cols("Variable" = rownames(summary(linregress)$coeff), as.data.frame(summary(linregress)$coeff))
