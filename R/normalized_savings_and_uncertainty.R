@@ -50,32 +50,32 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   normalized_savings <- baseline_normalized
 
   normalized_savings <- normalized_savings %>%
-    rename(norm.baseline = predictions)
+    dplyr::rename(norm.baseline = predictions)
 
   if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
     normalized_savings <- normalized_savings %>%
-      left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+      dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
   } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
 
     if (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) { # Both models are day-normalized
       normalized_savings <- normalized_savings %>%
-        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+        dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
     } else if (! (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) ) { # None of the models are day-normalized
       normalized_savings <- normalized_savings %>%
-        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+        dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
     } else {
       stop('Both models need to be either day-normalized or not. Cannot process a mix of the two options.')
     }
   } else { # Hourly or 15-min
     normalized_savings <- normalized_savings %>%
-      left_join(performance_normalized, by = c("time", "temp"))
+      dplyr::left_join(performance_normalized, by = c("time", "temp"))
   }
 
   normalized_savings <- normalized_savings %>%
-    rename(norm.performance = predictions)
+    dplyr::rename(norm.performance = predictions)
 
   normalized_savings <- normalized_savings %>%
-    mutate(norm.savings = norm.baseline - norm.performance)
+    dplyr::mutate(norm.savings = norm.baseline - norm.performance)
 
   if (baseline_model$model_input_options$chosen_modeling_interval == "Hourly" |
       baseline_model$model_input_options$chosen_modeling_interval == "15-min") {

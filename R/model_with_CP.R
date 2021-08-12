@@ -44,8 +44,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       names(training_data)[names(training_data) == "eload_perday"] <- "dependent_variable"
 
       keep <- training_data %>%
-        select(contains("_perday")) %>%
-        select(-c("HDD_perday", "CDD_perday", "days"))
+        dplyr::select(contains("_perday")) %>%
+        dplyr::select(-c("HDD_perday", "CDD_perday", "days"))
 
     } else {
 
@@ -53,8 +53,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       names(training_data)[names(training_data) == "eload"] <- "dependent_variable"
 
       keep <- training_data %>%
-        select(!contains("_perday")) %>%
-        select(-c("HDD", "CDD", "days"))
+        dplyr::select(!contains("_perday")) %>%
+        dplyr::select(-c("HDD", "CDD", "days"))
 
     }
   }
@@ -64,7 +64,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     names(training_data)[names(training_data) == "eload"] <- "dependent_variable"
 
     keep <- training_data %>%
-      select(-c("HDD", "CDD"))
+      dplyr::select(-c("HDD", "CDD"))
 
   } else if (nterval_value == "Hourly" | nterval_value == "15-min") {
     dependent_variable <- training_data$eload
@@ -108,7 +108,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(three_paramter_heating_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0)
+      dplyr::filter(Estimate == 0)
 
     df <- three_paramter_heating_model$model[! names(three_paramter_heating_model$model) %in% remove$Variable]
 
@@ -126,7 +126,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(four_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0)
+      dplyr::filter(Estimate == 0)
 
     df <- four_paramter_linear_model$model[! names(four_paramter_linear_model$model) %in% remove$Variable]
 
@@ -160,14 +160,14 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
                                       as.data.frame(summary.segmented(five_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0)
+      dplyr::filter(Estimate == 0)
 
     df <- five_paramter_linear_model$model[! names(five_paramter_linear_model$model) %in% remove$Variable]
 
   }
 
   keep_temp <- keep %>%
-    select(-c("time", "dependent_variable", "independent_variable"))
+    dplyr::select(-c("time", "dependent_variable", "independent_variable"))
 
   df <- df %>%
     dplyr::bind_cols(keep_temp)

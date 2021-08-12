@@ -41,10 +41,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
       dframe <- dframe %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     # simple linear regression - no subsetting by occupancy
@@ -59,10 +59,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp"))
+          dplyr::select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp", "HDD", "CDD"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD"))
       }
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
@@ -90,7 +90,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     if(! is.null(prediction_data)) {
 
-      #create an occupancy vector for prediction dataframe
+      #create an occupancy vector for prediction data frame
       occ_vec_pred <- rep(0, nrow(prediction_data))
       for (i in 1 : length(occ_intervals)) {
         occ_vec_pred[interval_of_week_pred == occ_intervals[i]] <- 1
@@ -110,15 +110,15 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
       dframe <- dframe %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     training_load_pred <- rep(NA, nrow(dframe))
 
-    # create subsets by occupancy (creating Booleans for subsetting)
+    # create subsets by occupancy (creating Booleans for sub setting)
     ok_occ <- occ_vec == 1
     ok_occ[is.na(ok_occ)] <- TRUE
 
@@ -140,10 +140,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp"))
+          dplyr::select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp", "HDD", "CDD"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD"))
       }
 
       pred_vec <- rep(NA, nrow(prediction_data))
@@ -155,7 +155,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
         dframe_occ <- dframe %>%
-          select(-"ftow")
+          dplyr::select(-"ftow")
       } else {
         dframe_occ <- dframe
       }
@@ -181,7 +181,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
         dframe_unocc <- dframe %>%
-          select(-"ftow")
+          dplyr::select(-"ftow")
       } else {
         dframe_unocc <- dframe
       }
@@ -193,6 +193,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
       training_load_pred[! ok_occ] <- t_p
 
       # filter out times of week that are not in unoccupied training period.
+      
       if(! is.null(prediction_data)) {
         if("ftow" %in% colnames(dframe_unocc)){
           id <- which(!(dframe_pred$ftow %in% levels(dframe_unocc$ftow))) # remove extra levels before calculation

@@ -50,10 +50,10 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
     if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
       dframe_pred <- dframe_pred %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
       dframe_pred <- dframe_pred %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     # Time-of-Week ----
@@ -104,9 +104,9 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
         if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
           dframe_occ <- dframe %>%
-            select(-"ftow")
+            dplyr::select(-"ftow")
         } else {
-          dframe_occ <- dframe
+          dplyr::dframe_occ <- dframe
         }
 
         if("ftow" %in% colnames(dframe_occ)){
@@ -120,9 +120,9 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
         if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
           dframe_unocc <- dframe %>%
-            select(-"ftow")
+            dplyr::select(-"ftow")
         } else {
-          dframe_unocc <- dframe
+          dplyr::dframe_unocc <- dframe
         }
 
         if("ftow" %in% colnames(dframe_unocc)){
