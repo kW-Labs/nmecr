@@ -437,7 +437,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
     normalize_by_days <- function(df_col, days_col) {
 
-      if (length(unique(df_col)) <= 2) { # check if the column is categorical or numerical
+      if (nrow(unique(df_col)) <= 2) { # check if the column is categorical or numerical
         normalized_df_col = df_col # and process accordingly
       } else {
         normalized_df_col = df_col/days_col
