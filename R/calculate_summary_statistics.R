@@ -16,44 +16,49 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     model_fit <- modeled_data_obj$training_data$model_fit/modeled_data_obj$training_data$days
     eload <- modeled_data_obj$training_data$eload_perday
     fit_residuals_numeric <- eload - model_fit
+    avg.eload_deviation = eload - mean(eload, na.rm = T)
 
   } else {
     model_fit <- modeled_data_obj$training_data$model_fit
     eload <- modeled_data_obj$training_data$eload
     fit_residuals_numeric <- eload - model_fit
+    avg.eload_deviation = eload - mean(eload, na.rm = T)
   }
 
   # Calculation of model parameter count
 
   if(modeled_data_obj$model_input_options$regression_type == "TOWT" | modeled_data_obj$model_input_options$regression_type == "TOW") {
 
-    nparameter <- length(modeled_data_obj$model_occupied$coefficients)
+    nparameter <- sum(! names(modeled_data_obj$model_occupied$coefficients) %in% "(Intercept)" & !is.na(modeled_data_obj$model_occupied$coefficients))
+
+    intercept_count <-  1
 
     if(exists("model_unoccupied", where = modeled_data_obj)) {
-      nparameter <- nparameter + length(modeled_data_obj$model_unoccupied$coefficients)
+      nparameter <- nparameter + sum(! names(modeled_data_obj$model_unoccupied$coefficients) %in% "(Intercept)" & !is.na(modeled_data_obj$model_unoccupied$coefficients))
+      intercept_count <- intercept_count + 1
     }
 
   } else {
-    nparameter <- length(modeled_data_obj$model$coefficients)
+    nparameter <- sum(!names(modeled_data_obj$model$coefficients) %in% "(Intercept)" & !is.na(modeled_data_obj$model$coefficients))
+    intercept_count <-  1
   }
 
   effective_parameters <- length(fit_residuals_numeric) %>%
     magrittr::subtract(nparameter)
 
+  dof <- length(fit_residuals_numeric) %>%
+    magrittr::subtract(nparameter) %>%
+    magrittr::subtract(intercept_count)
+
   # R-sqaured (Absolute)
 
-  SSR_over_SST <- fit_residuals_numeric %>%
-    magrittr::raise_to_power(2) %>%
-    mean(na.rm = T) %>%
-    magrittr::divide_by(var(eload, na.rm = T))
-
-  R_squared <- round(1 - SSR_over_SST,2)
+  R_squared <- 1 - (sum(fit_residuals_numeric^2)/sum(avg.eload_deviation^2))
 
   # Adjusted R-sqaured (Absolute)
 
   N <- length(fit_residuals_numeric)
 
-  Adjusted_R_squared <- round(1 - (((1-R_squared)*(N-1))/(effective_parameters - 1)),2)
+  Adjusted_R_squared <- round(1 - (((1-R_squared)*(N-1))/(dof)),2)
 
   # Root Mean Sqaured Error (Absolute)
   RMSE <- fit_residuals_numeric %>%
@@ -98,7 +103,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   goodness_of_fit$`NDBE %` <- NDBE
   goodness_of_fit$`NMBE %` <- NMBE
   goodness_of_fit$"#Parameters" <- nparameter
-  goodness_of_fit$"deg_of_freedom" <- effective_parameters
+  goodness_of_fit$"deg_of_freedom" <- dof
 
   return(goodness_of_fit)
 
