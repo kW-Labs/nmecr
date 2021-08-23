@@ -80,7 +80,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     three_paramter_cooling_model <- tryCatch(segmented::segmented(dummy_cooling_model, seg.Z = ~independent_variable),
                                              warning = function(w) w)
 
-    if(is(three_paramter_heating_model, "warning")) {
+    if(is(three_paramter_cooling_model, "warning")) {
       df <- 'A 3PC model could not be computed. No breakpoint found'
     } else {
 
