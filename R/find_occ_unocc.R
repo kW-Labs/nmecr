@@ -29,14 +29,14 @@ find_occ_unocc <- function(training_data = NULL, model_input_options = NULL) {
   temp_col_65 <- temp_col - 65
   temp_col_65[temp_col < 65] <- 0
 
-  amod <- lm(eload_col ~ temp_col_50 + temp_col_65, na.action = na.exclude)
+  amod <- stats::lm(eload_col ~ temp_col_50 + temp_col_65, na.action = stats::na.exclude)
 
   ok_occ <- rep(0, time_of_week_rows)
   for (row_index in 1 : time_of_week_rows) {
     ok_time_of_week <- interval_of_week == uniq_time_of_week[row_index]
     # if the regression underpredicts the load more than 65% of the time
     # then assume it's an occupied period
-    if (sum(residuals(amod)[ok_time_of_week] > 0, na.rm = TRUE) >
+    if (sum(stats::residuals(amod)[ok_time_of_week] > 0, na.rm = TRUE) >
         model_input_options$occupancy_threshold * sum(ok_time_of_week)) {
       ok_occ[row_index] <- 1
     }

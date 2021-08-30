@@ -27,5 +27,5 @@ a list with the following components:
 }
 \description{
 \code{This function builds an electric demand models using two algorithms: TOWT and MW.
-This function is adapted from work by LBNL: \code{\link[RMV2.0]{https://lbnl-eta.github.io/RMV2.0/}}}
+This function is adapted from work by LBNL: \url{https://lbnl-eta.github.io/RMV2.0/}}
 }

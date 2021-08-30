@@ -9,6 +9,8 @@
 #' Default values: 1 for daily data, up to 10 for hourly data.
 #' @param extrapolation_limit A numeric, beyond the minimum and maximum observed temperatures, up to which the data range may be extrapolated for model prediction. Default: 0.05
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a list with the following components:
 #' \describe{
 #'   \item{temp_coverage}{a data frame with temperature bins and associated frequencies of occurence from site temperature data and normalized temperature data.}
@@ -22,9 +24,11 @@
 calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
                                outlier_threshold = NULL, extrapolation_limit = NULL) {
 
+  day <- temp <- NULL # No visible binding for global variable
+
   # ensure complete rows
-  dataframe <- dataframe[complete.cases(dataframe), ]
-  ref_temp_data <- ref_temp_data[complete.cases(ref_temp_data), ]
+  dataframe <- dataframe[stats::complete.cases(dataframe), ]
+  ref_temp_data <- ref_temp_data[stats::complete.cases(ref_temp_data), ]
 
   nterval <- difftime(dataframe$time[2], dataframe$time[1], units = "min")
 
@@ -67,13 +71,13 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
       dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
       dplyr::group_by("time" = day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
-      na.omit()
+      stats::na.omit()
 
     site_temp_data <- site_temp_data %>%
       dplyr::mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
       dplyr::group_by("time" = day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
-      na.omit()
+      stats::na.omit()
   }
 
   # bin size: 2
@@ -145,7 +149,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   if (dataframe_interval == "Daily") {
 
     days_covered <- temp_coverage %>%
-      dplyr::filter(between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
     days_covered <- min(sum(days_covered$n_ref_data), 365)
 
@@ -155,7 +159,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   } else {
 
     hours_covered <- temp_coverage %>%
-      dplyr::filter(between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
     hours_covered <- min(sum(hours_covered$n_ref_data), 8760)
 
@@ -164,7 +168,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
   }
 
-  coverage_factor_summary <- as.data.frame(matrix(nr = 4, nc = 2))
+  coverage_factor_summary <- as.data.frame(matrix(nrow = 4, ncol = 2))
 
   coverage_factor_summary[1, 1] <- "Temperature Coverage"
   coverage_factor_summary[1, 2] <- temp_coverage_factor
@@ -196,7 +200,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
   out$coverage_factor_summary <- coverage_factor_summary
 
-  temp_bin_summary <- as.data.frame(matrix(nr = 4, nc = 2))
+  temp_bin_summary <- as.data.frame(matrix(nrow = 4, ncol = 2))
   names(temp_bin_summary) <- c("Temperature Bin Summary", "")
 
   temp_bin_summary[1, 1] <- "Min Observed Temp Bin"

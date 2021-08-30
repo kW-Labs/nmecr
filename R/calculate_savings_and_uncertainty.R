@@ -4,9 +4,11 @@
 #'
 #' @param prediction_df Model predictions. Output from calculate_model_predictions
 #' @param savings_fraction savings fraction value to use in savings uncertainty calculations. Used when prediction_df is set to NULL
-#' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
+#' @param modeled_object  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #' @param model_summary_statistics Dataframe with model statistics. Output from calculate_summary_statistics.
 #' @param confidence_level Numeric corresponding to the confidence level to be used for savings uncertainty calculation
+#'
+#' @importFrom magrittr %>%
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -18,6 +20,8 @@
 #' @export
 
 calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_fraction = 0.1, modeled_object = NULL, model_summary_statistics = NULL, confidence_level = 90){
+
+  predictions <- eload <- NULL # No visible binding for global variable
 
   if(confidence_level < 0 | confidence_level > 100){
     stop("Error: confidence level cannot be less than zero or greater than 100")
@@ -38,7 +42,7 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
   correlation_df$residuals_shifted <- dplyr::lag(correlation_df$residuals, 1)
   correlation_df <- correlation_df[-1, ]
 
-  rho <- cor(correlation_df[,1], correlation_df[,2])
+  rho <- stats::cor(correlation_df[,1], correlation_df[,2])
   n <- length(modeled_object$training_data$time)
   n_dash <- n*(1 - rho)/(1+rho)
 
@@ -97,11 +101,11 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
     magrittr::raise_to_power(2)
 
   deg_of_freedom = model_summary_statistics$deg_of_freedom
-  t_stat = qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
+  t_stat = stats::qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom)
   MSE = sum(squared_error, na.rm = T)/deg_of_freedom
 
   deg_of_freedom_dash <- n_dash - model_summary_statistics$`#Parameters`
-  t_stat_dash <- suppressWarnings(qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom_dash))
+  t_stat_dash <- suppressWarnings(stats::qt(1 - (1 - (confidence_level/100)) / 2, df = deg_of_freedom_dash))
   MSE_dash = sum(squared_error, na.rm = T)/deg_of_freedom_dash
 
   if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly" | rho < 0.5) { # ASHRAE Guideline14-104, pg 91

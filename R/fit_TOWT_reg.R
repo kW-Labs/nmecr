@@ -6,6 +6,7 @@
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
+#' @importFrom magrittr %>%
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -41,15 +42,15 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
       dframe <- dframe %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     # simple linear regression - no subsetting by occupancy
-    amod <- lm(training_data$eload ~ . , data = dframe, na.action = na.exclude, weights = model_input_options$train_weight_vec)
-    training_load_pred <- predict(amod)
+    amod <- stats::lm(training_data$eload ~ . , data = dframe, na.action = stats::na.exclude, weights = model_input_options$train_weight_vec)
+    training_load_pred <- stats::predict(amod)
 
     # make predictions
     if(! is.null(prediction_data)) {
@@ -59,10 +60,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp"))
+          dplyr::select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp", "HDD", "CDD"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD"))
       }
 
       ok_tow_pred <- factor(ftow) %in% amod$xlevels$ftow
@@ -70,7 +71,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
       dframe_pred$ftow[id] <- NA
-      pred_vec[ok_tow_pred] <- predict(amod, dframe_pred)
+      pred_vec[ok_tow_pred] <- stats::predict(amod, dframe_pred)
 
     }
 
@@ -110,10 +111,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
     if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
       dframe <- dframe %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (model_input_options$chosen_modeling_interval == "Daily") {
       dframe <- dframe %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     training_load_pred <- rep(NA, nrow(dframe))
@@ -140,10 +141,10 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(model_input_options$chosen_modeling_interval == "Hourly" | model_input_options$chosen_modeling_interval == "15-min") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp"))
+          dplyr::select(-c("time", "temp"))
       } else if (model_input_options$chosen_modeling_interval == "Daily") {
         dframe_pred <- dframe_pred %>%
-          select(-c("time", "temp", "HDD", "CDD"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD"))
       }
 
       pred_vec <- rep(NA, nrow(prediction_data))
@@ -155,15 +156,15 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
         dframe_occ <- dframe %>%
-          select(-"ftow")
+          dplyr::select(-"ftow")
       } else {
         dframe_occ <- dframe
       }
 
       # linear regression - subset for occupied periods
-      amod <- lm(training_data$eload ~ . , data = dframe_occ,
-                 na.action = na.exclude, weights = model_input_options$train_weight_vec, subset = ok_occ)
-      t_p <- predict(amod, dframe_occ[ok_occ, ])
+      amod <- stats::lm(training_data$eload ~ . , data = dframe_occ,
+                 na.action = stats::na.exclude, weights = model_input_options$train_weight_vec, subset = ok_occ)
+      t_p <- stats::predict(amod, dframe_occ[ok_occ, ])
       training_load_pred[ok_occ] <- t_p
 
       # filter out times of week that are not in occupied training period.
@@ -172,7 +173,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
           id <- which(!(dframe_pred$ftow %in% levels(dframe_occ$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
-        pred_vec[ok_occ_pred] <- predict(amod, dframe_pred[ok_occ_pred, ])
+        pred_vec[ok_occ_pred] <- stats::predict(amod, dframe_pred[ok_occ_pred, ])
       }
 
     }
@@ -181,15 +182,15 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
 
       if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
         dframe_unocc <- dframe %>%
-          select(-"ftow")
+          dplyr::select(-"ftow")
       } else {
         dframe_unocc <- dframe
       }
 
       # linear regression - subset for unoccupied periods
-      bmod <- lm(training_data$eload ~ . , data = dframe_unocc, na.action = na.exclude,
+      bmod <- stats::lm(training_data$eload ~ . , data = dframe_unocc, na.action = stats::na.exclude,
                  weights = model_input_options$train_weight_vec, subset = ! ok_occ)
-      t_p <- predict(bmod, dframe_unocc[! ok_occ, ])
+      t_p <- stats::predict(bmod, dframe_unocc[! ok_occ, ])
       training_load_pred[! ok_occ] <- t_p
 
       # filter out times of week that are not in unoccupied training period.
@@ -198,7 +199,7 @@ fit_TOWT_reg <- function(training_data = NULL, prediction_data = NULL, model_inp
           id <- which(!(dframe_pred$ftow %in% levels(dframe_unocc$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
-        pred_vec[! ok_occ_pred] <- predict(bmod, dframe_pred[! ok_occ_pred, ])
+        pred_vec[! ok_occ_pred] <- stats::predict(bmod, dframe_pred[! ok_occ_pred, ])
 
       }
 

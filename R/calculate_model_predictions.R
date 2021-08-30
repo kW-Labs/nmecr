@@ -6,15 +6,19 @@
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param modeled_object List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a dataframe with model predictions
 #'
 #' @export
 
 calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  independent_variable <- NULL # No visible binding for global variable
 
-  prediction_data <- prediction_data[complete.cases(prediction_data), ] # remove any incomplete observations
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
+
+  prediction_data <- prediction_data[stats::complete.cases(prediction_data), ] # remove any incomplete observations
 
   if (modeled_object$model_input_options$regression_type == "SLR" |
      modeled_object$model_input_options$regression_type == "HDD Regression" | modeled_object$model_input_options$regression_type == "HDD" |
@@ -23,14 +27,14 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     if(modeled_object$model_input_options$day_normalized & modeled_object$model_input_options$chosen_modeling_interval == "Monthly") { # Day-Normalized
 
-      predictions <- predict(modeled_object$model, prediction_data) %>%
+      predictions <- stats::predict(modeled_object$model, prediction_data) %>%
         magrittr::multiply_by(prediction_data$days)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
     } else { # Hourly or Daily
 
-      predictions <- predict(modeled_object$model, prediction_data)
+      predictions <- stats::predict(modeled_object$model, prediction_data)
 
       predictions_df <- data.frame(prediction_data, predictions)
 
@@ -144,7 +148,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     if(modeled_object$model_input_options$day_normalized & modeled_object$model_input_options$chosen_modeling_interval == "Monthly") { # Day-Normalized
 
-      predictions <- predict(object = modeled_object$model, newdata = dframe_pred) %>%
+      predictions <- stats::predict(object = modeled_object$model, newdata = dframe_pred) %>%
         magrittr::multiply_by(prediction_data$days)
 
       predictions_df <- data.frame(prediction_data, predictions)
@@ -153,7 +157,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
 
     } else { # Hourly or Daily
 
-      predictions <- predict(object = modeled_object$model, newdata = dframe_pred)
+      predictions <- stats::predict(object = modeled_object$model, newdata = dframe_pred)
 
       predictions_df <- data.frame(prediction_data, predictions)
 

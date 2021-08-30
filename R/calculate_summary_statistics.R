@@ -2,6 +2,8 @@
 #'
 #' @param modeled_data_obj  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a dataframe with five model statistics: "R_squared", "CVRMSE", "NDBE", "MBE", "#Parameters"
 #'
 #' @export
@@ -95,7 +97,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     magrittr::multiply_by(100) %>%
     format(round(., 2), nsmall = 4)
 
-  goodness_of_fit <- as.data.frame(matrix(nr = 1, nc = 7))
+  goodness_of_fit <- as.data.frame(matrix(nrow = 1, ncol = 7))
   names(goodness_of_fit) <- c("R_squared", "Adjusted_R_squared", "CVRMSE %", "NDBE %", "NMBE %", "#Parameters", "deg_of_freedom")
   goodness_of_fit$R_squared <- R_squared
   goodness_of_fit$Adjusted_R_squared <- Adjusted_R_squared

@@ -18,18 +18,18 @@
 #'   \item{prediction_data}{prediction dataframe along with the model prediction values. Only generated when prediction_list is supplied to the algorithm}
 #'   \item{model_input_options}{model_input_options from the input along with additional model specifications.}
 #' }
-#' @note training_data and model_input_options are required arguments for the function. 
+#' @note training_data and model_input_options are required arguments for the function.
 #' @export
 
 model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_input_options = NULL, occupancy_info = NULL){
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
 
   if(! is.null(prediction_data)) {
-    prediction_data <- prediction_data[complete.cases(prediction_data), ]
+    prediction_data <- prediction_data[stats::complete.cases(prediction_data), ]
   } # remove any incomplete observations
 
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   #calculate interval minutes
   model_input_options$interval_minutes <- nterval

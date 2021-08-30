@@ -5,6 +5,8 @@
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a list with the following components:
 #' \describe{
 #'   \item{model}{an lm object}
@@ -17,9 +19,9 @@
 
 model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
 
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 15){
     nterval_value <- "15-min"
@@ -36,45 +38,45 @@ model_with_SLR <- function(training_data = NULL, model_input_options = NULL){
   if (nterval_value == "15-min") {
 
     df <- training_data %>%
-      select(-c("time"))
+      dplyr::select(-c("time"))
 
-    linregress <- lm(eload ~ ., df)
+    linregress <- stats::lm(eload ~ ., df)
 
   }  else if (nterval_value == "Hourly") {
 
     df <- training_data %>%
-      select(-c("time"))
+      dplyr::select(-c("time"))
 
-    linregress <- lm(eload ~ ., df)
+    linregress <- stats::lm(eload ~ ., df)
 
   } else if (nterval_value == "Daily") {
 
     df <- training_data %>%
-      select(-c("time", "HDD", "CDD"))
+      dplyr::select(-c("time", "HDD", "CDD"))
 
-    linregress <- lm(eload ~ ., df)
+    linregress <- stats::lm(eload ~ ., df)
 
   } else if (nterval_value == "Monthly") {
 
     if (model_input_options$day_normalized == FALSE) {
 
       df <- training_data %>%
-        select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+        dplyr::select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
 
       df <- df %>%
-        select(!contains("_perday"))
+        dplyr::select(! dplyr::contains("_perday"))
 
-      linregress <- lm(eload ~ ., df)
+      linregress <- stats::lm(eload ~ ., df)
 
     } else if (model_input_options$day_normalized == TRUE) {
 
       df <- training_data %>%
-        select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+        dplyr::select(-c("time", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
 
       df <- df %>%
-        select(contains("_perday") | contains("temp"))
+        dplyr::select(dplyr::contains("_perday") | dplyr::contains("temp"))
 
-      linregress <- lm(eload_perday ~ ., df)
+      linregress <- stats::lm(eload_perday ~ ., df)
     }
 
   }

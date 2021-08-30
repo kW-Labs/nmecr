@@ -8,6 +8,8 @@
 #' @param HDD_balancepoint Heating specific balancepoint
 #' @param CDD_balancepoint Cooling specific balancepoint
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a list with the following components:
 #' \describe{
 #'   \item{model}{an lm object}
@@ -19,9 +21,11 @@
 
 model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL, HDD_balancepoint = NULL, CDD_balancepoint = NULL){
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  HDD <- CDD <- HDD_perday <- CDD_perday <- temp <- NULL # No visible binding for global variable
 
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
+
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 15){
     nterval_value <- "15-min"
@@ -44,16 +48,16 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     # Calculate HDD CDD balancepoints if not given
     if (is.null(HDD_balancepoint)) {
       HDD_df <- training_data[, c("time", "temp", "HDD")] %>%
-        filter(HDD != 0) %>%
-        mutate(HDD_balancepoint = temp+HDD)
-      HDD_temp <- median(HDD_df$HDD_balancepoint)
+        dplyr::filter(HDD != 0) %>%
+        dplyr::mutate(HDD_balancepoint = temp+HDD)
+      HDD_temp <- stats::median(HDD_df$HDD_balancepoint)
     }
 
     if (is.null(CDD_balancepoint)) {
       CDD_df <- training_data[, c("time", "temp", "CDD")] %>%
-        filter(CDD != 0) %>%
-        mutate(CDD_balancepoint = temp-CDD)
-      CDD_temp <- median(CDD_df$CDD_balancepoint)
+        dplyr::filter(CDD != 0) %>%
+        dplyr::mutate(CDD_balancepoint = temp-CDD)
+      CDD_temp <- stats::median(CDD_df$CDD_balancepoint)
     }
 
     # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
@@ -74,16 +78,16 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
     # Calculate HDD CDD balancepoints if not given
     if (is.null(HDD_balancepoint)) {
       HDD_df <- training_data[, c("time", "temp", "HDD", "HDD_perday")] %>%
-        filter(HDD != 0) %>%
-        mutate(HDD_balancepoint = temp+HDD_perday)
-      HDD_temp <- median(HDD_df$HDD_balancepoint)
+        dplyr::filter(HDD != 0) %>%
+        dplyr::mutate(HDD_balancepoint = temp+HDD_perday)
+      HDD_temp <- stats::median(HDD_df$HDD_balancepoint)
     }
 
     if (is.null(CDD_balancepoint)) {
       CDD_df <- training_data[, c("time", "temp", "CDD", "CDD_perday")] %>%
-        filter(CDD != 0) %>%
-        mutate(CDD_balancepoint = temp-CDD_perday)
-      CDD_temp <- median(CDD_df$CDD_balancepoint)
+        dplyr::filter(CDD != 0) %>%
+        dplyr::mutate(CDD_balancepoint = temp-CDD_perday)
+      CDD_temp <- stats::median(CDD_df$CDD_balancepoint)
     }
 
     # If balancepoints are provided, overwrite HDD and CDD values inherited from create_dataframe
@@ -111,30 +115,30 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
       if (model_input_options$day_normalized == TRUE){
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD", "CDD", "days"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD", "days"))
 
         df <- df %>%
-          select(contains("_perday"))
+          dplyr::select(dplyr::contains("_perday"))
 
-        linregress <- lm(eload_perday ~ ., data = df)
+        linregress <- stats::lm(eload_perday ~ ., data = df)
 
       } else {
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days"))
+          dplyr::select(-c("time", "temp", "HDD_perday", "CDD_perday", "days"))
 
         df <- df %>%
-          select(!contains("_perday"))
+          dplyr::select(! dplyr::contains("_perday"))
 
-        linregress <- lm(eload ~ ., data = df)
+        linregress <- stats::lm(eload ~ ., data = df)
       }
 
     } else if (nterval_value == "Daily") {
 
       df <- training_data %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
 
-      linregress <- lm(eload ~ ., data = df)
+      linregress <- stats::lm(eload ~ ., data = df)
 
     }
 
@@ -145,31 +149,31 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
       if (model_input_options$day_normalized == TRUE){
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD", "CDD", "days", "CDD_perday"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD", "days", "CDD_perday"))
 
         df <- df %>%
-          select(contains("_perday"))
+          dplyr::select(dplyr::contains("_perday"))
 
-        linregress <- lm(eload_perday ~ ., data = df)
+        linregress <- stats::lm(eload_perday ~ ., data = df)
 
       } else {
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "CDD"))
+          dplyr::select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "CDD"))
 
         df <- df %>%
-          select(!contains("_perday"))
+          dplyr::select(! dplyr::contains("_perday"))
 
-        linregress <- lm(eload ~ ., data = df)
+        linregress <- stats::lm(eload ~ ., data = df)
 
       }
 
     } else if (nterval_value == "Daily") {
 
       df <- training_data %>%
-        select(-c("time", "temp", "CDD"))
+        dplyr::select(-c("time", "temp", "CDD"))
 
-      linregress <- lm(eload ~ ., data = df)
+      linregress <- stats::lm(eload ~ ., data = df)
 
     }
 
@@ -181,31 +185,31 @@ model_with_HDD_CDD <- function(training_data = NULL, model_input_options = NULL,
       if (model_input_options$day_normalized == TRUE){
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD", "CDD", "days", "HDD_perday"))
+          dplyr::select(-c("time", "temp", "HDD", "CDD", "days", "HDD_perday"))
 
         df <- df %>%
-          select(contains("_perday"))
+          dplyr::select(dplyr::contains("_perday"))
 
-        linregress <- lm(eload_perday ~ ., data = df)
+        linregress <- stats::lm(eload_perday ~ ., data = df)
 
       } else {
 
         df <- training_data %>%
-          select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "HDD"))
+          dplyr::select(-c("time", "temp", "HDD_perday", "CDD_perday", "days", "HDD"))
 
         df <- df %>%
-          select(!contains("_perday"))
+          dplyr::select(! dplyr::contains("_perday"))
 
-        linregress <- lm(eload ~ ., data = df)
+        linregress <- stats::lm(eload ~ ., data = df)
 
       }
 
     } else if (nterval_value == "Daily") {
 
       df <- training_data %>%
-        select(-c("time", "temp", "HDD"))
+        dplyr::select(-c("time", "temp", "HDD"))
 
-      linregress <- lm(eload ~ ., data = df)
+      linregress <- stats::lm(eload ~ ., data = df)
 
     }
 

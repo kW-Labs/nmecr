@@ -6,7 +6,10 @@
 #' @param baseline_stats Baseline model's corresponding statistics
 #' @param performance_model  Performance model
 #' @param performance_stats Performance model's corresponding statistics
+#' @param normalized_weather Weather dataset to be used for model prediction normalization
 #' @param confidence_level Numeric corresponding to the confidence level to be used for savings uncertainty calculation
+#'
+#' @importFrom magrittr %>%
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -22,6 +25,8 @@
 calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseline_stats = NULL,
                                                    performance_model = NULL, performance_stats = NULL,
                                                    normalized_weather = NULL, confidence_level = 90){
+
+  predictions <- norm.baseline <- norm.performance <- NULL # No visible binding for global variable
 
   if(confidence_level < 0 | confidence_level > 100){
     stop("Error: confidence level cannot be less than zero or greater than 100")
@@ -50,32 +55,32 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   normalized_savings <- baseline_normalized
 
   normalized_savings <- normalized_savings %>%
-    rename(norm.baseline = predictions)
+    dplyr::rename(norm.baseline = predictions)
 
   if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
     normalized_savings <- normalized_savings %>%
-      left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+      dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
   } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
 
     if (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) { # Both models are day-normalized
       normalized_savings <- normalized_savings %>%
-        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
+        dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD", "HDD_perday", "CDD_perday", "days"))
     } else if (! (baseline_model$model_input_options$day_normalized & performance_model$model_input_options$day_normalized) ) { # None of the models are day-normalized
       normalized_savings <- normalized_savings %>%
-        left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
+        dplyr::left_join(performance_normalized, by = c("time", "temp", "HDD", "CDD"))
     } else {
       stop('Both models need to be either day-normalized or not. Cannot process a mix of the two options.')
     }
   } else { # Hourly or 15-min
     normalized_savings <- normalized_savings %>%
-      left_join(performance_normalized, by = c("time", "temp"))
+      dplyr::left_join(performance_normalized, by = c("time", "temp"))
   }
 
   normalized_savings <- normalized_savings %>%
-    rename(norm.performance = predictions)
+    dplyr::rename(norm.performance = predictions)
 
   normalized_savings <- normalized_savings %>%
-    mutate(norm.savings = norm.baseline - norm.performance)
+    dplyr::mutate(norm.savings = norm.baseline - norm.performance)
 
   if (baseline_model$model_input_options$chosen_modeling_interval == "Hourly" |
       baseline_model$model_input_options$chosen_modeling_interval == "15-min") {
@@ -106,7 +111,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
     corr_df$residuals_shifted <- dplyr::lag(corr_df$residuals, 1)
     corr_df <- corr_df[-1, ]
 
-    rho <- cor(corr_df[,1], corr_df[,2])
+    rho <- stats::cor(corr_df[,1], corr_df[,2])
     n <- length(model_fit_df$time)
     n_dash <- n*(1 - rho)/(1+rho)
 
@@ -126,10 +131,10 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   baseline_dof_dash <- n_dash - baseline_stats$`#Parameters`
   performance_dof_dash <- m_dash - performance_stats$`#Parameters`
 
-  baseline_t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof)
-  performance_t_stat <- qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof)
-  baseline_t_stat_dash <- qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof_dash)
-  performance_t_stat_dash <- qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof_dash)
+  baseline_t_stat <- stats::qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof)
+  performance_t_stat <- stats::qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof)
+  baseline_t_stat_dash <- stats::qt(1 - (1 - (confidence_level/100)) / 2, df = baseline_dof_dash)
+  performance_t_stat_dash <- stats::qt(1 - (1 - (confidence_level/100)) / 2, df = performance_dof_dash)
 
   mean_baseline_eload = mean(baseline_model$training_data$eload, na.rm = T)
   mean_baseline_normalized_eload = mean(baseline_normalized$predictions, na.rm = T)

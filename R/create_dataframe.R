@@ -16,6 +16,8 @@
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a dataframe with energy consumption data, temperature data and additional variable data
 #' @export
 
@@ -23,6 +25,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
                              additional_independent_variables = NULL, additional_variable_aggregation = c(sum, median),
                              start_date = NULL, end_date = NULL,
                              convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"), temp_balancepoint = 65) {
+
+  day <- temp <- time <- NULL # No visible binding for global variable
 
   if(!missing("operating_mode_data")) {
     warning("'operating_mode_data' has been deprecated and will be discontinued in future releases. Please use 'additional_independent_variables' instead.")
@@ -48,7 +52,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   }
 
   if(! is.null(additional_independent_variables)){
-    if(! is.POSIXct(additional_independent_variables$time)){
+    if(! lubridate::is.POSIXct(additional_independent_variables$time)){
     stop("Timestamps in 'additional_independent_variables' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
     }
   }
@@ -186,7 +190,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
       df <- data.frame(df)
       df <- data.frame("time" = additional_independent_variables$time) %>%
-        bind_cols(df)
+        dplyr::bind_cols(df)
 
       df_xts <- xts::xts(x = df[, -1], order.by = df[, 1])
 
@@ -321,7 +325,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
        dplyr::mutate(day = lubridate::floor_date(temp_data$time, "day")) %>%
        dplyr::group_by("time" = day) %>%
        dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
-       na.omit()
+       stats::na.omit()
 
      base_temp <- rep(temp_balancepoint, length(daily_temp$time))
      HDD <- base_temp - daily_temp$temp
@@ -333,7 +337,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
      monthly_temp <- data.frame(matrix(ncol = 5, nrow = length(sum_eload_data_xts)))
      names(monthly_temp) <- c("time", "temp", "HDD", "CDD", "days")
-     monthly_temp$time <- index(sum_eload_data_xts)# aligning to eload - representing the end of the period
+     monthly_temp$time <- zoo::index(sum_eload_data_xts)# aligning to eload - representing the end of the period
 
      for (i in 2:length(monthly_temp$time)) {
 
@@ -380,7 +384,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
    } else {
 
       mean_temp_data_xts <- temp_data_xts # if input as monthly - assumption is that the its aligned to the end of the period
-      mean_temp_data_xts$days <- lubridate::days_in_month(month(index(mean_temp_data_xts) - 30))
+      mean_temp_data_xts$days <- lubridate::days_in_month(lubridate::month(zoo::index(mean_temp_data_xts) - 30))
       mean_temp_data_xts$HDD <- (temp_balancepoint - mean_temp_data_xts$temp)*mean_temp_data_xts$days
       mean_temp_data_xts$HDD[mean_temp_data_xts$HDD < 0 ] <- 0
       mean_temp_data_xts$CDD <- (mean_temp_data_xts$temp - temp_balancepoint)*mean_temp_data_xts$days
@@ -410,7 +414,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
     check_start_date <- suppressWarnings(lubridate::mdy_hm(start_date))
     if(is.na(check_start_date)) {
-      start_date <- paste(paste(month(start_date), day(start_date), year(start_date), sep = "/"), paste(hour(start_date), minute(start_date), sep = ":"), sep = " ")
+      start_date <- paste(paste(lubridate::month(start_date), lubridate::day(start_date), lubridate::year(start_date), sep = "/"), paste(lubridate::hour(start_date), lubridate::minute(start_date), sep = ":"), sep = " ")
     }
     data_xts <- data_xts[zoo::index(data_xts) >= lubridate::mdy_hm(start_date)]
   }
@@ -419,7 +423,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
     check_end_date <- suppressWarnings(lubridate::mdy_hm(end_date))
     if(is.na(check_end_date)) {
-      end_date <- paste(paste(month(end_date), day(end_date), year(end_date), sep = "/"), paste(hour(end_date), minute(end_date), sep = ":"), sep = " ")
+      end_date <- paste(paste(lubridate::month(end_date), lubridate::day(end_date), lubridate::year(end_date), sep = "/"), paste(lubridate::hour(end_date), lubridate::minute(end_date), sep = ":"), sep = " ")
     }
 
     data_xts <- data_xts[zoo::index(data_xts) <= lubridate::mdy_hm(end_date)]
@@ -453,7 +457,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
 
 
     df <- df %>%
-      bind_cols(normalized_df)
+      dplyr::bind_cols(normalized_df)
 
   }
 

@@ -4,7 +4,9 @@
 #'
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
-#' @param model_input_options List with model inputs specified using assign_model_inputs
+#' @param modeled_object  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @return a list with the following components:
 #' \describe{
@@ -50,10 +52,10 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
     if(modeled_object$model_input_options$chosen_modeling_interval == "Hourly") {
       dframe_pred <- dframe_pred %>%
-        select(-c("time", "temp"))
+        dplyr::select(-c("time", "temp"))
     } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
       dframe_pred <- dframe_pred %>%
-        select(-c("time", "temp", "HDD", "CDD"))
+        dplyr::select(-c("time", "temp", "HDD", "CDD"))
     }
 
     # Time-of-Week ----
@@ -65,7 +67,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
       id <- which(!(dframe_pred$ftow %in% levels(dframe$ftow))) # remove extra levels before calculation
       dframe_pred$ftow[id] <- NA
-      predictions[ok_tow_pred] <- predict(modeled_object$model_occupied, dframe_pred)
+      predictions[ok_tow_pred] <- stats::predict(modeled_object$model_occupied, dframe_pred)
 
     } else {
 
@@ -104,7 +106,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
 
         if(nlevels(factor(dframe[ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
           dframe_occ <- dframe %>%
-            select(-"ftow")
+            dplyr::select(-"ftow")
         } else {
           dframe_occ <- dframe
         }
@@ -113,14 +115,14 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
           id <- which(!(dframe_pred$ftow %in% levels(dframe_occ$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
-        predictions[ok_occ_pred] <- predict(modeled_object$model_occupied, dframe_pred[ok_occ_pred, ])
+        predictions[ok_occ_pred] <- stats::predict(modeled_object$model_occupied, dframe_pred[ok_occ_pred, ])
       }
 
       if (sum(! ok_occ) > 0) {
 
         if(nlevels(factor(dframe[! ok_occ,]$ftow)) == 1) { # drop ftow if only one level is present
           dframe_unocc <- dframe %>%
-            select(-"ftow")
+            dplyr::select(-"ftow")
         } else {
           dframe_unocc <- dframe
         }
@@ -129,7 +131,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
           id <- which(!(dframe_pred$ftow %in% levels(dframe_unocc$ftow))) # remove extra levels before calculation
           dframe_pred$ftow[id] <- NA
         }
-        predictions[! ok_occ_pred] <- predict(modeled_object$model_unoccupied, dframe_pred[! ok_occ_pred, ])
+        predictions[! ok_occ_pred] <- stats::predict(modeled_object$model_unoccupied, dframe_pred[! ok_occ_pred, ])
       }
 
     }

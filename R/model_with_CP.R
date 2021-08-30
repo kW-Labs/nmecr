@@ -6,6 +6,8 @@
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param model_input_options List with model inputs specified using assign_model_inputs
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return a list with the following components:
 #' \describe{
 #'   \item{model}{an lm object}
@@ -18,9 +20,11 @@
 
 model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  Estimate <- NULL # No visible binding for global variable
 
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
+
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 15){
     nterval_value <- "15-min"
@@ -44,8 +48,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       names(training_data)[names(training_data) == "eload_perday"] <- "dependent_variable"
 
       keep <- training_data %>%
-        select(contains("_perday")) %>%
-        select(-c("HDD_perday", "CDD_perday", "days"))
+        dplyr::select(dplyr::contains("_perday")) %>%
+        dplyr::select(-c("HDD_perday", "CDD_perday", "days"))
 
     } else {
 
@@ -53,8 +57,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       names(training_data)[names(training_data) == "eload"] <- "dependent_variable"
 
       keep <- training_data %>%
-        select(!contains("_perday")) %>%
-        select(-c("HDD", "CDD", "days"))
+        dplyr::select(! dplyr::contains("_perday")) %>%
+        dplyr::select(-c("HDD", "CDD", "days"))
 
     }
   }
@@ -64,7 +68,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     names(training_data)[names(training_data) == "eload"] <- "dependent_variable"
 
     keep <- training_data %>%
-      select(-c("HDD", "CDD"))
+      dplyr::select(-c("HDD", "CDD"))
 
   } else if (nterval_value == "Hourly" | nterval_value == "15-min") {
     dependent_variable <- training_data$eload
@@ -76,24 +80,24 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
   if (model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "3PC") {
 
-    dummy_cooling_model <- lm(dependent_variable  ~ 1) # constrained slope
+    dummy_cooling_model <- stats::lm(dependent_variable  ~ 1) # constrained slope
     three_paramter_cooling_model <- tryCatch(segmented::segmented(dummy_cooling_model, seg.Z = ~independent_variable),
                                              warning = function(w) w)
 
-    if(is(three_paramter_cooling_model, "warning")) {
+    if(methods::is(three_paramter_cooling_model, "warning")) {
       df <- 'A 3PC model could not be computed. No breakpoint found'
     } else {
 
-      model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(three_paramter_cooling_model)$psi), as.data.frame(summary.segmented(three_paramter_cooling_model)$psi))
+      model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(segmented::summary.segmented(three_paramter_cooling_model)$psi), as.data.frame(segmented::summary.segmented(three_paramter_cooling_model)$psi))
 
       out <- list()
       out$model_input_options <- model_input_options
 
-      initial_model <- dplyr::bind_cols("Variable" = rownames(summary.segmented(three_paramter_cooling_model)$coeff),
-                                        as.data.frame(summary.segmented(three_paramter_cooling_model)$coeff))
+      initial_model <- dplyr::bind_cols("Variable" = rownames(segmented::summary.segmented(three_paramter_cooling_model)$coeff),
+                                        as.data.frame(segmented::summary.segmented(three_paramter_cooling_model)$coeff))
 
       remove <- initial_model %>%
-        filter(Estimate == 0)
+        dplyr::filter(Estimate == 0)
 
       df <- three_paramter_cooling_model$model[! names(three_paramter_cooling_model$model) %in% remove$Variable]
     }
@@ -101,25 +105,25 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
   } else if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH") {
 
     independent_variable <- - independent_variable # flipping the sign of the independent variable for a constrained sloped
-    dummy_heating_model <- lm(dependent_variable ~ 1)
+    dummy_heating_model <- stats::lm(dependent_variable ~ 1)
 
     three_paramter_heating_model <- tryCatch(segmented::segmented(dummy_heating_model, seg.Z = ~ independent_variable),
                                              warning = function(w) w)
 
-    if(is(three_paramter_heating_model, "warning")) {
+    if(methods::is(three_paramter_heating_model, "warning")) {
       df <- 'A 3PH model could not be computed. No breakpoint found'
     } else {
-      model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(three_paramter_heating_model)$psi), as.data.frame(summary.segmented(three_paramter_heating_model)$psi))
+      model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(segmented::summary.segmented(three_paramter_heating_model)$psi), as.data.frame(segmented::summary.segmented(three_paramter_heating_model)$psi))
       model_input_options$estimated_breakpoint[c(2,3)] <- - model_input_options$estimated_breakpoint[c(2,3)] # flip the sign of the breakpoint back
 
       out <- list()
       out$model_input_options <- model_input_options
 
-      initial_model <- dplyr::bind_cols("Variable" = rownames(summary.segmented(three_paramter_heating_model)$coeff),
-                                        as.data.frame(summary.segmented(three_paramter_heating_model)$coeff))
+      initial_model <- dplyr::bind_cols("Variable" = rownames(segmented::summary.segmented(three_paramter_heating_model)$coeff),
+                                        as.data.frame(segmented::summary.segmented(three_paramter_heating_model)$coeff))
 
       remove <- initial_model %>%
-        filter(Estimate == 0)
+        dplyr::filter(Estimate == 0)
 
       df <- three_paramter_heating_model$model[! names(three_paramter_heating_model$model) %in% remove$Variable]
     }
@@ -128,19 +132,19 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
   } else if (model_input_options$regression_type == "Four Parameter Linear Model" | model_input_options$regression_type == "4P") {
 
-    linear_4P_model <- lm(dependent_variable ~ independent_variable)
+    linear_4P_model <- stats::lm(dependent_variable ~ independent_variable)
     four_paramter_linear_model <- segmented::segmented(linear_4P_model, seg.Z = ~independent_variable)
 
-    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(four_paramter_linear_model)$psi), as.data.frame(summary.segmented(four_paramter_linear_model)$psi))
+    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(segmented::summary.segmented(four_paramter_linear_model)$psi), as.data.frame(segmented::summary.segmented(four_paramter_linear_model)$psi))
 
     out <- list()
     out$model_input_options <- model_input_options
 
-    initial_model <- dplyr::bind_cols("Variable" = rownames(summary.segmented(four_paramter_linear_model)$coeff),
-                                      as.data.frame(summary.segmented(four_paramter_linear_model)$coeff))
+    initial_model <- dplyr::bind_cols("Variable" = rownames(segmented::summary.segmented(four_paramter_linear_model)$coeff),
+                                      as.data.frame(segmented::summary.segmented(four_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0)
+      dplyr::filter(Estimate == 0)
 
     df <- four_paramter_linear_model$model[! names(four_paramter_linear_model$model) %in% remove$Variable]
 
@@ -154,7 +158,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       stop("Changepoint 2 is higher than the maximum temperature value available in the data")
     }
 
-    linear_5P_model <- lm(dependent_variable ~ independent_variable)
+    linear_5P_model <- stats::lm(dependent_variable ~ independent_variable)
 
     if.false <- F
     while (if.false == F){
@@ -165,23 +169,23 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       }, finally = {})
     }
 
-    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(summary.segmented(five_paramter_linear_model)$psi), as.data.frame(summary.segmented(five_paramter_linear_model)$psi))
+    model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(segmented::summary.segmented(five_paramter_linear_model)$psi), as.data.frame(segmented::summary.segmented(five_paramter_linear_model)$psi))
 
     out <- list()
     out$model_input_options <- model_input_options
 
-    initial_model <- dplyr::bind_cols("Variable" = rownames(summary.segmented(five_paramter_linear_model)$coeff),
-                                      as.data.frame(summary.segmented(five_paramter_linear_model)$coeff))
+    initial_model <- dplyr::bind_cols("Variable" = rownames(segmented::summary.segmented(five_paramter_linear_model)$coeff),
+                                      as.data.frame(segmented::summary.segmented(five_paramter_linear_model)$coeff))
 
     remove <- initial_model %>%
-      filter(Estimate == 0)
+      dplyr::filter(Estimate == 0)
 
     df <- five_paramter_linear_model$model[! names(five_paramter_linear_model$model) %in% remove$Variable]
 
   }
 
   keep_temp <- keep %>%
-    select(-c("time", "dependent_variable", "independent_variable"))
+    dplyr::select(-c("time", "dependent_variable", "independent_variable"))
 
   if (class(df) == 'character') {
     message(df)
@@ -193,9 +197,9 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     if (model_input_options$regression_type == "Three Parameter Heating" | model_input_options$regression_type == "3PH" |
         model_input_options$regression_type == "Three Parameter Cooling" | model_input_options$regression_type == "3PC" ) {
 
-      linregress <- lm(dependent_variable ~ U1.independent_variable, data = df)
+      linregress <- stats::lm(dependent_variable ~ U1.independent_variable, data = df)
     } else {
-      linregress <- lm(dependent_variable ~ ., data = df)
+      linregress <- stats::lm(dependent_variable ~ ., data = df)
     }
 
     out$model <- linregress
