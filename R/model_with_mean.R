@@ -17,9 +17,9 @@
 
 model_with_mean <- function(training_data = NULL, model_input_options = NULL){
 
-  training_data <- training_data[complete.cases(training_data), ] # remove any incomplete observations
+  training_data <- training_data[stats::complete.cases(training_data), ] # remove any incomplete observations
 
-  nterval <-  median(diff(as.numeric(training_data$time)))/60
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 15){
     nterval_value <- "15-min"
@@ -34,9 +34,9 @@ model_with_mean <- function(training_data = NULL, model_input_options = NULL){
   model_input_options$chosen_modeling_interval <- nterval_value
 
   if (nterval_value == "Monthly" & model_input_options$day_normalized == TRUE) {
-    linregress <- lm(eload_perday ~ 1, training_data)
+    linregress <- stats::lm(eload_perday ~ 1, training_data)
   } else {
-    linregress <- lm(eload ~ 1, training_data)
+    linregress <- stats::lm(eload ~ 1, training_data)
   }
 
   out <- list()
