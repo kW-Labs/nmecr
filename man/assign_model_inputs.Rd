@@ -2,7 +2,8 @@
 % Please edit documentation in R/assign_model_inputs.R
 \name{assign_model_inputs}
 \alias{assign_model_inputs}
-\title{Assign inputs for various modeling algorithms within nmecr.}
+\title{Assign inputs for various modeling algorithms within nmecr.
+Passed in as the argument model_input_options for all models in nmecr}
 \usage{
 assign_model_inputs(
   timescale_days = NULL,
@@ -46,4 +47,5 @@ a list specifying the chosen algorithm inputs
 }
 \description{
 Assign inputs for various modeling algorithms within nmecr.
+Passed in as the argument model_input_options for all models in nmecr
 }

@@ -17,11 +17,11 @@ calculate_savings_and_uncertainty(
 
 \item{savings_fraction}{savings fraction value to use in savings uncertainty calculations. Used when prediction_df is set to NULL}
 
+\item{modeled_object}{List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.}
+
 \item{model_summary_statistics}{Dataframe with model statistics. Output from calculate_summary_statistics.}
 
 \item{confidence_level}{Numeric corresponding to the confidence level to be used for savings uncertainty calculation}
-
-\item{modeled_data_obj}{List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.}
 }
 \value{
 a list with the following components:

@@ -15,7 +15,7 @@ calculate_TOWT_model_predictions(
 
 \item{prediction_data}{Prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
-\item{model_input_options}{List with model inputs specified using assign_model_inputs}
+\item{modeled_object}{List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.}
 }
 \value{
 a list with the following components:

@@ -9,7 +9,7 @@ create_temp_matrix(temp_col = NULL, temp_knots = NULL)
 \arguments{
 \item{temp_col}{A vector containing temperature data}
 
-\item{temp_knot}{A vector specifying temperature knots to create temperature data segments}
+\item{temp_knots}{A vector specifying temperature knots to create temperature data segments}
 }
 \value{
 A matrix with component temperatures

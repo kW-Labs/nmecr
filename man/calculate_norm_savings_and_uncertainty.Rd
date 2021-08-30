@@ -22,6 +22,8 @@ calculate_norm_savings_and_uncertainty(
 
 \item{performance_stats}{Performance model's corresponding statistics}
 
+\item{normalized_weather}{Weather dataset to be used for model prediction normalization}
+
 \item{confidence_level}{Numeric corresponding to the confidence level to be used for savings uncertainty calculation}
 }
 \value{
