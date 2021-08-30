@@ -16,6 +16,7 @@
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #'
+#' @importFrom stats median
 #' @importFrom magrittr %>%
 #'
 #' @return a dataframe with energy consumption data, temperature data and additional variable data
