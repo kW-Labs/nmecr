@@ -56,19 +56,25 @@ added_variable_df_created_monthly <- nmecr::create_dataframe(eload_data = eload_
 # Tests ---
 testthat::test_that('Simple Dataframes are created correctly', {
 
-  expect_identical(simple_df, simple_df_created)
-  expect_identical(simple_df_hourly, simple_df_created_hourly)
-  expect_identical(simple_df_daily, simple_df_created_daily)
-  expect_identical(simple_df_monthly, simple_df_created_monthly)
+  testthat::expect_identical(simple_df, simple_df_created)
+  testthat::expect_identical(simple_df_hourly, simple_df_created_hourly)
+  testthat::expect_identical(simple_df_daily, simple_df_created_daily)
+  testthat::expect_identical(simple_df_monthly, simple_df_created_monthly)
 
 })
 
 testthat::test_that('Dataframes with additional variable are created correctly', {
 
-  expect_identical(added_variable_df, added_variable_df_created)
-  expect_identical(added_variable_df_hourly, added_variable_df_created_hourly)
-  expect_identical(added_variable_df_daily, added_variable_df_created_daily)
-  expect_identical(added_variable_df_monthly, added_variable_df_created_monthly)
+  testthat::expect_identical(added_variable_df, added_variable_df_created)
+  testthat::expect_identical(added_variable_df_hourly, added_variable_df_created_hourly)
+
+  testthat::expect_warning(nmecr::create_dataframe(eload_data = eload_data, temp_data = temp_data,
+                                         additional_independent_variables = additional_variable_data,
+                                         additional_variable_aggregation = c(median),
+                                         convert_to_data_interval = "Hourly"))
+
+  testthat::expect_identical(added_variable_df_daily, added_variable_df_created_daily)
+  testthat::expect_identical(added_variable_df_monthly, added_variable_df_created_monthly)
 
 })
 
