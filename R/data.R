@@ -69,3 +69,16 @@
 #'   ...
 #' }
 "school_op_mode"
+
+#' TMY3 data.
+#'
+#' A dataset containing the TMY3 dataset for demonstrating savings normalization .
+#'
+#'
+#' @format A data frame with 8760 rows and 2 variables:
+#' \describe{
+#'   \item{time}{timestamp, format mm/dd/yy hh::mm::ss}
+#'   \item{temp}{outside air temperature corresponding to the timestamp, in deg F}
+#'   ...
+#' }
+"TMY3"

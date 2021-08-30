@@ -3,7 +3,7 @@
 #' \code{This function generates temperature changepoints for subsequent use in energy data fitting}
 #'
 #' @param temp_col A vector containing temperature data
-#' @param temp_knot A vector specifying temperature knots to create temperature data segments
+#' @param temp_knots A vector specifying temperature knots to create temperature data segments
 #'
 #' @return A matrix with component temperatures
 
