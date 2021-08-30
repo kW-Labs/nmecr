@@ -207,6 +207,8 @@ The plots show that the Time-of-Week and Temperature algorithm models the energy
 This insight can be confirmed through model statistics by using the `calculate_summary_statistics()` function. The following table summarizes the results from this function for each of the models assessed above:
 
 ```{r stats, results='markup', echo=TRUE}
+
+
 TOWT_stats <- calculate_summary_statistics(TOWT_model)
 
 TOWT_with_op_mode_stats <- calculate_summary_statistics(TOWT_model_with_op_mode)
