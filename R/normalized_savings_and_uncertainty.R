@@ -166,7 +166,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
 
   normalized_uncertainty <- sqrt(baseline_normalized_uncertainty^2 + performance_normalized_uncertainty^2)
 
-  normalized_uncertainty <- normalized_uncertainty/sum(normalized_savings$norm.baseline - normalized_savings$norm.performance)
+  normalized_uncertainty_frac <- normalized_uncertainty/sum(normalized_savings$norm.baseline - normalized_savings$norm.performance)
 
 
   results <- NULL
@@ -176,7 +176,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
   normalized_savings_df <- list()
   normalized_savings_df$normalized_savings_frac <- sum(normalized_savings$norm.baseline - normalized_savings$norm.performance)/sum(normalized_savings$norm.baseline)
   normalized_savings_df$normalized_savings_unc <- normalized_uncertainty
-  normalized_savings_df$normalized_savings_unc <- normalized_uncertainty
+  normalized_savings_df$normalized_savings_unc_frac <- normalized_uncertainty_frac
   normalized_savings_df$confidence_level <- confidence_level
 
   results$normalized_savings_df <- normalized_savings_df
