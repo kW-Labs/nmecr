@@ -30,7 +30,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   dataframe <- dataframe[stats::complete.cases(dataframe), ]
   ref_temp_data <- ref_temp_data[stats::complete.cases(ref_temp_data), ]
 
-  nterval <- difftime(dataframe$time[2], dataframe$time[1], units = "min")
+  nterval <-  stats::median(diff(as.numeric(training_data$time)))/60
 
   if (nterval == 60){
     dataframe_interval <- "Hourly"
