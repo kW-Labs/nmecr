@@ -1,37 +1,51 @@
-## Welcome to GitHub Pages
+nmecr provides a collection of 11 algorithms and utility functions for streamlining energy efficiency project impact quantification in buildings. 
 
-You can use the [editor on GitHub](https://github.com/kW-Labs/nmecr/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+The algorithms are:
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+* [Mean Model](#mean-model)
+* [Simple Linear Regression](#simple-linear-regression)
+* [Three Parameter Models](#three-parameter-models) 
+  * [Three Parameter Cooling Model](#three-parameter-cooling-model) 
+  * [Three Parameter Heating Model](#three-parameter-heating-model) 
+* [Four Parameter Model](#four-parameter-model) 
+* [Five Parameter Model](#five-parameter-model) 
+* [Heating Degree Day Model](#heating-degree-day-model) 
+* [Cooling Degree Day Model](#cooling-degree-day-model) 
+* [Heating and Cooling Degree Day Model](#heating-and-cooling-degree-day-model) 
+* [Time-of-Week and Temperature Model](#time-of-week-and-temperature-model) 
+* [Time-of-Week Model](#time-of-week-model) 
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+# Mean Model
 
-```markdown
-Syntax highlighted code block
+The mean model is simplest in the toolkit. The model form is:
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```
+Energy Consumption ~ 1
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+and the model predictions are simply the average of the observed energy consumption. The mean model is a good benchmarking model and can be used for comparison against more complex models.  
 
-### Jekyll Themes
+# Simple Linear Regression
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/kW-Labs/nmecr/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+The simple linear regression model, as the name suggests, is a regression using one independent variable. When modeling building energy consumption, the most common independent variable is outside-air-temperature (energy systems, such as HVAC, are directly impacted by it). The model form is:
 
-### Support or Contact
+```
+Energy Consumption ~ Temperature
+```
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Additional influential independent variables, such as product quantity, number of occupants, can be added to this algorithm, turning it into a Multiple Linear Regression, as needed.
+
+```
+Energy Consumption ~ Temperature + Additional Variables
+```
+
+# Three Parameter Models
+
+Three Parameter models are appropriate for modeling building energy use that varies linearly with an independent variable over part of the range and remains constant over the other part. A prime example of this would be using outside air temperature as the independent variable for electricity usage in cooling or gas usage for heating. 
+
+
+![Three_P](kW-Labs/nmecr/gh-ages/docs/assets/Three_P.PNG)
+
+
+
