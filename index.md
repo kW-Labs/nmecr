@@ -45,7 +45,7 @@ Energy Consumption ~ Temperature + Additional Variables
 Three Parameter models are appropriate for modeling building energy use that varies linearly with an independent variable over part of the range and remains constant over the other part. A prime example of this would be using outside air temperature as the independent variable for electricity usage in cooling or gas usage for heating. 
 
 
-![Three_P](https://github.com/kW-Labs/nmecr/tree/gh-pages/docs/assets/Three_P.PNG)
+![image](https://user-images.githubusercontent.com/30964555/135349484-4cd9219a-195b-4d81-8fa8-09cfd52693c7.png)
 
 
 
