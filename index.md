@@ -51,18 +51,37 @@ Three Parameter models are appropriate for modeling building energy use that var
 
 The model forms are:
 
-![](https://user-images.githubusercontent.com/30964555/135520313-5f1fe4a9-6882-49fd-bf1e-0f8c4347c336.gif)
-![](https://user-images.githubusercontent.com/30964555/135520289-7e50d978-f3f3-4e02-8168-1594f62d8f72.gif)
+![](https://user-images.githubusercontent.com/30964555/135522767-880c5f43-6883-4241-8e3b-b86f24381a90.gif)
+
+![](https://user-images.githubusercontent.com/30964555/135522805-6ca2beec-cfc9-4634-948d-44d97aebf31b.gif)
 
 The + and - above indicate that the values of the terms in the parenthesis will be set to zero when they are negative and positive respectively.
 
 #### When might these models be appropriate?
 
-Imagine that you are modeling a system that predominantly delivers cooling to a building. Up until a certain temperature, the building does not need cooling and this system stays dormant. However, above this temperature, known as a change-point in the industry, the system has to start cooling the building and use energy in the process. In a three-parameter cooling model, the energy use of the system is 'modeled' to vary linearly with an *increase* in outside-air-temperature above the identified change-point.  
+Imagine you are modeling a system that predominantly delivers cooling to a building. Up until a certain temperature, the building does not need cooling and this system stays dormant. However, above this temperature, known as a change-point in the industry, the system has to start cooling the building and use energy in the process. In a three-parameter cooling model, the energy use of the system is 'modeled' to vary linearly with an *increase* in outside-air-temperature above the identified change-point.  
 
 The three-parameter heating model is used in the opposite scenario, where the energy use starts to increase linearly with a *decrease* in outside-air-temperature.
 
-## Four Parameter Models
+## Four Parameter Model
 
+Four parameter models extend the three parameter models by replacing the initial flat-sloped segment with a positive or negative-sloped segment depending on the type of model: cooling vs heating. The third panel in the image above shows two examples of Four Parameter models. The model form is:
 
+![](https://user-images.githubusercontent.com/30964555/135523748-b0288af0-82db-410d-a780-1a154247d434.gif)
+
+As before, the + and - above indicate that the values of the terms in the parenthesis will be set to zero when they are negative and positive respectively.
+
+#### When might these models be appropriate?
+
+These models are appropriate for modeling heating and cooling energy use in variable-air-volume systems. 
+
+## Five Parameter Model
+
+The model form for a five parameter model is:
+
+![](https://user-images.githubusercontent.com/30964555/135523843-49a2a469-6e1c-408a-a0d9-8a60da058a6c.gif)
+
+#### When might these models be appropriate?
+
+Five parameter models are appropriate for modeling whole-building electricity consumption from buildings with electric heat pumps or both electric chillers and electric resistance heating. 
 
