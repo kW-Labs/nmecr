@@ -38,11 +38,15 @@ Note that all model forms below reference this figure and its naming convention.
 
 A two-parameter model (or a simple linear regression), is a regression using one independent variable, and its model form is:
 
+```
 $Consumption =  C +  B_1*(temp)$
+```
 
 Additional influential independent variables, such as product quantity, number of occupants etc., can be added to this algorithm, turning it into a Multiple Linear Regression.
 
+```
 $Consumption =  C +  B_1*(temp) + Z*(additional-variable)$
+```
 
 ## Three Parameter Cooling and Heating Models
 
@@ -50,9 +54,11 @@ Three Parameter models are appropriate for modeling building energy use that var
 
 The model forms are:
 
+```
 $Consumption_{cooling} =  C +  B_1*(X - temp)^+$
 
 $Consumption_{heating} =  C +  B_1*(X - temp)^-$
+```
 
 The $()^+$ and $()^-$ indicate that the values of the terms in the paranthesis will be set to zero when they are negative and positive respectively.
 
