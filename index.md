@@ -50,9 +50,9 @@ Three Parameter models are appropriate for modeling building energy use that var
 
 The model forms are:
 
-![](https://user-images.githubusercontent.com/30964555/135513777-6306b37f-8f04-411a-a0c6-827214d4f1f0.gif)
+![](https://user-images.githubusercontent.com/30964555/135515341-ee5a5540-e387-4f18-bed1-d199f92d4473.gif)
 
-![](https://user-images.githubusercontent.com/30964555/135513810-4dbeb77d-5965-4d47-9e09-76029d43bda2.gif)
+![](https://user-images.githubusercontent.com/30964555/135515303-7e11ceaf-7b8c-454a-9290-a33dd51cc627.gif)
 
 The $()^+$ and $()^-$ indicate that the values of the terms in the paranthesis will be set to zero when they are negative and positive respectively.
 
