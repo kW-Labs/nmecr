@@ -1,4 +1,4 @@
-nmecr provides a collection of 11 algorithms and 5 main utility functions for streamlining energy efficiency project impact quantification in buildings. 
+nmecr provides a collection of 11 algorithms and 5 main utility functions for streamlining impact quantification for energy efficiency projects in buildings. 
 
 These are:
 
@@ -12,9 +12,10 @@ These are:
   * [Heating Degree Day Model](#heating-degree-day-model) 
   * [Cooling Degree Day Model](#cooling-degree-day-model) 
   * [Heating and Cooling Degree Day Model](#heating-and-cooling-degree-day-model) 
-* [Time-of-Week and Temperature Model](#time-of-week-and-temperature-model) 
 * [Time-of-Week Model](#time-of-week-model) 
+* [Time-of-Week and Temperature Model](#time-of-week-and-temperature-model) 
 
+Additional influential independent variables, such as product quantity, number of occupants etc., can be added to all algorithms except the mean model to improve model accuracy over a dataset.
 
 # Mean Model
 
@@ -40,11 +41,6 @@ A two-parameter model (or a simple linear regression), is a regression using one
 
 ![](https://user-images.githubusercontent.com/30964555/135515611-be82bb65-2010-49f5-b6ee-74222f9bb5ff.gif)
 
-Additional influential independent variables, such as product quantity, number of occupants etc., can be added to this algorithm, turning it into a Multiple Linear Regression.
-
-![](https://user-images.githubusercontent.com/30964555/135515586-8ac66679-59aa-4dea-9637-9415e0bff363.gif)
-
-
 ## Three Parameter Cooling and Heating Models
 
 Three Parameter models are appropriate for modeling building energy use that varies linearly with an independent variable over part of the range and remains constant over the other part (see the second panel in the image above).
@@ -57,7 +53,7 @@ The model forms are:
 
 The + and - above indicate that the values of the terms in the parenthesis will be set to zero when they are negative and positive respectively.
 
-#### When might these models be appropriate?
+#### When should use these models?
 
 Imagine you are modeling a system that predominantly delivers cooling to a building. Up until a certain temperature, the building does not need cooling and this system stays dormant. However, above this temperature, known as a change-point in the industry, the system has to start cooling the building and use energy in the process. In a three-parameter cooling model, the energy use of the system is 'modeled' to vary linearly with an *increase* in outside-air-temperature above the identified change-point.  
 
@@ -71,7 +67,7 @@ Four parameter models extend the three parameter models by replacing the initial
 
 As before, the + and - above indicate that the values of the terms in the parenthesis will be set to zero when they are negative and positive respectively.
 
-#### When might these models be appropriate?
+#### When should you use this model?
 
 These models are appropriate for modeling heating and cooling energy use in variable-air-volume systems. 
 
@@ -81,7 +77,35 @@ The model form for a five parameter model is:
 
 ![](https://user-images.githubusercontent.com/30964555/135523843-49a2a469-6e1c-408a-a0d9-8a60da058a6c.gif)
 
-#### When might these models be appropriate?
+#### When should you use this model?
 
 Five parameter models are appropriate for modeling whole-building electricity consumption from buildings with electric heat pumps or both electric chillers and electric resistance heating. 
+
+# Degree Day Models
+
+## Heating Degree Day Model
+
+## Cooling Degree Day Model
+
+## Heating and Cooling Degree Day Model
+
+# Time-of-Week Model
+
+At its core, a time-of-week model is a linear model with indicator variables for each 'time-of-week'. In a model based on daily interval data, there are 7 indicator variables, for each day of the week. Similarly, in a model based on hourly interval data, there are 168 indicator variables, for each hour of the week. The model form, therefore, is:
+
+##### Daily Interval
+
+![](https://user-images.githubusercontent.com/30964555/135529318-90438daa-cab3-445c-8a6c-040b0ea47a3c.png)
+
+Notice that there is no (is_Sun) term in the above equation. The average energy use for Sundays is captured by the intercept term (C) in the above equation.
+
+##### Hourly Interval
+
+![](https://user-images.githubusercontent.com/30964555/135532273-2b70a289-fa3d-4d8a-a056-82895be3d3e8.png)
+
+Similarly, there is no (is_tow168) term in the above equation.
+
+The is_* term implies that the value can be either a 0 or a 1. For example, is_Mon will be set to 1 when the timestamp is a Monday to 0 for all other days of the week.
+
+## Time-of-Week and Temperature Model
 
