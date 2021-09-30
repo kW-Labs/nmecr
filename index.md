@@ -20,7 +20,7 @@ These are:
 
 The mean model is simplest in the toolkit. The model form is:
 
-![](https://user-images.githubusercontent.com/30964555/135513577-abc0d117-40e2-4270-94bf-7829bbd2599d.gif)
+![](https://user-images.githubusercontent.com/30964555/135516727-7761a61d-1b1d-4583-af4b-d11428d8fdf0.gif)
 
 and the model predictions are simply the average of the observed energy consumption. The mean model is a good benchmarking model and can be used for comparison against more complex models.  
 
@@ -28,7 +28,7 @@ and the model predictions are simply the average of the observed energy consumpt
 
 In modeling building energy consumption, one of the most common regressor (or feature or independent variable) is the outside-air-temperature. Many of the building's core energy systems, such as HVAC, are directly impacted by it. Change-point models are a class of models that capture the trends of energy consumption over various segments of the temperature profile. These models differ mainly in their derived temperature features. The figure below illustrates the difference between the various flavors of these models.
 
-![](https://user-images.githubusercontent.com/30964555/135507651-01e03e78-8400-4ae0-9c4d-2af2d8f9a8c8.gif)
+![](https://user-images.githubusercontent.com/30964555/135517973-c6a322cd-8937-4005-888a-76a073bbbed2.gif)
 
 <font size="1"> [Image Source](https://www.sciencedirect.com/science/article/abs/pii/S0378778814009645) </font> 
 
@@ -38,11 +38,12 @@ Note that all model forms below reference this figure and its naming convention.
 
 A two-parameter model (or a simple linear regression), is a regression using one independent variable, and its model form is:
 
-![](https://user-images.githubusercontent.com/30964555/135513724-34987cd8-77bf-4ac2-8283-003233eff65c.gif)
+![](https://user-images.githubusercontent.com/30964555/135515611-be82bb65-2010-49f5-b6ee-74222f9bb5ff.gif)
 
 Additional influential independent variables, such as product quantity, number of occupants etc., can be added to this algorithm, turning it into a Multiple Linear Regression.
 
-![](https://user-images.githubusercontent.com/30964555/135513748-86cb04e7-3647-4842-b0a6-9bd6a65a7c03.gif)
+![](https://user-images.githubusercontent.com/30964555/135515586-8ac66679-59aa-4dea-9637-9415e0bff363.gif)
+
 
 ## Three Parameter Cooling and Heating Models
 
@@ -50,10 +51,19 @@ Three Parameter models are appropriate for modeling building energy use that var
 
 The model forms are:
 
-![](https://user-images.githubusercontent.com/30964555/135515341-ee5a5540-e387-4f18-bed1-d199f92d4473.gif)
+![](https://user-images.githubusercontent.com/30964555/135519896-b313a7b2-d9d0-4a0f-bd53-6d429d741bd8.gif)
 
 ![](https://user-images.githubusercontent.com/30964555/135515303-7e11ceaf-7b8c-454a-9290-a33dd51cc627.gif)
 
-The $()^+$ and $()^-$ indicate that the values of the terms in the paranthesis will be set to zero when they are negative and positive respectively.
+The + and - above indicate that the values of the terms in the parenthesis will be set to zero when they are negative and positive respectively.
+
+#### When might these models be appropriate?
+
+Imagine that you are modeling a system that predominantly delivers cooling to a building. Up until a certain temperature, the building does not need cooling and this system stays dormant. However, above this temperature, known as a change-point in the industry, the system has to start cooling the building and use energy in the process. In a three-parameter cooling model, the energy use of the system is 'modeled' to vary linearly with an *increase* in outside-air-temperature above the identified change-point.  
+
+The three-parameter heating model is used in the opposite scenario, where the energy use starts to increase linearly with a *decrease* in outside-air-temperature.
+
+## Four Parameter Models
+
 
 
