@@ -135,9 +135,7 @@ The following are the main clarifications/additions in LBNL's implementation of 
 
 #### Further changes implemented in nmecr 
 
-1. The occupied and unoccupied mode determination is based on a user input, accessed through the formal argument **occupancy_threshold** within `nmecr::assign_model_inputs()`. The default value is set to 0.65 to match the RMV2.0 implementation. 
-
-  In certain scenarios, the split into occupied and unoccupied may not be required or desired. In these cases, the occupancy_threshold   can be set to 1 to create one overall model. A practical application of this is the case when occupancy information is available as   an additional variable. The TOWT model can then be run by setting occupancy_threshold = 1 and the additional variable as a proxy for   occupancy.  
+1. The occupied and unoccupied mode determination is based on a user input, accessed through the formal argument **occupancy_threshold** within `nmecr::assign_model_inputs()`. The default value is set to 0.65 to match the RMV2.0 implementation. In certain scenarios, the split into occupied and unoccupied may not be required or desired. In these cases, the occupancy_threshold   can be set to 1 to create one overall model. A practical application of this is the case when occupancy information is available as   an additional variable. The TOWT model can then be run by setting occupancy_threshold = 1 and the additional variable as a proxy for  occupancy.  
 
 2. Temperature change-points can be manually specified when needed. This behavior can be accessed through **has_temp_knots_defined** and **temp_knots_value** within `nmecr::assign_model_inputs()`. If has_temp_knots_defines is set to False (F), the algorithm determines the change-points internally. On the other hand, if this argument is set to True (T), it looks to temp_knots_value for the specified change-points. Note that temperature change-points are referred to as temperature knots in the code.
 
@@ -152,6 +150,8 @@ The model forms for TOWT are:
 Note that the actual model forms depend on a number of factors, and the actual model form may be different than the ones shown above. 
 
 Notice that there is no (is_Fri) term or (is_Sun) term in the above eqauations. This is because the average energy use on these days is captured by the intercept the respective equations.
+
+The is_* term implies that the value can be either a 0 or a 1. For example, is_Mon will be set to 1 when the timestamp is a Monday to 0 for all other days of the week.
 
 # Time-of-Week Model
 
@@ -169,5 +169,4 @@ Notice that there is no (is_Sun) term in the above equation. The average energy 
 
 Similarly, there is no (is_tow168) term in the above equation.
 
-The is_* term implies that the value can be either a 0 or a 1. For example, is_Mon will be set to 1 when the timestamp is a Monday to 0 for all other days of the week.
 
