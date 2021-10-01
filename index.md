@@ -97,8 +97,8 @@ The Time-of-Week and Temperature Model in nmecr is based on the [original paper]
 
 The two main components of the model are:
 
-a. a time-of-week indicator variable, and
-b. a piece-wise linear and continuous outdoor air temperature dependence
+* a time-of-week indicator variable, and
+* a piece-wise linear and continuous outdoor air temperature dependence
 
 
 #### Original Algorithm
@@ -107,19 +107,14 @@ The original algorithm has the following key features:
 
 1. A week is divided into 15-minute intervals, i.e. 672 time-of-week variables
 
-2. Outdoor air temperature is divided into six equally-sized temperature intervals. 
-
-For example, if a facility experienced a temperature profile ranging from 50F to 110F, the temperature segments would be 50-60F, 60-70F, 70-80F, 70-90F, 90-100F, and 100-110F. The paper recommends using at least twice the expected number of change-points.
+2. Outdoor air temperature is divided into six equally-sized temperature intervals. For example, if a facility experienced a temperature profile ranging from 50F to 110F, the temperature segments would be 50-60F, 60-70F, 70-80F, 70-90F, 90-100F, and 100-110F. The paper recommends using at least twice the expected number of change-points.
 
 3. The temperature parameters are only used when a facility is operating in occupied mode
 
-4. The facility's response to temperature is not expected to change at night.
-
-Essentially, this translates to six temperature segments in the occupied mode and 1 temperature segment (that includes all data) in the unoccupied mode.
+4. The facility's response to temperature is not expected to change at night. Essentially, this translates to six temperature segments in the occupied mode and 1 temperature segment (that includes all data) in the unoccupied mode.
 
 5. The start and end of the occupied mode are manually determined by visualizing average load profiles on non-DR days. 
 
-6. The model parameters are determined using ordinary least squares.
 
 #### Changes in the implementation ([RMV2.0](https://github.com/LBNL-ETA/RMV2.0))
 
@@ -131,19 +126,23 @@ The following are the main clarifications/additions in LBNL's implementation of 
 
 3. The temperature segment width is determined by the user-requested number of segments. Each temperature segment is equal in width.
 
-4. In case of a lack of temperature data, the algorithm can be run as a Time-of-Week (see below)
+4. The same temperature segments are applied to both occupied and unoccupied modes
 
-#### Changes implemented in nmecr 
+5. In case of a lack of temperature data, the algorithm can be run as a Time-of-Week (see below)
+
+6. Both TOWT and TOW can be run on 15-min, hourly, and daily intervals  
+
+
+#### Further changes implemented in nmecr 
 
 1. The occupied and unoccupied mode determination is based on a user input, accessed through the formal argument **occupancy_threshold** within `nmecr::assign_model_inputs()`. The default value is set to 0.65 to match the RMV2.0 implementation. 
 
 In certain scenarios, the split into occupied and unoccupied may not be required or desired. In these cases, the occupancy_threshold can be set to 1 to create one overall model. A practical application of this is the case when occupancy information is available as an additional variable. The TOWT model can then be run by setting occupancy_threshold = 1 and the additional variable as a proxy for occupancy.  
 
-2. Temperature change-points can be manually specified when needed. This behavior can be accessed through **has_temp_knots_defined** and **temp_knots_value** within `nmecr::assign_model_inputs()`. If has_temp_knots_defines is set to False (F), the algorithm determines the change-points internally. On the other hand, if this argument is set to True (T), it looks to temp_knots_value for the specified change-points. 
-
-Note that temperature change-points are referred to as temperature knots in the code.
+2. Temperature change-points can be manually specified when needed. This behavior can be accessed through **has_temp_knots_defined** and **temp_knots_value** within `nmecr::assign_model_inputs()`. If has_temp_knots_defines is set to False (F), the algorithm determines the change-points internally. On the other hand, if this argument is set to True (T), it looks to temp_knots_value for the specified change-points. Note that temperature change-points are referred to as temperature knots in the code.
 
 3. The temperature segments can either be of equal width or have equal number of data points in them. This behavior is accessed through **equal_temp_segment_points** within `nmecr::assign_model_inputs()`. If set to True (T), the algorithm determines the temperature segments such that each has equal number of data points in it. If set to False (F), the segments are determined such that they are equal in width.
+
 
 # Time-of-Week Model
 
