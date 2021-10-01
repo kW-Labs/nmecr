@@ -137,12 +137,21 @@ The following are the main clarifications/additions in LBNL's implementation of 
 
 1. The occupied and unoccupied mode determination is based on a user input, accessed through the formal argument **occupancy_threshold** within `nmecr::assign_model_inputs()`. The default value is set to 0.65 to match the RMV2.0 implementation. 
 
-In certain scenarios, the split into occupied and unoccupied may not be required or desired. In these cases, the occupancy_threshold can be set to 1 to create one overall model. A practical application of this is the case when occupancy information is available as an additional variable. The TOWT model can then be run by setting occupancy_threshold = 1 and the additional variable as a proxy for occupancy.  
+  In certain scenarios, the split into occupied and unoccupied may not be required or desired. In these cases, the occupancy_threshold   can be set to 1 to create one overall model. A practical application of this is the case when occupancy information is available as   an additional variable. The TOWT model can then be run by setting occupancy_threshold = 1 and the additional variable as a proxy for   occupancy.  
 
 2. Temperature change-points can be manually specified when needed. This behavior can be accessed through **has_temp_knots_defined** and **temp_knots_value** within `nmecr::assign_model_inputs()`. If has_temp_knots_defines is set to False (F), the algorithm determines the change-points internally. On the other hand, if this argument is set to True (T), it looks to temp_knots_value for the specified change-points. Note that temperature change-points are referred to as temperature knots in the code.
 
 3. The temperature segments can either be of equal width or have equal number of data points in them. This behavior is accessed through **equal_temp_segment_points** within `nmecr::assign_model_inputs()`. If set to True (T), the algorithm determines the temperature segments such that each has equal number of data points in it. If set to False (F), the segments are determined such that they are equal in width.
 
+The model forms for TOWT are:
+
+![](https://user-images.githubusercontent.com/30964555/135546747-630e5289-b7b6-4516-9aed-44f00a15055d.png)
+
+![](https://user-images.githubusercontent.com/30964555/135546776-ad2734a9-014b-4f01-aac9-c0ef55a484ad.png)
+
+Note that the actual model forms depend on a number of factors, and the actual model form may be different than the ones shown above. 
+
+Notice that there is no (is_Fri) term or (is_Sun) term in the above eqauations. This is because the average energy use on these days is captured by the intercept the respective equations.
 
 # Time-of-Week Model
 
@@ -150,13 +159,13 @@ The time-of-week model is a simplification of the time-of-week and temperature m
 
 ##### Daily Interval
 
-![](https://user-images.githubusercontent.com/30964555/135529318-90438daa-cab3-445c-8a6c-040b0ea47a3c.png)
+![](https://user-images.githubusercontent.com/30964555/135546500-4f5fb3e4-8531-4db3-b04b-fe4a13456cfd.png)
 
 Notice that there is no (is_Sun) term in the above equation. The average energy use for Sundays is captured by the intercept term (C) in the above equation.
 
 ##### Hourly Interval
 
-![](https://user-images.githubusercontent.com/30964555/135532273-2b70a289-fa3d-4d8a-a056-82895be3d3e8.png)
+![](https://user-images.githubusercontent.com/30964555/135546534-04403e97-dfd1-4e84-a4b5-a019153bf8ef.png)
 
 Similarly, there is no (is_tow168) term in the above equation.
 
