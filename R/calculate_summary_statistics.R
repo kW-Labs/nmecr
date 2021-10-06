@@ -45,10 +45,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
     intercept_count <-  1
   }
 
-  effective_parameters <- length(fit_residuals_numeric) %>%
-    magrittr::subtract(nparameter)
-
-  dof <- length(fit_residuals_numeric) %>%
+  dof <- length(fit_residuals_numeric) %>% # number of parameters in the model(s)
     magrittr::subtract(nparameter) %>%
     magrittr::subtract(intercept_count)
 
@@ -66,7 +63,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   RMSE <- fit_residuals_numeric %>%
     magrittr::raise_to_power(2) %>%
     sum(na.rm = T) %>%
-    magrittr::divide_by(effective_parameters) %>%
+    magrittr::divide_by(dof) %>%
     magrittr::raise_to_power(0.5)
 
 
@@ -79,16 +76,9 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   # Normalized Mean Bias Error (Percentage)
   NMBE <- fit_residuals_numeric %>%
     sum(na.rm = T) %>%
-    magrittr::divide_by(effective_parameters*mean(eload, na.rm = T)) %>%
+    magrittr::divide_by(dof*mean(eload, na.rm = T)) %>%
     magrittr::multiply_by(100) %>%
     format(round(., 2), nsmall = 4)
-
-  # Coefficient of Variation of Mean Absolute error (Absolute)
-  CVMAE <- fit_residuals_numeric %>%
-    abs(.) %>%
-    magrittr::divide_by(length(fit_residuals_numeric)) %>%
-    sum(na.rm = T) %>%
-    magrittr::divide_by(mean(eload, na.rm = T))
 
   # Net Determination Bias Error (Percentage)
   NDBE <- fit_residuals_numeric %>%
@@ -104,7 +94,7 @@ calculate_summary_statistics <- function(modeled_data_obj = NULL) {
   goodness_of_fit$`CVRMSE %` <- CVRMSE
   goodness_of_fit$`NDBE %` <- NDBE
   goodness_of_fit$`NMBE %` <- NMBE
-  goodness_of_fit$"#Parameters" <- nparameter
+  goodness_of_fit$"#Parameters" <- length(fit_residuals_numeric) - dof
   goodness_of_fit$"deg_of_freedom" <- dof
 
   return(goodness_of_fit)
