@@ -9,11 +9,8 @@ These are:
   * [Four Parameter Model](#four-parameter-model) 
   * [Five Parameter Model](#five-parameter-model) 
 * [Degree Day Models](#degree-day-models) 
-  * [Heating Degree Day Model](#heating-degree-day-model) 
-  * [Cooling Degree Day Model](#cooling-degree-day-model) 
-  * [Heating and Cooling Degree Day Model](#heating-and-cooling-degree-day-model) 
-* [Time-of-Week Model](#time-of-week-model) 
 * [Time-of-Week and Temperature Model](#time-of-week-and-temperature-model) 
+* [Time-of-Week Model](#time-of-week-model) 
 
 Additional influential independent variables, such as product quantity, number of occupants etc., can be added to all algorithms except the mean model to improve model accuracy over a dataset.
 
@@ -85,11 +82,28 @@ Five parameter models are appropriate for modeling whole-building electricity co
 
 # Degree Day Models
 
-## Heating Degree Day Model
+Degree day models are another type of regression model. They are similar to change point models, but instead of regressing energy consumption against outside air temperature, consumption is regressed against degree days.
 
-## Cooling Degree Day Model
+Degree days, expressed as heating degree days (HDD) or cooling degree days (CDD) represent deviations of outside air temperature (OAT) from a baseline, and are calculated as:
 
-## Heating and Cooling Degree Day Model
+![](https://user-images.githubusercontent.com/30964555/138163897-b030908c-d40e-4f79-8e3d-db81353b1bd4.PNG)
+
+![](https://user-images.githubusercontent.com/30964555/138163924-0ed42030-13f8-4066-9cf3-3b1719d3e8f7.PNG)
+
+where T_{avg} is the average temperature from the day, and T_{base} is the base temperature of the building. The + indicates that only positive values of these differences are considered. 
+
+The heating and cooling degree day model forms are given by:
+
+![](https://user-images.githubusercontent.com/30964555/138164204-b7940b66-a721-4067-9ee4-68bbedb355bd.PNG)
+![](https://user-images.githubusercontent.com/30964555/138164237-e97b729c-0a5d-4232-8c22-94437cb68c62.PNG)
+
+where the chosen model depends on the temperature regime being modeled (whether it is heating or cooling dominated), These models are analogous to three parameter models, and should be used in similar cases. As with the change point models, if HDD or CDD are negative, then a value of zero is used, and consumption is equal to a constant value (C).
+
+To model a scenario that incorporates both heating and cooling, a combined model is used:
+
+![](https://user-images.githubusercontent.com/30964555/138164555-ec968b14-635c-4663-ae04-84a54c7c9c51.PNG)
+
+The base temperatures are not required to be equal. When T_{base, heating} = T_{base, cooling}, the model is analogous to a four parameter model, and consists of two intersecting lines. When the base temperatures are different (with T_{base, heating} < T_{base, cooling}), the result is the same as the five parameter model.
 
 ## Time-of-Week and Temperature Model
 
