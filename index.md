@@ -87,6 +87,7 @@ Degree day models are another type of regression model. They are similar to chan
 Degree days, expressed as heating degree days (HDD) or cooling degree days (CDD) represent deviations of outside air temperature (OAT) from a baseline, and are calculated as:
 
 ![](https://user-images.githubusercontent.com/30964555/138166774-92f63305-3cdc-4bff-bbf0-32b55ae82928.png)
+
 ![](https://user-images.githubusercontent.com/30964555/138167001-edac4aaf-9066-4a96-9d31-d7f47e94b0e8.png)
 
 
@@ -105,7 +106,11 @@ To model a scenario that incorporates both heating and cooling, a combined model
 
 ![](https://user-images.githubusercontent.com/30964555/138167669-67ae5931-9210-4a03-9371-717eeba8ef0d.png)
 
-The base temperatures are not required to be equal. When T_{base, heating} = T_{base, cooling}, the model is analogous to a four parameter model, and consists of two intersecting lines. When the base temperatures are different (with T_{base, heating} < T_{base, cooling}), the result is the same as the five parameter model.
+The base temperatures are not required to be equal. When ![](https://user-images.githubusercontent.com/30964555/138168220-c0a02baa-8d05-42a0-a425-5561e32797f6.png)
+ = ![](https://user-images.githubusercontent.com/30964555/138168278-9b1589ac-a677-42b3-be50-24ffd9c34c9c.png)
+, the model is analogous to a four parameter model, and consists of two intersecting lines. When the base temperatures are different (with ![](https://user-images.githubusercontent.com/30964555/138168220-c0a02baa-8d05-42a0-a425-5561e32797f6.png)
+ < ![](https://user-images.githubusercontent.com/30964555/138168278-9b1589ac-a677-42b3-be50-24ffd9c34c9c.png)
+, the result is the same as the five parameter model.
 
 ## Time-of-Week and Temperature Model
 
