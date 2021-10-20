@@ -86,16 +86,18 @@ Degree day models are another type of regression model. They are similar to chan
 
 Degree days, expressed as heating degree days (HDD) or cooling degree days (CDD) represent deviations of outside air temperature (OAT) from a baseline, and are calculated as:
 
-![](https://user-images.githubusercontent.com/30964555/138163897-b030908c-d40e-4f79-8e3d-db81353b1bd4.PNG)
+![](https://user-images.githubusercontent.com/30964555/138165689-f40a64cf-7048-4d50-a63a-896bfd05bf9d.png)
 
 ![](https://user-images.githubusercontent.com/30964555/138163924-0ed42030-13f8-4066-9cf3-3b1719d3e8f7.PNG)
 
-where T_{avg} is the average temperature from the day, and T_{base} is the base temperature of the building. The + indicates that only positive values of these differences are considered. 
+where ![](https://user-images.githubusercontent.com/30964555/138166011-9adcdddd-67c0-4276-807d-80731ad42028.png)
+ is the average temperature from the day, and ![](https://user-images.githubusercontent.com/30964555/138166064-76fdb9e8-adfb-4fbd-9308-1da6713e3368.png)
+ is the base temperature of the building. The + indicates that only positive values of these differences are considered. 
 
 The heating and cooling degree day model forms are given by:
 
 ![](https://user-images.githubusercontent.com/30964555/138164204-b7940b66-a721-4067-9ee4-68bbedb355bd.PNG)
-![](https://user-images.githubusercontent.com/30964555/138164237-e97b729c-0a5d-4232-8c22-94437cb68c62.PNG)
+![](https://user-images.githubusercontent.com/30964555/138165844-7c9c898b-1c69-4547-a1e4-8ae06a6ee8d4.png)
 
 where the chosen model depends on the temperature regime being modeled (whether it is heating or cooling dominated), These models are analogous to three parameter models, and should be used in similar cases. As with the change point models, if HDD or CDD are negative, then a value of zero is used, and consumption is equal to a constant value (C).
 
