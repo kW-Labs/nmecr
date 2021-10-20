@@ -86,9 +86,9 @@ Degree day models are another type of regression model. They are similar to chan
 
 Degree days, expressed as heating degree days (HDD) or cooling degree days (CDD) represent deviations of outside air temperature (OAT) from a baseline, and are calculated as:
 
-![](https://user-images.githubusercontent.com/30964555/138165689-f40a64cf-7048-4d50-a63a-896bfd05bf9d.png)
+![](https://user-images.githubusercontent.com/30964555/138166774-92f63305-3cdc-4bff-bbf0-32b55ae82928.png)
+![](https://user-images.githubusercontent.com/30964555/138167001-edac4aaf-9066-4a96-9d31-d7f47e94b0e8.png)
 
-![](https://user-images.githubusercontent.com/30964555/138163924-0ed42030-13f8-4066-9cf3-3b1719d3e8f7.PNG)
 
 where ![](https://user-images.githubusercontent.com/30964555/138166011-9adcdddd-67c0-4276-807d-80731ad42028.png)
  is the average temperature from the day, and ![](https://user-images.githubusercontent.com/30964555/138166064-76fdb9e8-adfb-4fbd-9308-1da6713e3368.png)
@@ -96,14 +96,14 @@ where ![](https://user-images.githubusercontent.com/30964555/138166011-9adcdddd-
 
 The heating and cooling degree day model forms are given by:
 
-![](https://user-images.githubusercontent.com/30964555/138164204-b7940b66-a721-4067-9ee4-68bbedb355bd.PNG)
-![](https://user-images.githubusercontent.com/30964555/138165844-7c9c898b-1c69-4547-a1e4-8ae06a6ee8d4.png)
+![](https://user-images.githubusercontent.com/30964555/138167585-3aad575d-01f1-4c3c-9270-485156cadb76.png)
+![](https://user-images.githubusercontent.com/30964555/138167637-3728c4d0-7f67-428f-b565-465aa1182ea8.png)
 
 where the chosen model depends on the temperature regime being modeled (whether it is heating or cooling dominated), These models are analogous to three parameter models, and should be used in similar cases. As with the change point models, if HDD or CDD are negative, then a value of zero is used, and consumption is equal to a constant value (C).
 
 To model a scenario that incorporates both heating and cooling, a combined model is used:
 
-![](https://user-images.githubusercontent.com/30964555/138164555-ec968b14-635c-4663-ae04-84a54c7c9c51.PNG)
+![](https://user-images.githubusercontent.com/30964555/138167669-67ae5931-9210-4a03-9371-717eeba8ef0d.png)
 
 The base temperatures are not required to be equal. When T_{base, heating} = T_{base, cooling}, the model is analogous to a four parameter model, and consists of two intersecting lines. When the base temperatures are different (with T_{base, heating} < T_{base, cooling}), the result is the same as the five parameter model.
 
