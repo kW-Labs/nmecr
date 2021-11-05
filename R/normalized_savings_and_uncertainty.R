@@ -119,8 +119,8 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
 
   }
 
-  n <- nrow(baseline_normalized)
-  m <- nrow(performance_normalized)
+  n <- nrow(baseline_model$training_data)
+  m <- nrow(performance_model$training_data)
   g <- nrow(normalized_weather)
 
   n_dash <- calculate_independent_points(baseline_model$training_data)
