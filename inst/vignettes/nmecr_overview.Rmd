@@ -6,9 +6,9 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
   word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 
 library(nmecr)
 library(ggplot2)
+library(dplyr)
 ```
 
 The `nmecr` package was written to integrate the past efforts of the energy efficiency industry to streamline meter-based Measurement & Verification of EE projects. It brings together simple linear regression with outside air temperature, the change point models (from ASHRAE 1050-RP), and the Time-of-Week and Temperature model (developed by the Lawrence Berkeley National Laboratory) and builds enhancements upon these by accurately predicting the energy use profiles of facilities with multiple operating modes.  
