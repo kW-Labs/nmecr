@@ -149,13 +149,15 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     df <- four_paramter_linear_model$model[! names(four_paramter_linear_model$model) %in% remove$Variable]
 
   } else if (model_input_options$regression_type == "Five Parameter Linear Model" | model_input_options$regression_type == "5P") {
-
-    if (min(model_input_options$initial_breakpoints) < min(independent_variable, na.rm = T)) {
-      stop("Changepoint 1 is lower than the minimum temperature value available in the data")
+    
+    # Check if breakpoints are away from min and max of data (10% quantiles)
+    init.breakpoint.10percent = quantile(training_data$independent_variable, c(.1, .9), na.rm = TRUE)
+    if (model_input_options$initial_breakpoints[1] < as.numeric(init.breakpoint.10percent[1])) {
+      model_input_options$initial_breakpoints[1] = as.numeric(init.breakpoint.10percent[1])
     }
-
-    if (max(model_input_options$initial_breakpoints) > max(independent_variable, na.rm = T)) {
-      stop("Changepoint 2 is higher than the maximum temperature value available in the data")
+    
+    if (model_input_options$initial_breakpoints[2] > as.numeric(init.breakpoint.10percent[2])) {
+      model_input_options$initial_breakpoints[2] = as.numeric(init.breakpoint.10percent[2])
     }
 
     linear_5P_model <- stats::lm(dependent_variable ~ independent_variable)
