@@ -40,9 +40,6 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     dataframe_interval <- "Monthly"
   }
 
-  if(dataframe_interval == "Monthly") {
-    stop("Please upload a dataframe in hourly or daily time data intervals")
-  }
 
   if(! assertive::is_numeric(outlier_threshold)){
     stop("outlier_threshold must be a numeric input")
@@ -59,25 +56,38 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     ref_temp_interval <- "Hourly"
   } else if (nterval_ref_temp == 1440) {
     ref_temp_interval <- "Daily"
+  } else if (dim(ref_temp_data)[1]==12) {
+    ref_temp_interval = "Monthly"
   } else {
-    stop("Please upload ref_temp_data in hourly or daily time data intervals")
+    stop("Please upload ref_temp_data in hourly, daily, or monthly time intervals.")
   }
 
   site_temp_data <- dataframe[, c("time", "temp")]
-
-  if(ref_temp_interval == "Daily" | dataframe_interval == "Daily") {
-
+  
+  if(ref_temp_interval == "Monthly" | dataframe_interval == "Monthly") {
     ref_temp_data <- ref_temp_data %>%
-      dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
-      dplyr::group_by("time" = day) %>%
+      dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "month")) %>%
+      dplyr::group_by(day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
-      stats::na.omit()
-
+      stats::na.omit() %>% rename(time = day)
+    
     site_temp_data <- site_temp_data %>%
-      dplyr::mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
-      dplyr::group_by("time" = day) %>%
+      dplyr::mutate(day = lubridate::floor_date(site_temp_data$time, "month")) %>%
+      dplyr::group_by(day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
-      stats::na.omit()
+      stats::na.omit() %>% rename(time = day)
+  } else if (ref_temp_interval == "Daily" | dataframe_interval == "Daily") {
+      ref_temp_data <- ref_temp_data %>%
+        dplyr::mutate(day = lubridate::floor_date(ref_temp_data$time, "day")) %>%
+        dplyr::group_by("time" = day) %>%
+        dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
+        stats::na.omit()
+      
+      site_temp_data <- site_temp_data %>%
+        dplyr::mutate(day = lubridate::floor_date(site_temp_data$time, "day")) %>%
+        dplyr::group_by("time" = day) %>%
+        dplyr::summarize("temp" = mean(temp, na.rm = T)) %>%
+        stats::na.omit()
   }
 
   # bin size: 2
@@ -146,8 +156,16 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   temp_coverage_factor <- signif(min(100, (100 * (extrapolated_max_obs_OA_bin - extrapolated_min_obs_OA_bin) /
                                              (max_ref_OA_bin - min_ref_OA_bin))), 4)
 
-  if (dataframe_interval == "Daily") {
-
+  if (dataframe_interval == "Monthly") {
+    months_covered <- temp_coverage %>%
+      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+    
+    months_covered <- min(sum(months_covered$n_ref_data), 12)
+    
+    months_not_covered <- 12 - months_covered
+    monthly_coverage_factor <- signif((months_covered / 12) * 100, 4)
+    
+  } else if (dataframe_interval == "Daily") {
     days_covered <- temp_coverage %>%
       dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
@@ -173,8 +191,18 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   coverage_factor_summary[1, 1] <- "Temperature Coverage"
   coverage_factor_summary[1, 2] <- temp_coverage_factor
 
-
-  if (dataframe_interval == "Daily") {
+  if (dataframe_interval == "Monthly") {
+    
+    coverage_factor_summary[2, 1] <- "Time Coverage"
+    coverage_factor_summary[2, 2] <- monthly_coverage_factor
+    
+    coverage_factor_summary[3, 1] <- "Months Covered"
+    coverage_factor_summary[3, 2] <- months_covered
+    
+    coverage_factor_summary[4, 1] <- "Months Not Covered"
+    coverage_factor_summary[4, 2] <- months_not_covered
+    
+  } else if (dataframe_interval == "Daily") {
 
     coverage_factor_summary[2, 1] <- "Time Coverage"
     coverage_factor_summary[2, 2] <- daily_coverage_factor
