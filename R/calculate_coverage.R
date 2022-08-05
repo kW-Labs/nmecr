@@ -56,7 +56,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     ref_temp_interval <- "Hourly"
   } else if (nterval_ref_temp == 1440) {
     ref_temp_interval <- "Daily"
-  } else if (dim(ref_temp_data)[1]==12) {
+  } else if ((dim(ref_temp_data)[1]==12) & (nterval_ref_temp >= 40320)) {
     ref_temp_interval = "Monthly"
   } else {
     stop("Please upload ref_temp_data in hourly, daily, or monthly time intervals.")
