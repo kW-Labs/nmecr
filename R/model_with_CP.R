@@ -49,7 +49,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
       keep <- training_data %>%
         dplyr::select(dplyr::contains("_perday")) %>%
-        dplyr::select(-c("HDD_perday", "CDD_perday", "days"))
+        dplyr::select(-c("HDD_perday", "CDD_perday"))
 
     } else {
 
@@ -58,7 +58,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
       keep <- training_data %>%
         dplyr::select(! dplyr::contains("_perday")) %>%
-        dplyr::select(-c("HDD", "CDD", "days"))
+        dplyr::select(-c("HDD", "CDD"))
 
     }
   }
