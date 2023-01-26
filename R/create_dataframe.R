@@ -183,7 +183,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
         xts_index <- "hours"
       } else if (nterval == 60*60*24) {
         xts_index <- "days"
-      } else if (nterval <- 60*60*24*mean(30,31)) {
+      } else if (nterval == 60*60*24*mean(30,31)) {
         xts_index <- "months"
       } else if (nterval == 60*15){
         xts_index <- "min"
