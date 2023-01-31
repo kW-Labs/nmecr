@@ -5,7 +5,8 @@
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param modeled_object  List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
-#'
+#' @param allow_neg_predict TRUE or FALSE. Whether to allow predictions to be negative.
+#' 
 #' @importFrom magrittr %>%
 #'
 #' @return a list with the following components:
@@ -14,7 +15,7 @@
 #' }
 #'
 
-calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL){
+calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL, allow_neg_predict = FALSE){
 
   if(! is.null(modeled_object$model_input_options$timecale_days)) {
     stop("Error: Cannot make predictions with a weighted model yet. This functionality will be available in future nmecr releases. Use model_with_TOWT() for predictions.")
@@ -137,7 +138,9 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
     }
 
     output <- NULL
-    predictions[predictions < 0] <- 0
+    if (allow_neg_predict==FALSE) {
+      predictions[predictions < 0] <- 0
+    }
     output <-  predictions
 
     return(output)
