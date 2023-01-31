@@ -14,7 +14,7 @@
 #' }
 #'
 
-calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL, allow_neg_predict = FALSE){
+calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL){
 
   if(! is.null(modeled_object$model_input_options$timecale_days)) {
     stop("Error: Cannot make predictions with a weighted model yet. This functionality will be available in future nmecr releases. Use model_with_TOWT() for predictions.")
@@ -137,9 +137,7 @@ calculate_TOWT_model_predictions <- function(training_data = NULL, prediction_da
     }
 
     output <- NULL
-    if (allow_neg_predict == FALSE) {
-      predictions[predictions < 0] <- 0
-    }
+    predictions[predictions < 0] <- 0
     output <-  predictions
 
     return(output)

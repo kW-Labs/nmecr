@@ -12,7 +12,7 @@
 #'
 #' @export
 
-calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL, allow_neg_predict = FALSE) {
+calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
 
   independent_variable <- NULL # No visible binding for global variable
 
@@ -44,7 +44,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
             modeled_object$model_input_options$regression_type == "TOW") { # Hourly or Daily only
 
     predictions <- calculate_TOWT_model_predictions(training_data = training_data, prediction_data = prediction_data,
-                                                    modeled_object = modeled_object, allow_neg_predict = allow_neg_predict)
+                                                    modeled_object = modeled_object)
 
     predictions_df <- data.frame(prediction_data, predictions)
 
