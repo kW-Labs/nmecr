@@ -8,6 +8,7 @@ calculate_TOWT_model_predictions(
   training_data = NULL,
   prediction_data = NULL,
   modeled_object = NULL
+  allow_neg_predict = FALSE
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ calculate_TOWT_model_predictions(
 \item{prediction_data}{Prediction dataframe and operating mode dataframe. Output from create_dataframe}
 
 \item{modeled_object}{List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.}
+
+\item{allow_neg_predict}{TRUE or FALSE. Whether to allow predictions to be negative.}
 }
 \value{
 a list with the following components:
