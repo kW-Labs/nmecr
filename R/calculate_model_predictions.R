@@ -5,6 +5,7 @@
 #' @param training_data Training dataframe and operating mode dataframe. Output from create_dataframe
 #' @param prediction_data Prediction dataframe and operating mode dataframe. Output from create_dataframe
 #' @param modeled_object List with model results. Output from model_with_SLR, model_with_CP, model_with_HDD_CDD, and model_with_TOWT.
+#' @param allow_neg_predict Boolean determining whether negative predictions are allowed for TOWT models.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -12,7 +13,7 @@
 #'
 #' @export
 
-calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL) {
+calculate_model_predictions <- function(training_data = NULL, prediction_data = NULL, modeled_object = NULL, allow_neg_predict = FALSE) {
 
   independent_variable <- NULL # No visible binding for global variable
 
@@ -44,7 +45,7 @@ calculate_model_predictions <- function(training_data = NULL, prediction_data = 
             modeled_object$model_input_options$regression_type == "TOW") { # Hourly or Daily only
 
     predictions <- calculate_TOWT_model_predictions(training_data = training_data, prediction_data = prediction_data,
-                                                    modeled_object = modeled_object)
+                                                    modeled_object = modeled_object, allow_neg_predict = allow_neg_predict)
 
     predictions_df <- data.frame(prediction_data, predictions)
 
