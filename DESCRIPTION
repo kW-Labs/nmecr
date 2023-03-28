@@ -19,7 +19,6 @@ Imports:
     assertive,
     xts,
     zoo,
-    timetk,
     purrr,
     stats,
     methods
