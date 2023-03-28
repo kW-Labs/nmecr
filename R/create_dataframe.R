@@ -430,7 +430,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     data_xts <- data_xts[zoo::index(data_xts) <= lubridate::mdy_hm(end_date)]
   }
 
-  df <- timetk::tk_tbl(data = data_xts, preserve_index = TRUE, rename_index = "time") # return a df
+  df <- dplyr::as_tibble(cbind.data.frame(zoo::index(data_xts), zoo::coredata(data_xts)))
+  names(df)[1] = "time"
 
   # Normalize df by number of days in period, if df is monthly
 

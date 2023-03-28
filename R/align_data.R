@@ -42,7 +42,8 @@ align_data <- function(data = NULL, original_alignment = NULL) {
 
     data_xts <- xts::xts(data_xts, corrected_index)
 
-    aligned_data <- timetk::tk_tbl(data = data_xts, preserve_index = TRUE, rename_index = "time")
+    aligned_data <- dplyr::as_tibble(cbind.data.frame(zoo::index(data_xts), zoo::coredata(data_xts)))
+    names(aligned_data)[1] = "time"
 
   } else {
     stop("original_alignment can one of two: 'start' or 'end'. Please check your input")
