@@ -158,7 +158,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
 
   if (dataframe_interval == "Monthly") {
     months_covered <- temp_coverage %>%
-      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+      dplyr::filter(dplyr::between(as.numeric(bins), extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
     
     months_covered <- min(sum(months_covered$n_ref_data), 12)
     
@@ -167,7 +167,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
     
   } else if (dataframe_interval == "Daily") {
     days_covered <- temp_coverage %>%
-      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+      dplyr::filter(dplyr::between(as.numeric(bins), extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
     days_covered <- min(sum(days_covered$n_ref_data), 365)
 
@@ -177,7 +177,7 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   } else {
 
     hours_covered <- temp_coverage %>%
-      dplyr::filter(dplyr::between(bins, extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
+      dplyr::filter(dplyr::between(as.numeric(bins), extrapolated_min_obs_OA_bin, extrapolated_max_obs_OA_bin))
 
     hours_covered <- min(sum(hours_covered$n_ref_data), 8760)
 
