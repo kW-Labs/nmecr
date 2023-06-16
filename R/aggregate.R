@@ -16,9 +16,22 @@
 #'
 
 aggregate <- function(eload_data = NULL, temp_data = NULL, convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
-                      temp_balancepoint = 65) {
+                      temp_balancepoint = 65, shift_normal_weather = FALSE) {
 
   hour <- temp <- eload <- day <- month <- days <- time <- NULL # No visible binding for global variable
+  
+  # Shift temp data to beginning of period if shift flag is present
+  if(shift_normal_weather == TRUE) {
+    
+    if(! is.null(temp_data)){
+      
+      nterval_temp <- stats::median(diff(as.numeric(temp_data$time)))
+      temp_data <- temp_data %>%
+        dplyr::mutate(time = time - nterval_temp)
+      
+    }
+    
+  }
 
   if(convert_to_data_interval == "Hourly") {
 
