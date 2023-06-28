@@ -11,6 +11,9 @@
 #' and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
+#' @param shift_normal_weather A logical indicating whether or not to shift the weather data from end of period reporting to beginning of period reporting.
+#' This option is set to false by default, but if the user knows that the rest of their data, such as energy use, reports with timestamps at the beginning of each usage
+#' period, setting this option to true will align the weather to the beginning of the period as well.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -20,9 +23,9 @@
 #'
 
 aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independent_variables = NULL,
-                          additional_variable_aggregation = NULL,
-                          convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
-                          temp_balancepoint = 65, shift_normal_weather = FALSE) {
+                      additional_variable_aggregation = NULL,
+                      convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
+                      temp_balancepoint = 65, shift_normal_weather = FALSE) {
   
   hour <- temp <- eload <- day <- month <- days <- time <- NULL # No visible binding for global variable
   
@@ -32,7 +35,9 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     if(! is.null(temp_data)){
       
       nterval_temp <- diff(temp_data$time) %>%
-        stats::median(na.rm = T)
+        stats::median(na.rm = T) %>%
+        lubridate::as.duration()
+      
       temp_data <- temp_data %>%
         dplyr::mutate(time = time - nterval_temp)
       
@@ -63,14 +68,14 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
   ################################# HOURLY DATA ################################
   
   if(convert_to_data_interval == "Hourly") {
-
+    
     # Aggregation to hourly temperature data
     hourly_temp <- temp_data %>%
       dplyr::mutate(hour = lubridate::floor_date(temp_data$time, "hour")) %>%
       dplyr::group_by("time" = hour) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) #%>%
-     #stats::na.omit()
-
+    #stats::na.omit()
+    
     # Aggregation to hourly energy data
     if(! is.null(eload_data)) {
       
@@ -78,7 +83,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         dplyr::mutate(hour = lubridate::floor_date(eload_data$time, "hour")) %>%
         dplyr::group_by("time" = hour) %>%
         dplyr::summarize("eload" = sum(eload, na.rm = T)) #%>%
-        #stats::na.omit()
+      #stats::na.omit()
       
     }
     
@@ -108,7 +113,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       if (! is.null(additional_independent_variables)) {
         
         aggregated_data <- aggregated_data %>%
-        dplyr::full_join(hourly_additional_independent_variables, by = "time") %>%
+          dplyr::full_join(hourly_additional_independent_variables, by = "time") %>%
           dplyr::distinct()
         
       }
@@ -120,10 +125,10 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       return(hourly_temp)
       
     }
-      
-  
-  ################################## DAILY DATA ################################
-      
+    
+    
+    ################################## DAILY DATA ################################
+    
   } else if (convert_to_data_interval == "Daily"){
     
     # Aggregation to daily temperature data
@@ -131,7 +136,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       dplyr::mutate(day = lubridate::floor_date(temp_data$time, "day")) %>%
       dplyr::group_by("time" = day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) #%>%
-      #stats::na.omit()
+    #stats::na.omit()
     
     # Heating and cooling degree day calculations
     base_temp <- rep(temp_balancepoint, length(daily_temp$time))
@@ -149,7 +154,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         dplyr::mutate(day = lubridate::floor_date(eload_data$time, "day")) %>%
         dplyr::group_by("time" = day) %>%
         dplyr::summarize("eload" = sum(eload, na.rm = T)) #%>%
-        #stats::na.omit()
+      #stats::na.omit()
       
     }
     
@@ -192,7 +197,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       
     }
     
-  ########################## MONTHLY DATA AGGREGATION ##########################
+    ########################## MONTHLY DATA AGGREGATION ##########################
     
   } else if (convert_to_data_interval == "Monthly"){
     
@@ -200,7 +205,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       dplyr::mutate(day = lubridate::floor_date(temp_data$time, "day")) %>%
       dplyr::group_by("time" = day) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T)) #%>%
-      #stats::na.omit()
+    #stats::na.omit()
     
     # Consider making the HDD and CDD calcs a function
     
@@ -226,56 +231,67 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         dplyr::mutate(days = lubridate::days_in_month(monthly_temp$time)) %>%
         dplyr::mutate(HDD_perday = HDD / days) %>%
         dplyr::mutate(CDD_perday = CDD / days) #%>%
-        #stats::na.omit()
+      #stats::na.omit()
       
       # Aggregate additional independent variables
       if (! is.null(additional_independent_variables)){
         
-      monthly_additional_independent_variables <- additional_independent_variables %>%
-        dplyr::mutate(month = lubridate::floor_date(additional_independent_variables$time, "month")) %>%
-        dplyr::group_by("time" = month) %>%
-        dplyr::summarize_at(.vars = additional_variable_names,
-                            .funs = additional_variable_aggregation,
-                            na.rm = T)
-      
-      # Set column names and delete extraneous columns created by the summarize_at function
-      base::names(monthly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
-      monthly_additional_independent_variables <- monthly_additional_independent_variables[, c("time", additional_variable_names)]
-      
-      # Normalize additional variables by days in month
-      normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
-        dplyr::mutate(across(-time, ~./monthly_temp$days))
-      
-      base::names(normalized_monthly_additional_independent_variables)[-1] <- paste0(names(monthly_additional_independent_variables)[-1], "_perday")
-      
-      # Add on the normalized variables to the dataframe
-      monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
-        dplyr::bind_cols(normalized_monthly_additional_independent_variables[-1])
-      
+        monthly_additional_independent_variables <- additional_independent_variables %>%
+          dplyr::mutate(month = lubridate::floor_date(additional_independent_variables$time, "month")) %>%
+          dplyr::group_by("time" = month) %>%
+          dplyr::summarize_at(.vars = additional_variable_names,
+                              .funs = additional_variable_aggregation,
+                              na.rm = T)
+        
+        # Set column names and delete extraneous columns created by the summarize_at function
+        base::names(monthly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
+        monthly_additional_independent_variables <- monthly_additional_independent_variables[, c("time", additional_variable_names)]
+        
+        # Normalize additional variables by days in month
+        normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
+          dplyr::mutate(across(-time, ~./monthly_temp$days))
+        
+        base::names(normalized_monthly_additional_independent_variables)[-1] <- paste0(names(monthly_additional_independent_variables)[-1], "_perday")
+        
+        # Add on the normalized variables to the dataframe
+        monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
+          dplyr::bind_cols(normalized_monthly_additional_independent_variables[-1])
+        
       }
       
     }
-      
+    
     if(! is.null(eload_data)){
+      
+      # Round eload interval to the nearest day
+      rounded_nterval_eload <- round(nterval_eload/lubridate::as.duration("1 day"))*lubridate::as.duration("1 day")
       
       # When eload data is shorter than monthly
       if (nterval_eload < lubridate::as.duration("28 days")){
         
+        # Aggregate eload
         monthly_eload <- eload_data %>%
           dplyr::mutate(month = lubridate::floor_date(eload_data$time, "month")) %>%
           dplyr::group_by("time" = month) %>%
           dplyr::summarize("eload" = sum(eload, na.rm = T))
         
-      # When eload data is at intervals longer than 28 days (could be monthly or longer)
+        # Create a dataframe displaying the start and end dates for each usage interval
+        eload_intervals <- data.frame(
+          interval_start = monthly_eload$time,
+          interval_end = monthly_eload$time %m+% months(1)) # shift one month forward
+        
+        # When eload data is at intervals longer than 28 days (could be monthly or longer)
       } else {
         
         monthly_eload <- eload_data
         
-        # Create a data frame of time intervals and group numbers for each energy usage period
+        # Create a data frame of time intervals and group numbers for each energy usage period.
+        # For the final usage period, because no end date is provided, the duration is assumed
+        # to be the same as the median interval
         eload_intervals <- data.frame(
-          groupnum = seq(1, length(eload_data$time)-1),
-          interval_start = eload_data$time[-length(eload_data$time)],
-          interval_end = eload_data$time[-1])
+          groupnum = seq(1, length(eload_data$time)),
+          interval_start = eload_data$time,
+          interval_end = append(eload_data$time[-1], tail(eload_data$time, n=1) + rounded_nterval_eload))
         
         # Summarize temperature data by each period of the eload data
         monthly_temp <- daily_data %>%
@@ -291,8 +307,9 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         colnames(monthly_temp)[1] <- "time"
         monthly_temp$time <- eload_intervals$interval_start
         
-        # Calculate degree days per days in month
-        monthly_temp$days <- as.numeric(diff(eload_data$time))
+        # Create column for days in each usage period. For the final usage period, because
+        # an end date is not known, the number of days is assumed to be the median interval.
+        monthly_temp$days <- append(as.numeric(diff(eload_data$time)), rounded_nterval_eload/lubridate::as.duration("1 day"))
         
         monthly_temp <- monthly_temp[stats::complete.cases(monthly_temp), ] %>%
           dplyr::mutate(HDD_perday = HDD / days) %>%
@@ -310,6 +327,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
                                 .funs = additional_variable_aggregation,
                                 na.rm = T)
           
+          # Add the time column back in place of the group number column
           colnames(monthly_additional_independent_variables)[1] <- "time"
           monthly_additional_independent_variables$time <- eload_intervals$interval_start
           
@@ -332,14 +350,16 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       }
       
     }
-      
-     
+    
+    
     # Joining and returning data
     if(! is.null(eload_data)) {
       
       aggregated_data <- monthly_temp %>%
         dplyr::full_join(monthly_eload, by = "time") %>%
         dplyr::mutate(eload_perday = eload/days) %>%
+        dplyr::mutate(interval_start = eload_intervals$interval_start, .after = "time") %>%
+        dplyr::mutate(interval_end = eload_intervals$interval_end, .after = "interval_start") %>%
         dplyr::distinct()
       
       if(! is.null(additional_independent_variables)) {
