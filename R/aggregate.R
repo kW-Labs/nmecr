@@ -249,9 +249,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         
         # Normalize additional variables by days in month
         normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
-          dplyr::mutate(across(-time, ~./monthly_temp$days))
-        
-        base::names(normalized_monthly_additional_independent_variables)[-1] <- paste0(names(monthly_additional_independent_variables)[-1], "_perday")
+          dplyr::mutate(across(-time, ~./monthly_temp$days, .names = "{col}_perday"), .keep = "unused")
         
         # Add on the normalized variables to the dataframe
         monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
@@ -285,19 +283,20 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         
         monthly_eload <- eload_data
         
-        # Create a data frame of time intervals and group numbers for each energy usage period.
+        # Create a data frame of time intervals with inclusive start and end dates with
+        # corresponding group numbers for each energy usage period.
         # For the final usage period, because no end date is provided, the duration is assumed
-        # to be the same as the median interval
+        # to be the same as the median interval.
         eload_intervals <- data.frame(
           groupnum = seq(1, length(eload_data$time)),
           interval_start = eload_data$time,
-          interval_end = append(eload_data$time[-1], tail(eload_data$time, n=1) + rounded_nterval_eload))
+          interval_end = append(eload_data$time[-1], tail(eload_data$time, n=1) + rounded_nterval_eload) - lubridate::as.duration("1day"))
         
-        # Summarize temperature data by each period of the eload data
+        # Summarize temperature data by each period of the eload data using an overlap join
         monthly_temp <- daily_data %>%
           dplyr::inner_join(
             eload_intervals,
-            by = join_by("time" >= "interval_start", "time" < "interval_end")) %>%
+            by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
           dplyr::group_by(groupnum) %>%
           dplyr::summarize("temp" = mean(temp, na.rm = T),
                            "HDD" = sum(HDD, na.rm = T),
@@ -318,10 +317,11 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         
         if(! is.null(additional_independent_variables)){
           
+          # Summarize additional variables by each period of the eload data using an overlap join
           monthly_additional_independent_variables <- additional_independent_variables %>%
             dplyr::inner_join(
               eload_intervals,
-              by = join_by("time" >= "interval_start", "time" < "interval_end")) %>%
+              by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
             dplyr::group_by(groupnum) %>%
             dplyr::summarize_at(.vars = additional_variable_names,
                                 .funs = additional_variable_aggregation,
@@ -337,9 +337,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
           
           # Normalize additional variables by days in month
           normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
-            dplyr::mutate(across(-time, ~./monthly_temp$days))
-          
-          base::names(normalized_monthly_additional_independent_variables)[-1] <- paste0(names(monthly_additional_independent_variables)[-1], "_perday")
+            dplyr::mutate(across(-time, ~./monthly_temp$days, .names = "{col}_perday"), .keep = "unused")
           
           # Add on the normalized variables to the dataframe
           monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
