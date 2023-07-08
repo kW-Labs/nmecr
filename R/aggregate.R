@@ -24,7 +24,7 @@
 
 aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independent_variables = NULL,
                       additional_variable_aggregation = NULL,
-                      convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
+                      convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
                       temp_balancepoint = 65, shift_normal_weather = FALSE) {
   
   hour <- temp <- eload <- day <- month <- days <- time <- NULL # No visible binding for global variable
@@ -65,9 +65,70 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     
   }
   
-  ################################# HOURLY DATA ################################
+  ############################### 15-MINUTE DATA ###############################
   
-  if(convert_to_data_interval == "Hourly") {
+  if(convert_to_data_interval == "15-min") {
+    
+    # Aggregation to 15-minute (quarterly) temperature data
+    quarterly_temp <- temp_data %>%
+      dplyr::mutate(quarter = lubridate::floor_date(temp_data$time, "15 mins")) %>%
+      dplyr::group_by("time" = quarter) %>%
+      dplyr::summarize("temp" = mean(temp, na.rm = T)) #%>%
+    #stats::na.omit()
+    
+    # Aggregation to quarterly energy data
+    if(! is.null(eload_data)) {
+      
+      quarterly_eload <- eload_data %>%
+        dplyr::mutate(quarter = lubridate::floor_date(eload_data$time, "15 mins")) %>%
+        dplyr::group_by("time" = quarter) %>%
+        dplyr::summarize("eload" = sum(eload, na.rm = T)) #%>%
+      #stats::na.omit()
+      
+    }
+    
+    # Aggregation to quarterly additional independent variable data
+    if(! is.null(additional_independent_variables)) {
+      
+      quarterly_additional_independent_variables <- additional_independent_variables %>%
+        dplyr::mutate(quarter = lubridate::floor_date(additional_independent_variables$time, "15 mins")) %>%
+        dplyr::group_by("time" = quarter) %>%
+        dplyr::summarize_at(.vars = additional_variable_names,
+                            .funs = additional_variable_aggregation,
+                            na.rm = T)
+      
+      # Set column names and delete extraneous columns created by the summarize_at function
+      base::names(hourly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
+      hourly_additional_independent_variables <- hourly_additional_independent_variables[, c("time", additional_variable_names)]
+      
+    }
+    
+    # Joining and returning data
+    if (! is.null(eload_data)) {
+      
+      aggregated_data <- quarterly_eload %>%
+        dplyr::full_join(quarterly_temp, by = "time") %>%
+        dplyr::distinct()
+      
+      if (! is.null(additional_independent_variables)) {
+        
+        aggregated_data <- aggregated_data %>%
+          dplyr::full_join(quarterly_additional_independent_variables, by = "time") %>%
+          dplyr::distinct()
+        
+      }
+      
+      return(aggregated_data)
+      
+    } else {
+      
+      return(quarterly_temp)
+      
+    }
+    
+    ################################# HOURLY DATA ################################
+    
+  } else if(convert_to_data_interval == "Hourly") {
     
     # Aggregation to hourly temperature data
     hourly_temp <- temp_data %>%
