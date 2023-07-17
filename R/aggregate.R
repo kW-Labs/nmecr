@@ -76,13 +76,32 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
   # If the start date isn't defined, then set it as the latest start time of all
   # the dataframes
   if(is.null(start_date)){
-    start_date <- max(c(eload_data$time[1], temp_data$time[1], additional_independent_variables$time[1]), na.rm = T)
+    first_dates <- list(eload = eload_data$time[1],
+                        temp = temp_data$time[1],
+                        additional_independent_variables = additional_independent_variables$time[1]) %>%
+      purrr::compact() # Remove any NULL items from the list
+    start_date <- max(Reduce(c, first_dates), na.rm = T)
   }
   
   # If the end date isn't defined, then set it as the earliest end time of all
   # the dataframes
   if(is.null(end_date)){
-    end_date <- min(c(tail(eload_data$time, n=1), tail(temp_data$time, n=1), tail(additional_independent_variables$time, n=1)), na.rm = T)
+    last_dates <- list(eload = tail(eload_data$time, n=1),
+                       temp = tail(temp_data$time, n=1),
+                       additional_independent_variables = tail(additional_independent_variables$time, n=1)) %>%
+      purrr::compact() # Remove any NULL items from the list
+    
+    end_date <- min(Reduce(c, last_dates), na.rm = T)
+  }
+  
+  # If eload is the earliest ending dataframe, then extend the end_date by its interval
+  # so that other variables can be aggregated to the final usage period. This is particularly
+  # relevant for monthly data
+  if (! is.null(eload_data)){
+    # Read this logic as: if the last date of eload is less than all other last dates
+    if(all(last_dates$eload < within(last_dates, rm(eload)))) {
+      end_date <- end_date + nterval_eload
+    }
   }
   
   if (! is.null(eload_data)){
