@@ -337,7 +337,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         # Create a dataframe displaying the start and end dates for each usage interval
         eload_intervals <- data.frame(
           interval_start = monthly_eload$time,
-          interval_end = monthly_eload$time %m+% months(1)) # shift one month forward
+          interval_end = monthly_eload$time %m+% months(1) - lubridate::as.duration("1 day")) # shift one month forward
         
         # When eload data is at intervals longer than 28 days (could be monthly or longer)
       } else {
