@@ -14,6 +14,12 @@
 #' @param shift_normal_weather A logical indicating whether or not to shift the weather data from end of period reporting to beginning of period reporting.
 #' This option is set to false by default, but if the user knows that the rest of their data, such as energy use, reports with timestamps at the beginning of each usage
 #' period, setting this option to true will align the weather to the beginning of the period as well.
+#' @param start_date A POSIXct indicating the starting datetime to trim observations of all dataframes to start at. The timezone should
+#' match the timezone used in the time columns of all dataframes and the end_date argument (if provided). If the start_date argument is not provided,
+#' the function will choose a start date based on the latest beginning time stamp of all dataframes.
+#' @param end_date A POSIXct indicating the ending datetime to trim observations of all dataframes to end at. The timezone should match
+#' the timezone used in the time columns of all dataframes and the start_date argument (if provided). If the end_date argument is not provided, the
+#' function will choose an end date based on the earliest ending time stamp of all dataframes.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -25,7 +31,8 @@
 aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independent_variables = NULL,
                       additional_variable_aggregation = NULL,
                       convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
-                      temp_balancepoint = 65, shift_normal_weather = FALSE) {
+                      temp_balancepoint = 65, shift_normal_weather = FALSE,
+                      start_date = NULL, end_date = NULL) {
   
   hour <- temp <- eload <- day <- month <- days <- time <- NULL # No visible binding for global variable
   
@@ -64,6 +71,38 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
                                                    by = length(additional_variable_names)+1)
     
   }
+  
+  ################# Trim dataframes to be of equal date ranges #################
+  # If the start date isn't defined, then set it as the latest start time of all
+  # the dataframes
+  if(is.null(start_date)){
+    start_date <- max(c(eload_data$time[1], temp_data$time[1], additional_independent_variables$time[1]), na.rm = T)
+  }
+  
+  # If the end date isn't defined, then set it as the earliest end time of all
+  # the dataframes
+  if(is.null(end_date)){
+    end_date <- min(c(tail(eload_data$time, n=1), tail(temp_data$time, n=1), tail(additional_independent_variables$time, n=1)), na.rm = T)
+  }
+  
+  if (! is.null(eload_data)){
+    eload_data <- eload_data %>%
+      dplyr::filter(time >= start_date, time <= end_date)
+  }
+  
+  if (! is.null(temp_data)){
+    temp_data <- temp_data %>%
+      dplyr::filter(time >= start_date, time <= end_date)
+  }
+  
+  if (! is.null(additional_independent_variables)){
+    additional_independent_variables <- additional_independent_variables %>%
+      dplyr::filter(time >= start_date, time <= end_date)
+  }
+  
+  ##############################################################################
+  ################################ AGGREGATION #################################
+  ##############################################################################
   
   ############################### 15-MINUTE DATA ###############################
   
@@ -289,10 +328,19 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
                          "CDD" = sum(CDD, na.rm = T))
       
       monthly_temp <- monthly_temp %>%
-        dplyr::mutate(days = lubridate::days_in_month(monthly_temp$time)) %>%
+        dplyr::mutate(days = lubridate::days_in_month(monthly_temp$time))
+      # Fix the number of days in the first and last month (since data may begin
+      # and end mid-month)
+      monthly_temp$days[1] <- monthly_temp$days[1] - lubridate::mday(start_date) + 1
+      monthly_temp$days[length(monthly_temp$days)] <- mday(end_date)
+      monthly_temp <- monthly_temp %>%
         dplyr::mutate(HDD_perday = HDD / days) %>%
         dplyr::mutate(CDD_perday = CDD / days) #%>%
       #stats::na.omit()
+      
+      # Fix the start date
+      monthly_temp$time[1] <- lubridate::floor_date(start_date, "day")
+      
       
       # Aggregate additional independent variables
       if (! is.null(additional_independent_variables)){
@@ -307,6 +355,9 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         # Set column names and delete extraneous columns created by the summarize_at function
         base::names(monthly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
         monthly_additional_independent_variables <- monthly_additional_independent_variables[, c("time", additional_variable_names)]
+        
+        # Fix the start date
+        monthly_additional_independent_variables$time[1] <- lubridate::floor_date(start_date, "day")
         
         # Normalize additional variables by days in month
         normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
@@ -334,10 +385,16 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
           dplyr::group_by("time" = month) %>%
           dplyr::summarize("eload" = sum(eload, na.rm = T))
         
+        # Fix the start date
+        monthly_eload$time[1] <- lubridate::floor_date(start_date, "day")
+        
         # Create a dataframe displaying the start and end dates for each usage interval
         eload_intervals <- data.frame(
           interval_start = monthly_eload$time,
-          interval_end = monthly_eload$time %m+% months(1) - lubridate::as.duration("1 day")) # shift one month forward
+          interval_end = lubridate::floor_date(monthly_eload$time, "month") %m+% months(1) - lubridate::as.duration("1 day")) # shift one month forward
+        
+        # Fix the end date
+        eload_intervals$interval_end[length(eload_intervals$interval_end)] <- lubridate::floor_date(end_date, "day")
         
         # When eload data is at intervals longer than 28 days (could be monthly or longer)
       } else {
@@ -351,7 +408,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         eload_intervals <- data.frame(
           groupnum = seq(1, length(eload_data$time)),
           interval_start = eload_data$time,
-          interval_end = append(eload_data$time[-1], tail(eload_data$time, n=1) + rounded_nterval_eload) - lubridate::as.duration("1day"))
+          interval_end = append(eload_data$time[-1], tail(eload_data$time, n=1) + rounded_nterval_eload) - lubridate::as.duration("1 day"))
         
         # Summarize temperature data by each period of the eload data using an overlap join
         monthly_temp <- daily_data %>%
