@@ -1,9 +1,7 @@
 #' Generate training or prediction dataframes.
 #'
 #' \code{This function creates a dataframe, combining eload, temp, and additional variable data.
-#'  It assumes that the input data is aligned to the start of a time period and outputs a dataframe aligned to the end of time periods.
-#'  NA values are ignored during aggregation.
-#'  xts is used for aggregation, meaning that timestamps are aligned to the end of the period after aggregation.}
+#'  It assumes that the input data is aligned to the start of a time period and outputs a dataframe that is also aligned to the start of time periods. }
 #'
 #' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
@@ -22,21 +20,25 @@
 #' @importFrom stats median
 #' @importFrom magrittr %>%
 #'
-#' @return a dataframe with energy consumption data, temperature data and additional variable data
+#' @return a dataframe with energy consumption data, temperature data and (if supplied) additional variable data at the specified data interval.
 #' @export
 
 create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode_data = NULL,
                              additional_independent_variables = NULL, additional_variable_aggregation = c(sum, median, mean),
                              start_date = NULL, end_date = NULL,
                              convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"), temp_balancepoint = 65, shift_normal_weather = FALSE) {
-
+  
   day <- temp <- time <- NULL # No visible binding for global variable
-
+  
+  ##############################################################################
+  ########################## User input error trapping #########################
+  ##############################################################################
+  
   if(!missing("operating_mode_data")) {
     warning("'operating_mode_data' has been deprecated and will be discontinued in future releases. Please use 'additional_independent_variables' instead.")
     additional_independent_variables <- operating_mode_data
   }
-
+  
   if(! is.null(additional_independent_variables)){
     additional_variables_names <- colnames(additional_independent_variables)
     additional_variables_count <- length(additional_variables_names) - 1
@@ -44,62 +46,112 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       stop("Please provide an aggregation function for each of the additional variables input. Use argument 'additional_variable_aggregation' to specify the aggregation functions.")
     }
   } # requires that the user input at least the same number of aggregation functions as the additional variables.
-
-  # check input classes and formats ----
-
-  if(! lubridate::is.POSIXct(eload_data$time)){
-    stop("Timestamps in 'eload_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
-  }
-
-  if(! lubridate::is.POSIXct(temp_data$time)){
-    stop("Timestamps in 'temp_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
-  }
-
-  if(! is.null(additional_independent_variables)){
-    if(! lubridate::is.POSIXct(additional_independent_variables$time)){
-    stop("Timestamps in 'additional_independent_variables' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
+  
+  ####################### Check input classes and formats ######################
+  
+  if(! is.null(eload_data)){
+    if(! lubridate::is.POSIXct(eload_data$time)){
+      stop("Timestamps in 'eload_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
     }
   }
-
+  
+  if(! is.null(temp_data)){
+    if(! lubridate::is.POSIXct(temp_data$time)){
+      stop("Timestamps in 'temp_data' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
+    }
+  }
+  
+  if(! is.null(additional_independent_variables)){
+    if(! lubridate::is.POSIXct(additional_independent_variables$time)){
+      stop("Timestamps in 'additional_independent_variables' are not Date-Time objects. Please use the 'lubridate' package to parse in the timestamps appropriately.")
+    }
+  }
+  
   if(! assertive::is_numeric(temp_balancepoint)) {
     stop("temp_balancepoint needs to be a numeric input")
   }
-
+  
   if(! is.null(start_date)) {
     if(! is.character(start_date)){
       stop("Enter the start date as a character string, preferably in the 'mm/dd/yyyy hh:mm' format")
     }
   }
-
+  
   if(! is.null(end_date)) {
     if(! is.character(end_date)){
       stop("Enter the end date as a character string, preferably in the 'mm/dd/yyyy hh:mm' format")
     }
   }
   
-  # Find intervals for each time series
+  ########################### Check timezone of data ##########################
+  # Initialize the named list so that if any of the if blocks fail, item will
+  # have the "no data" flag
+  tz_list <- list(temp = "no data",
+                  eload = "no data",
+                  additional_independent_variables = "no data")
+  
+  if (! is.null(temp_data)) tz_list$temp <- attr(temp_data$time, "tzone")
+  
+  if (! is.null (eload_data)) tz_list$eload <- attr(eload_data$time, "tzone") 
+  
+  if (! is.null (additional_independent_variables)){
+    tz_list$additional_independent_variables <- attr(additional_independent_variables$time, "tzone")
+  }
+  
+  # Remove all items from the list with no data, meaning there was no data frame
+  # to read a timezone from.
+  
+  tz_list <- tz_list[tz_list != "no data"]
+  
+  # Stop if any timezones do not match
+  if (length(unique(tz_list)) > 1L){
+    stop_msg <- paste("The timezones of the input dataframes do not match.", "\n",
+                      paste(names(tz_list), ": ", tz_list, sep="", collapse="\n"), "\n", sep="")
+    stop(stop_msg)
+  }
+  
+  # Store the shared timezone. Going forward, this is what all date-time objects
+  # will be declared with.
+  timezone <- unlist(unique(tz_list))
+  
+  # Parse string dates into date-time objects.
+  # The truncated = 3 means up to three time specifiers (hour, minute, and second)
+  # can be missing and the function will still parse it to a datetime. Every
+  # missing time specify will be replaced with 0s.
+  if (! is.null(start_date)) start_date <- mdy_hms(start_date, tz = timezone, truncated = 3)
+  if (! is.null(end_date)) end_date <- mdy_hms(end_date, tz = timezone, truncated = 3)
+  
+  ##############################################################################
+  ##################### Find intervals for each time series ####################
+  ##############################################################################
+  
+  # Weather data
   if (! is.null(temp_data)) {
     nterval_temp <- diff(temp_data$time) %>%
       stats::median(na.rm = T) %>%
       lubridate::as.duration()
-  }
+  } else nterval_temp <- NULL
   
+  # Eload data
   if (! is.null(eload_data)) {
     nterval_eload <- diff(eload_data$time) %>%
       stats::median(na.rm = T) %>%
       lubridate::as.duration()
-  }
+  } else nterval_eload <- NULL
   
+  # Additional independent variable data
   if (! is.null(additional_independent_variables)) {
     nterval_additional_independent_variables <- diff(additional_independent_variables$time) %>%
       stats::median(na.rm = T) %>%
       lubridate::as.duration()
-  }
+  } else nterval_additional_independent_variables <- NULL
   
-  # Find the max of all intervals
-  max_data_interval <- max(c(nterval_temp, nterval_eload, nterval_additional_independent_variables))
+  # Find the max interval of all intervals
+  max_data_interval <- c(nterval_temp, nterval_eload, nterval_additional_independent_variables) %>%
+    max(na.rm = T) %>%
+    lubridate::as.duration()
   
-  # assign modeling interval - based on either the user's input or max of uploaded datasets
+  # Assign modeling interval - based on either the user's input or max of uploaded datasets
   if (missing(convert_to_data_interval)) {
     nterval <- max_data_interval
   } else if(convert_to_data_interval == "15-min") {
@@ -124,13 +176,13 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
       nterval <- lubridate::as.duration("1 day")
     }
   } else if (convert_to_data_interval == "Monthly") {
-      nterval <- lubridate::as.duration("1 month")
+    nterval <- lubridate::as.duration("1 month")
   } else {
     stop(paste0("Check spellings: convert_to_data_interval can be specified as one of the following:
                 '15-min', 'Hourly', 'Daily', or 'Monthly'."))
   }
-
-  # Assign string for interval
+  
+  # Assign string for interval, used as an input for the aggregate function
   if (nterval == lubridate::as.duration("15 mins")) {
     nterval_string <- "15-min"
   } else if (nterval <= lubridate::as.duration("1 hour")){
@@ -143,15 +195,12 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   
   df <- aggregate(eload_data, temp_data, additional_independent_variables,
                   additional_variable_aggregation,
+                  start_date = start_date,
+                  end_date = end_date,
                   convert_to_data_interval = nterval_string,
                   temp_balancepoint = temp_balancepoint, shift_normal_weather = shift_normal_weather)
   
-  # Return only data within the start and end dates
-  df <- df %>%
-    dplyr::filter(time >= lubridate::mdy_hm(start_date),
-                  time <= lubridate::mdy_hm(end_date)
   
-
   return(df)
-
+  
 }
