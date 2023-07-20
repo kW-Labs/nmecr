@@ -1,7 +1,9 @@
 #' Aggregate energy consumption and temperature data. Can be used to aggregate temperature data only as well.
 #'
-#' \code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.
-#' This function uses dplyr for aggregation as opposed to xts. As a result, the timestamps are not shifted after aggregation.}
+#' \code{Aggregate energy consumption, temperature, and additional independent variable data to 15-minute, hourly, daily, or monthly data intervals.
+#' This function uses dplyr for aggregation and defaults to not time shifting data. If you believe your temperature data is time stamped on an
+#' end of period reporting convention (such as TMY data that begins at 1 am meaning 00:00 - 01:00) then set the shift_normal_weather = TRUE to shift
+#' the weather data backwards by one interval to match eload data.}
 #'
 #' @param eload_data A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly
 #' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily
@@ -19,7 +21,8 @@
 #' the function will choose a start date based on the latest beginning time stamp of all dataframes.
 #' @param end_date A POSIXct indicating the inclusive ending datetime to trim observations of all dataframes to end at. The timezone should match
 #' the timezone used in the time columns of all dataframes and the start_date argument (if provided). If the end_date argument is not provided, the
-#' function will choose an end date based on the earliest ending time stamp of all dataframes.
+#' function will choose an end date based on the earliest ending time stamp of all dataframes. When providing monthly energy usage data, the end_date
+#' parameter can be used to specify the end of the final usage period. Otherwise, the function will attempt 
 #'
 #' @importFrom magrittr %>%
 #'

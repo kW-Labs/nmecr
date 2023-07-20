@@ -1,16 +1,24 @@
 #' Generate training or prediction dataframes.
 #'
-#' \code{This function creates a dataframe, combining eload, temp, and additional variable data.
-#'  It assumes that the input data is aligned to the start of a time period and outputs a dataframe that is also aligned to the start of time periods. }
+#' \code{This function creates a dataframe, combining eload, temp, and additional variable data. create_dataframe
+#'  is the user friendly wrapper for the aggregate function.By default, it assumes that the input data is aligned
+#'  to the start of a time period and outputs a dataframe that is also aligned to the start of time periods. In
+#'  cases where you are using normal weather data (such as TMY) that reports its timestamps at the end of each
+#'  period, then set shift_normal_weather = TRUE to shift the weather data backwards by one interval to match the
+#'  timestamp reporting convention for eload.}
 #'
-#' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
-#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data.
+#' Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly.
+#' The 'time' column must have Date-Time object values.
 #' @param additional_independent_variables An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.
 #' @param additional_variable_aggregation A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
 #' Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
 #' and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median
 #' @param start_date  A character string, of the format "mm/dd/yyyy hh:mm", indictating the inclusive start date and time of the intended dataframe
-#' @param end_date A character string, of the format "mm/dd/yyyy hh:mm", indictating the inclusive end date and time of the intended dataframe
+#' @param end_date A character string, of the format "mm/dd/yyyy hh:mm", indictating the inclusive end date and time of the intended dataframe.
+#' This parameter can also be used to specify the date for the end of the final reporting period for monthly energy usage data and aggregate 
+#' other data accordingly. Otherwise, the function will attempt to guess the end date for the final period to aggregate to.
 #' @param convert_to_data_interval A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'
 #' @param temp_balancepoint A numeric indicating the balancepoint for the temp_data dataframe
 #' @param shift_normal_weather A logical indicating whether or not to shift the weather data from end of period reporting to beginning of period reporting.
