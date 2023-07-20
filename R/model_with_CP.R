@@ -163,13 +163,13 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
     linear_5P_model <- stats::lm(dependent_variable ~ independent_variable)
 
     if.false <- F
-    while (if.false == F){
-      tryCatch ({
-        five_paramter_linear_model <- segmented::segmented(linear_5P_model, seg.Z = ~independent_variable, psi = model_input_options$initial_breakpoints)
-        if.false <- T
-      }, error = function(e){
-      }, finally = {})
-    }
+#    while (if.false == F){
+    tryCatch ({
+      five_paramter_linear_model <- segmented::segmented(linear_5P_model, seg.Z = ~independent_variable, psi = model_input_options$initial_breakpoints)
+#      if.false <- T
+    }, error = function(e){
+    }, finally = {})
+#    }
 
     model_input_options$estimated_breakpoint <- dplyr::bind_cols("Breakpoints" = rownames(segmented::summary.segmented(five_paramter_linear_model)$psi), as.data.frame(segmented::summary.segmented(five_paramter_linear_model)$psi))
 

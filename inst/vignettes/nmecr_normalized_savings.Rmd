@@ -6,9 +6,9 @@ author:
 - Devan Johnson^[johnson@kw-engineering.com]
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
   word_document: default
 vignette: |
   %\VignetteIndexEntry{Introduction to nmecr} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -37,7 +37,7 @@ Meter-based energy efficiency programs are proliferating across the globe. This 
 
 *	It provides fast feedback on the facility's energy performance and savings progress
 
-*	It enables identification and troubleshooting of issues that prevent savings realization
+*	It enables the identification and troubleshooting of issues that prevent savings realization
  
 The `nmecr` package streamlines the application of the NMEC approach by enabling the:
 
@@ -49,7 +49,7 @@ The `nmecr` package streamlines the application of the NMEC approach by enabling
 
 * Quantification of uncertainties and risks associated with the energy savings projections in accordance with ASHRAE Guideline 14.
 
-For an overview of nmcer, please refer [nmecr_overview.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
+For an overview of nmcer, please refer [nmecr_overview.pdf](https://github.com/kW-Labs/nmecr/tree/master/inst/vignettes/nmecr_predictability.pdf)
 
 ## Data
 
@@ -81,7 +81,7 @@ head(temp, n=5)
 
 ## Baseline Dataframe for Modeling
 
-`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or a monthly data interval. It lines up all data such that each timestamp represents attributes up until that point, e.g. an eload value corresponding to 03/02/2012 represents the energy consumption up until then - the energy consumption of 03/01/2012. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
+`create_dataframe()` combines the `eload` and `temp` dataframes into one, filters by the specified start and end dates, and aggregates to an hourly, daily, or monthly data interval. It lines up all data such that each timestamp represents attributes up until that point, e.g. an eload value corresponding to 03/02/2012 represents the energy consumption up until then - the energy consumption of 03/01/2012. If operating mode data is supplied, this information is added to the dataframe created by `create_dataframe()`.
 
 ```{r baseline_df, results='markup'}
 
@@ -147,7 +147,7 @@ model_input_options <- assign_model_inputs(timescale_days = NULL,
 
 ```
 
-As noted in the [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes) vignette, the Time-of-Week and Temperature model is best suited for this facility.
+As noted in the [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/inst/vignettes/nmecr_predictability.pdf) vignette, the Time-of-Week and Temperature model is best suited for this facility.
 
 **Time of Week and Temperature:**
 
@@ -226,7 +226,7 @@ all_stats
 
 ## Assessing project fit for NMEC
 
-Using the models' statistics and the uncertainity for 10% savings, we can determine the validity of the NMEC approach for a certain project. For the building decribed here, following are the key values to be used for this assessment
+Using the models' statistics and the uncertainty for 10% savings, we can determine the validity of the NMEC approach for a certain project. For the building described here, the items that follow contain key values to be used for this assessment
 
 1. CVRMSE (should be < 25%):
 
@@ -259,7 +259,7 @@ TOWT_baseline_savings_10$savings_summary_df
 
 * Baseline Model: 18.4%
 
-In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/vignettes)
+In addition to evaluating the model metrics, it is essential to ensure that the modeled profile follows the actual energy use closely (see Figure 8 above), and that the four assumptions of linear regression are met by the model. For a step-by-step process of evaluating the model against the four assumptions of regression, read [nmecr_predictability.pdf](https://github.com/kW-Labs/nmecr/tree/master/inst/vignettes/nmecr_predictability.pdf)
 
 ## Normalized Savings and Uncertainty
 
@@ -273,7 +273,7 @@ head(TMY3, n = 5)
 
 ```
 
-Since we have our models in the daily time intervals, it will be best to aggregate the TMY3 data to the daily level as well:
+Since we have our models in daily time intervals, it will be best to aggregate the TMY3 data to the daily level as well:
 
 ```{r TMY3 daily, results='markup', echo = TRUE}
 
