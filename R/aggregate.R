@@ -64,31 +64,28 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     
   }
   
-  # Store variable names to filter columns. Also grab the sequence of important indices
+  # Store variable names to filter columns
   if(! is.null(additional_independent_variables)) {
-    
     additional_variable_names <- colnames(additional_independent_variables[, -1])
-    
-    additional_variable_aggregation_indices <- seq(from = 2,
-                                                   to = length(additional_variable_names)^2 + 1,
-                                                   by = length(additional_variable_names)+1)
-    
   }
   
   ################# Trim dataframes to be of equal date ranges #################
   # If the start date isn't defined, then set it as the latest start time of all
   # the dataframes
   if(is.null(start_date)){
+    
     first_dates <- list(eload = eload_data$time[1],
                         temp = temp_data$time[1],
                         additional_independent_variables = additional_independent_variables$time[1]) %>%
       purrr::compact() # Remove any NULL items from the list
     start_date <- max(Reduce(c, first_dates), na.rm = T)
+    
   }
   
   # If the end date isn't defined, then set it as the earliest end time of all
   # the dataframes
   if(is.null(end_date)){
+    
     last_dates <- list(eload = tail(eload_data$time, n=1),
                        temp = tail(temp_data$time, n=1),
                        additional_independent_variables = tail(additional_independent_variables$time, n=1)) %>%
@@ -151,41 +148,45 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     # Aggregation to quarterly additional independent variable data
     if(! is.null(additional_independent_variables)) {
       
-      quarterly_additional_independent_variables <- additional_independent_variables %>%
-        dplyr::mutate(quarter = lubridate::floor_date(time, "15 mins")) %>%
-        dplyr::group_by("time" = quarter) %>%
-        dplyr::summarize_at(.vars = additional_variable_names,
-                            .funs = additional_variable_aggregation,
-                            na.rm = T)
-      
-      # Set column names and delete extraneous columns created by the summarize_at function
-      base::names(hourly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
-      hourly_additional_independent_variables <- hourly_additional_independent_variables[, c("time", additional_variable_names)]
+      # We have to do aggregation a little differently for additional independent variables!
+      # The usual summarize across or summarize_at syntax, when provided a list of functions and columns,
+      # will apply every function to every column, squaring the number of output columns.
+      # To avoid this, purrr's map2 function is used to wrap around the summarize procedure and
+      # apply it in a column by column fashion. .x is the columns to apply to, .y is the functions
+      # to use in each call, and .f is the procedure.
+      quarterly_additional_independent_variables <- purrr::map2(.x = additional_variable_names,
+                                                                .y = additional_variable_aggregation,
+                                                                .f = ~additional_independent_variables %>%
+                                                                  dplyr::mutate(quarter = lubridate::floor_date(time, "15 mins")) %>%
+                                                                  dplyr::group_by("time" = quarter) %>%
+                                                                  dplyr::summarize_at(.vars = .x,
+                                                                                      .funs = .y,
+                                                                                      na.rm = T)) %>%
+        purrr::reduce(left_join, by = 'time') # Combine the list of dataframes into a single dataframe
       
     }
     
     # Joining and returning data
+    aggregated_data <- quarterly_temp
+    
     if (! is.null(eload_data)) {
       
-      aggregated_data <- quarterly_eload %>%
-        dplyr::full_join(quarterly_temp, by = "time") %>%
+      aggregated_data <- aggregated_data %>%
+        dplyr::full_join(quarterly_eload, by = "time") %>%
         dplyr::distinct()
       
-      if (! is.null(additional_independent_variables)) {
-        
-        aggregated_data <- aggregated_data %>%
-          dplyr::full_join(quarterly_additional_independent_variables, by = "time") %>%
-          dplyr::distinct()
-        
-      }
+    }
+    
+    if (! is.null(additional_independent_variables)) {
       
-      return(aggregated_data)
-      
-    } else {
-      
-      return(quarterly_temp)
+      aggregated_data <- aggregated_data %>%
+        dplyr::full_join(quarterly_additional_independent_variables, by = "time") %>%
+        dplyr::distinct()
       
     }
+    
+    # Convert from tibble to dataframe and return
+    return(as.data.frame(aggregated_data))
     
     ################################# HOURLY DATA ################################
     
@@ -212,42 +213,39 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     # Aggregation to hourly additional independent variable data
     if(! is.null(additional_independent_variables)) {
       
-      hourly_additional_independent_variables <- additional_independent_variables %>%
-        dplyr::mutate(hour = lubridate::floor_date(time, "hour")) %>%
-        dplyr::group_by("time" = hour) %>%
-        dplyr::summarize_at(.vars = additional_variable_names,
-                            .funs = additional_variable_aggregation,
-                            na.rm = T)
-      
-      # Set column names and delete extraneous columns created by the summarize_at function
-      base::names(hourly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
-      hourly_additional_independent_variables <- hourly_additional_independent_variables[, c("time", additional_variable_names)]
+      hourly_additional_independent_variables <- purrr::map2(.x = additional_variable_names,
+                                                             .y = additional_variable_aggregation,
+                                                             .f = ~additional_independent_variables %>%
+                                                               dplyr::mutate(hour = lubridate::floor_date(time, "hour")) %>%
+                                                               dplyr::group_by("time" = hour) %>%
+                                                               dplyr::summarize_at(.vars = .x,
+                                                                                   .funs = .y,
+                                                                                   na.rm = T)) %>%
+        purrr::reduce(dplyr::left_join, by = 'time')
       
     }
     
     # Joining and returning data
+    aggregated_data <- hourly_temp
+    
     if (! is.null(eload_data)) {
       
-      aggregated_data <- hourly_eload %>%
-        dplyr::full_join(hourly_temp, by = "time") %>%
+      aggregated_data <- aggregated_data %>%
+        dplyr::full_join(hourly_eload, by = "time") %>%
         dplyr::distinct()
-      
-      if (! is.null(additional_independent_variables)) {
-        
-        aggregated_data <- aggregated_data %>%
-          dplyr::full_join(hourly_additional_independent_variables, by = "time") %>%
-          dplyr::distinct()
-        
-      }
-      
-      return(aggregated_data)
-      
-    } else {
-      
-      return(hourly_temp)
       
     }
     
+    if (! is.null(additional_independent_variables)) {
+      
+      aggregated_data <- aggregated_data %>%
+        dplyr::full_join(hourly_additional_independent_variables, by = "time") %>%
+        dplyr::distinct()
+      
+    }
+    
+    # Convert from tibble to dataframe and return
+    return(as.data.frame(aggregated_data))
     
     ################################## DAILY DATA ################################
     
@@ -283,41 +281,39 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     # Aggregation to daily additional independent variable data 
     if(! is.null(additional_independent_variables)) {
       
-      daily_additional_independent_variables <- additional_independent_variables %>%
-        dplyr::mutate(day = lubridate::floor_date(time, "day")) %>%
-        dplyr::group_by("time" = day) %>%
-        dplyr::summarize_at(.vars = additional_variable_names,
-                            .funs = additional_variable_aggregation,
-                            na.rm = T)
-      
-      # Set column names and delete extraneous columns created by the summarize_at function
-      base::names(daily_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
-      daily_additional_independent_variables <- daily_additional_independent_variables[, c("time", additional_variable_names)]
+      daily_additional_independent_variables <- purrr::map2(.x = additional_variable_names,
+                                                            .y = additional_variable_aggregation,
+                                                            .f = ~additional_independent_variables %>%
+                                                              dplyr::mutate(day = lubridate::floor_date(time, "day")) %>%
+                                                              dplyr::group_by("time" = day) %>%
+                                                              dplyr::summarize_at(.vars = .x,
+                                                                                  .funs = .y,
+                                                                                  na.rm = T)) %>%
+        purrr::reduce(dplyr::left_join, by = 'time')
       
     }
     
     # Joining and returning data
-    if(! is.null(eload_data)) {
+    aggregated_data <- daily_temp
+    
+    if (! is.null(eload_data)) {
       
-      aggregated_data <- daily_temp %>%
+      aggregated_data <- aggregated_data %>%
         dplyr::full_join(daily_eload, by = "time") %>%
         dplyr::distinct()
       
-      if(! is.null(additional_independent_variables)) {
-        
-        aggregated_data <- aggregated_data %>%
-          dplyr::full_join(daily_additional_independent_variables, by = "time") %>%
-          dplyr::distinct()
-        
-      }
+    }
+    
+    if (! is.null(additional_independent_variables)) {
       
-      return(aggregated_data)
-      
-    } else {
-      
-      return(daily_temp)
+      aggregated_data <- aggregated_data %>%
+        dplyr::full_join(daily_additional_independent_variables, by = "time") %>%
+        dplyr::distinct()
       
     }
+    
+    # Convert from tibble to dataframe and return
+    return(as.data.frame(aggregated_data))
     
     ########################## MONTHLY DATA AGGREGATION ##########################
     
@@ -416,23 +412,20 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     if(! is.null(additional_independent_variables)){
       
       # Summarize additional variables by each period of the eload data using an overlap join
-      monthly_additional_independent_variables <- additional_independent_variables %>%
-        dplyr::mutate(time = lubridate::floor_date(time, "day")) %>%
-        dplyr::inner_join(
-          monthly_intervals,
-          by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
-        dplyr::group_by(groupnum) %>%
-        dplyr::summarize_at(.vars = additional_variable_names,
-                            .funs = additional_variable_aggregation,
-                            na.rm = T)
-      
-      # Add the time column back in place of the group number column
-      colnames(monthly_additional_independent_variables)[1] <- "time"
-      monthly_additional_independent_variables$time <- monthly_intervals$interval_start
-      
-      # Set column names and delete extraneous columns created by the summarize_at function
-      base::names(monthly_additional_independent_variables)[additional_variable_aggregation_indices] <- additional_variable_names
-      monthly_additional_independent_variables <- monthly_additional_independent_variables[, c("time", additional_variable_names)]
+      monthly_additional_independent_variables <- purrr::map2(.x = additional_variable_names,
+                                                              .y = additional_variable_aggregation,
+                                                              .f = ~additional_independent_variables %>%
+                                                                dplyr::mutate(time = lubridate::floor_date(time, "day")) %>%
+                                                                dplyr::inner_join(
+                                                                  monthly_intervals,
+                                                                  by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
+                                                                dplyr::group_by(groupnum) %>%
+                                                                dplyr::summarize_at(.vars = .x,
+                                                                                    .funs = .y,
+                                                                                    na.rm = T) %>%
+                                                                dplyr::rename(time = groupnum) %>%
+                                                                dplyr::mutate(time = monthly_intervals$interval_start)) %>%
+        purrr::reduce(dplyr::left_join, by = 'time')
       
       # Normalize additional variables by days in month
       normalized_monthly_additional_independent_variables <- monthly_additional_independent_variables %>%
@@ -467,7 +460,8 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       
     }
     
-    return(aggregated_data)
+    # Convert from tibble to dataframe and return
+    return(as.data.frame(aggregated_data))
     
   }
 }
