@@ -1,13 +1,20 @@
 #' Generate training or prediction dataframes.
 #'
-#' \code{This function creates a dataframe, combining eload, temp, and additional variable data.
-#'  It assumes that the input data is aligned to the start of a time period and outputs a dataframe aligned to the end of time periods.
-#'  NA values are ignored during aggregation.
-#'  xts is used for aggregation, meaning that timestamps are aligned to the end of the period after aggregation.}
+
+#' \code{This function creates a dataframe, combining eload, temp, and additional variable data. create_dataframe
+#'  is the user friendly wrapper for the aggregate function. By default, it assumes that the input data is aligned
+#'  to the start of a time period and outputs a dataframe that is also aligned to the start of time periods. In
+#'  cases where you are using normal weather data (such as TMY) that reports its timestamps at the end of each
+#'  period, then set shift_normal_weather = TRUE to shift the weather data backwards by one interval to match the
+#'  timestamp reporting convention for eload.}
 #'
-#' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data. Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
-#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param eload_data A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data.
+#' Column names: "time" and "eload". Allowed time intervals: less-than 15-min, 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.
+#' @param temp_data A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly.
+#' The 'time' column must have Date-Time object values.
 #' @param additional_independent_variables An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.
+#' The first column should be titled "time" and all proceeding columns should contain numeric data for each additional independent variable.
+#' Allowed time intervals: less-than 15-min, 15-min, hourly, daily
 #' @param additional_variable_aggregation A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
 #' Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
 #' and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median
@@ -19,7 +26,8 @@
 #' @importFrom stats median
 #' @importFrom magrittr %>%
 #'
-#' @return a dataframe with energy consumption data, temperature data and additional variable data
+#' @return a dataframe with energy consumption data, temperature data and (if supplied) additional variable data at the specified data interval. If only temperature data
+#' is supplied, the function will return a dataframe with aggregated temperature data.
 #' @export
 
 create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode_data = NULL,
@@ -87,55 +95,49 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   if(! is.null(additional_independent_variables)){
     additional_independent_variables_xts <- xts::xts(x = additional_independent_variables[, -1], order.by = additional_independent_variables[, 1])
   }
-
-  # Assigning column names  ----
-
-  colnames(eload_data_xts) <- "eload"
-  colnames(temp_data_xts) <- "temp"
-  if(! is.null(additional_independent_variables)){
-    additional_independent_variables_names <- colnames(additional_independent_variables)[-1]
-    colnames(additional_independent_variables_xts) <- additional_independent_variables_names
-  }
-
-  # Determine the input data interval and the aggregation interval based on them as well as based on the argument specification.  ----
-
-  # determine data intervals of eload, temp, and operating mode data
-  periodicity_eload <- xts::periodicity(eload_data_xts)
-  periodicity_temp <- xts::periodicity(temp_data_xts)
-  if(! is.null(additional_independent_variables)){
-    periodicity_additional_independent_variables <- xts::periodicity(additional_independent_variables_xts)
-  }
-
-  determine_data_interval_sec <- function(data_periodicity){ # determine the data interval in seconds
-
-    if(data_periodicity$scale == "minute"){
-      data_interval <- 60*data_periodicity$frequency
-    } else if (data_periodicity$scale == "hourly"){
-      data_interval <- 60*60
-    } else if (data_periodicity$scale == "daily"){
-      data_interval <- 60*60*24
-    } else if (data_periodicity$scale == "monthly"){
-      data_interval <- 60*60*24*mean(30,31)
-    }
-
-    return(data_interval)
-  }
-
-  # determine the data interval (in seconds) of eload, temp, and additional variable dataframes
-  eload_data_interval <- determine_data_interval_sec(periodicity_eload)
-  temp_data_interval <- determine_data_interval_sec(periodicity_temp)
-  if(! is.null(additional_independent_variables)){
-    additional_independent_variables_interval <- determine_data_interval_sec(periodicity_additional_independent_variables)
-  }
-
-  # determine the maximum data interval (in seconds) from the available dataframes
-  if(! is.null(additional_independent_variables)){
-    max_data_interval <- max(eload_data_interval, temp_data_interval, additional_independent_variables_interval)
-  } else {
-    max_data_interval <- max(eload_data_interval, temp_data_interval)
-  }
-
-  # assign modeling interval - based on either the user's input or max of uploaded datasets
+  
+  # Store the shared timezone. Going forward, this is what all date-time objects
+  # will be declared with.
+  timezone <- unlist(unique(tz_list))
+  
+  # Parse string dates into date-time objects.
+  # The truncated = 3 means up to three time specifiers (hour, minute, and second)
+  # can be missing and the function will still parse it to a datetime. Every
+  # missing time specify will be replaced with 0s.
+  if (! is.null(start_date)) start_date <- lubridate::mdy_hms(start_date, tz = timezone, truncated = 3)
+  if (! is.null(end_date)) end_date <- lubridate::mdy_hms(end_date, tz = timezone, truncated = 3)
+  
+  ##############################################################################
+  ##################### Find intervals for each time series ####################
+  ##############################################################################
+  
+  # Weather data
+  if (! is.null(temp_data)) {
+    nterval_temp <- diff(temp_data$time) %>%
+      stats::median(na.rm = T) %>%
+      lubridate::as.duration()
+  } else nterval_temp <- NULL
+  
+  # Eload data
+  if (! is.null(eload_data)) {
+    nterval_eload <- diff(eload_data$time) %>%
+      stats::median(na.rm = T) %>%
+      lubridate::as.duration()
+  } else nterval_eload <- NULL
+  
+  # Additional independent variable data
+  if (! is.null(additional_independent_variables)) {
+    nterval_additional_independent_variables <- diff(additional_independent_variables$time) %>%
+      stats::median(na.rm = T) %>%
+      lubridate::as.duration()
+  } else nterval_additional_independent_variables <- NULL
+  
+  # Find the max interval of all intervals
+  max_data_interval <- c(nterval_temp, nterval_eload, nterval_additional_independent_variables) %>%
+    max(na.rm = T) %>%
+    lubridate::as.duration()
+  
+  # Assign modeling interval - based on either the user's input or max of uploaded datasets
   if (missing(convert_to_data_interval)) {
     nterval <- max_data_interval
   } else if(convert_to_data_interval == "15-min") {
