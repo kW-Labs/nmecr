@@ -19,12 +19,14 @@ create_dataframe(
 }
 \arguments{
 \item{eload_data}{A dataframe with energy consumption time series. This dataframe should only be energy consumption data and not demand data.
-Column names: "time" and "eload". Allowed time intervals: 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.}
+Column names: "time" and "eload". Allowed time intervals: less-than 15-min, 15-min, hourly, daily, monthly. The 'time' column must have Date-Time object values.}
 
 \item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: 15-min, hourly, daily, monthly.
 The 'time' column must have Date-Time object values.}
 
-\item{additional_independent_variables}{An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.}
+\item{additional_independent_variables}{An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.
+The first column should be titled "time" and all proceeding columns should contain numeric data for each additional independent variable.
+Allowed time intervals: less-than 15-min, 15-min, hourly, daily}
 
 \item{additional_variable_aggregation}{A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
 Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
@@ -45,11 +47,12 @@ This option is set to false by default, but if the user knows that the rest of t
 period, setting this option to true will align the weather to the beginning of the period as well.}
 }
 \value{
-a dataframe with energy consumption data, temperature data and (if supplied) additional variable data at the specified data interval.
+a dataframe with energy consumption data, temperature data and (if supplied) additional variable data at the specified data interval. If only temperature data
+is supplied, the function will return a dataframe with aggregated temperature data.
 }
 \description{
 \code{This function creates a dataframe, combining eload, temp, and additional variable data. create_dataframe
- is the user friendly wrapper for the aggregate function.By default, it assumes that the input data is aligned
+ is the user friendly wrapper for the aggregate function. By default, it assumes that the input data is aligned
  to the start of a time period and outputs a dataframe that is also aligned to the start of time periods. In
  cases where you are using normal weather data (such as TMY) that reports its timestamps at the end of each
  period, then set shift_normal_weather = TRUE to shift the weather data backwards by one interval to match the
