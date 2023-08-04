@@ -1,17 +1,10 @@
 Package: nmecr
 Type: Package
 Title: An implementation of peer-reviewed energy data analysis algorithms for site-specific M&V
-
-Version: 1.0.16
-
-Authors@R: c(
-  person("Jacoby", "Maggie", email = "mjacoby@kw-engineering.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9394-5393")),
-  person("Johnson", "Devan", email = "djohnson@kw-engineering.com", role = c("ctb", "cph"), comment = c(ORCID = "0000-0002-4566-4308")),
-  person("Jump", "David", email = "djump@kw-engineering.com", role = "cph"), comment = c(ORCID = "0000-0002-5014-8789")),
-  person("Luu", "Dexter", email = "dluu@kw-engineering.com", role = c("aut", "cre")),
-  person("Sharma", "Mrinalini", role = c("ctb"), comment = c(ORCID = "0000-0002-1511-2561")),
-  person("Wolfe", "Kyle", role = "ctb"))
-
+Version: 1.0.15
+Authors@R: c(person("Luu", "Dexter", email = "dluu@kw-engineering.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-1511-2561")),
+			 person("Johnson", "Devan", email = "djohnson@kw-engineering.com", role = c("ctb", "cph")),
+			 person("Jump", "David", email = "djump@kw-engineering.com", role = "cph"))
 Description: nmecr builds statistical energy data models and provides a comprehensive assessment of model fit and prediction accuracy.
   It provides the complete portfolio of the industry standard energy data modeling algorithms and includes an enhancement that allows 
   data modeling of energy profiles with distinct energy use regimens for improved predictive accuracy. 
@@ -31,7 +24,7 @@ Imports:
     methods
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.2.0
 Suggests: 
     knitr,
     rmarkdown,
