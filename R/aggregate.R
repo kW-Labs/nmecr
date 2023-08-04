@@ -343,7 +343,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
     intervals[1] <- lubridate::floor_date(start_date, "day")
     # If the end date does not end of the first of a month, then add on an extra element to the intervals vector. Because we will
     # later subtract 1 day from these to make them inclusive date ranges, add 1 for now to compensate.
-    if (lubridate::mday(end_date) != 1) intervals <- append(intervals, floor_date(end_date, "day") + lubridate::as.duration("1 day"))
+    if (lubridate::mday(end_date) != 1) intervals <- append(intervals, lubridate::floor_date(end_date, "day") + lubridate::as.duration("1 day"))
     
     monthly_intervals <- data.frame(groupnum = seq(1, length(intervals)-1),
                                     interval_start = intervals[-length(intervals)],
@@ -363,7 +363,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
         # date to the intervals.
         # Also shift last date forward by 1 day to compensate for subtraction that will occur to all values in a few lines
         if (tail(intervals, n=1) < lubridate::floor_date(end_date, "day")){
-          intervals <- append(intervals, floor_date(end_date, "day") + lubridate::as.duration("1 day"))
+          intervals <- append(intervals, lubridate::floor_date(end_date, "day") + lubridate::as.duration("1 day"))
         } else {
           intervals[length(intervals)] <- tail(intervals, n=1) + lubridate::as.duration("1 day")
         }
@@ -383,7 +383,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
           mutate(time = lubridate::floor_date(time, "day")) %>%
           dplyr::inner_join(
             monthly_intervals,
-            by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
+            by = dplyr::join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
           dplyr::group_by(groupnum) %>%
           dplyr::summarize("eload" = sum(eload, na.rm = T)) %>%
           dplyr::rename(time = groupnum) %>%
@@ -397,7 +397,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
       dplyr::mutate(time = lubridate::floor_date(time, "day")) %>%
       dplyr::inner_join(
         monthly_intervals,
-        by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
+        by = dplyr::join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
       dplyr::group_by(groupnum) %>%
       dplyr::summarize("temp" = mean(temp, na.rm = T),
                        "HDD" = sum(HDD, na.rm = T),
@@ -418,7 +418,7 @@ aggregate <- function(eload_data = NULL, temp_data = NULL, additional_independen
                                                                 dplyr::mutate(time = lubridate::floor_date(time, "day")) %>%
                                                                 dplyr::inner_join(
                                                                   monthly_intervals,
-                                                                  by = join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
+                                                                  by = dplyr::join_by("time" >= "interval_start", "time" <= "interval_end")) %>%
                                                                 dplyr::group_by(groupnum) %>%
                                                                 dplyr::summarize_at(.vars = .x,
                                                                                     .funs = .y,

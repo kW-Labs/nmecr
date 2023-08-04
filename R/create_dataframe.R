@@ -126,8 +126,8 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   # The truncated = 3 means up to three time specifiers (hour, minute, and second)
   # can be missing and the function will still parse it to a datetime. Every
   # missing time specify will be replaced with 0s.
-  if (! is.null(start_date)) start_date <- mdy_hms(start_date, tz = timezone, truncated = 3)
-  if (! is.null(end_date)) end_date <- mdy_hms(end_date, tz = timezone, truncated = 3)
+  if (! is.null(start_date)) start_date <- lubridate::mdy_hms(start_date, tz = timezone, truncated = 3)
+  if (! is.null(end_date)) end_date <- lubridate::mdy_hms(end_date, tz = timezone, truncated = 3)
   
   ##############################################################################
   ##################### Find intervals for each time series ####################
