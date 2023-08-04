@@ -7,24 +7,53 @@
 aggregate(
   eload_data = NULL,
   temp_data = NULL,
-  convert_to_data_interval = c("Hourly", "Daily", "Monthly"),
-  temp_balancepoint = 65
+  additional_independent_variables = NULL,
+  additional_variable_aggregation = NULL,
+  convert_to_data_interval = c("15-min", "Hourly", "Daily", "Monthly"),
+  temp_balancepoint = 65,
+  shift_normal_weather = FALSE,
+  start_date = NULL,
+  end_date = NULL
 )
 }
 \arguments{
-\item{eload_data}{A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 60-mins, hourly, daily, monthly}
+\item{eload_data}{A dataframe with energy consumption time series. Column names: "time" and "eload". Allowed time intervals: less-than 15-min, 15-min, hourly, daily, monthly}
 
-\item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 60-mins, hourly, daily}
+\item{temp_data}{A dataframe with weather time series. Column names: "time" and "temp". Allowed time intervals: less-than 15-min, 15-min, hourly, daily}
 
-\item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: 'Hourly', 'Daily', and 'Monthly'}
+\item{additional_independent_variables}{An optional dataframe for adding independent variables to the regression. This argument is a replacement for the older 'operating_mode_data' argument.
+The first column should be titled "time" and all proceeding columns should contain numeric data for each additional independent variable.
+Allowed time intervals: less-than 15-min, 15-min, hourly, daily}
+
+\item{additional_variable_aggregation}{A vector with aggregation functions for each of the variables in 'additional_independent_variables'.
+Usage example: c(sum, median) implies two additional independent variables. The first variable will be summed over the specified data interval
+and the median of the second variable will be taken over the specified data interval. Permissible aggregation functions: sum, mean, median}
+
+\item{convert_to_data_interval}{A character string indicating the time interval to which the dataframe should be aggregated: '15-min', 'Hourly', 'Daily', and 'Monthly'}
 
 \item{temp_balancepoint}{A numeric indicating the balancepoint for the temp_data dataframe}
+
+\item{shift_normal_weather}{A logical indicating whether or not to shift the weather data from end of period reporting to beginning of period reporting.
+This option is set to false by default, but if the user knows that the rest of their data, such as energy use, reports with timestamps at the beginning of each usage
+period, setting this option to true will align the weather to the beginning of the period as well.}
+
+\item{start_date}{A POSIXct indicating the inclusive starting datetime to trim observations of all dataframes to start at. The timezone should
+match the timezone used in the time columns of all dataframes and the end_date argument (if provided). If the start_date argument is not provided,
+the function will choose a start date based on the latest beginning time stamp of all dataframes.}
+
+\item{end_date}{A POSIXct indicating the inclusive ending datetime to trim observations of all dataframes to end at. The timezone should match
+the timezone used in the time columns of all dataframes and the start_date argument (if provided). If the end_date argument is not provided, the
+function will choose an end date based on the earliest ending time stamp of all dataframes. When providing monthly energy usage data, the end_date
+parameter can be used to specify the end of the final usage period. Otherwise, the function will attempt to determine the end date for the final
+monthly usage period using the median interval of all preceding usage periods.}
 }
 \value{
-a dataframe with energy consumption data and corresponding temperature data, aggregated to the indicated data interval. If energy consumption data is not available,
-aggregated temperature data is returned.
+a dataframe with energy consumption data, corresponding temperature data, and (if supplied) additional independent variable data aggregated
+to the indicated data interval. If energy consumption data is not available, aggregated temperature data is returned.
 }
 \description{
-\code{Aggregate energy consumption and temperature data to hourly, daily, or monthly data intervals.
-This function uses dplyr for aggregation as opposed to xts. As a result, the timestamps are not shifted after aggregation.}
+\code{Aggregate energy consumption, temperature, and additional independent variable data to 15-minute, hourly, daily, or monthly data intervals.
+This function uses dplyr for aggregation and defaults to not time shifting data. If you believe your temperature data is time stamped on an
+end of period reporting convention (such as TMY data that begins at 1 am meaning 00:00 - 01:00) then set the shift_normal_weather = TRUE to shift
+the weather data backwards by one interval to match eload data.}
 }
