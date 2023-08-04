@@ -12,10 +12,10 @@ assign_model_inputs(
   temp_segments_numeric = 6,
   temp_knots_value = c(40, 55, 65, 80, 90),
   initial_breakpoints = c(50, 65),
-  regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression",
-    "HDD-CDD", "HDD Regression", "HDD", "CDD Regression", "CDD",
-    "Three Parameter Cooling", "3PC", "Three Parameter Heating", "3PH",
-    "Four Parameter Linear Model", "4P", "Five Parameter Linear Model", "5P", "Mean"),
+  regression_type = c("TOWT", "TOW", "SLR", "HDD-CDD Multivariate Regression", "HDD-CDD",
+    "HDD Regression", "HDD", "CDD Regression", "CDD", "Three Parameter Cooling", "3PC",
+    "Three Parameter Heating", "3PH", "Four Parameter Linear Model", "4P",
+    "Five Parameter Linear Model", "5P", "Mean"),
   occupancy_threshold = 0.65,
   day_normalized = FALSE
 )
