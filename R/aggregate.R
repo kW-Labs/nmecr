@@ -22,7 +22,8 @@
 #' @param end_date A POSIXct indicating the inclusive ending datetime to trim observations of all dataframes to end at. The timezone should match
 #' the timezone used in the time columns of all dataframes and the start_date argument (if provided). If the end_date argument is not provided, the
 #' function will choose an end date based on the earliest ending time stamp of all dataframes. When providing monthly energy usage data, the end_date
-#' parameter can be used to specify the end of the final usage period. Otherwise, the function will attempt 
+#' parameter can be used to specify the end of the final usage period. Otherwise, the function will attempt to determine the end date for the final
+#' monthly usage period using the median interval of all preceding usage periods.
 #'
 #' @importFrom magrittr %>%
 #'
