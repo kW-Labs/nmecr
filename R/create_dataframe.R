@@ -97,33 +97,38 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
   ########################### Check timezone of data ##########################
   # Initialize the named list so that if any of the if blocks fail, item will
   # have the "no data" flag
-  tz_list <- list(temp = "no data",
-                  eload = "no data",
-                  additional_independent_variables = "no data")
-  
-  if (! is.null(temp_data)) tz_list$temp <- attr(temp_data$time, "tzone")
-  
-  if (! is.null (eload_data)) tz_list$eload <- attr(eload_data$time, "tzone") 
-  
-  if (! is.null (additional_independent_variables)){
-    tz_list$additional_independent_variables <- attr(additional_independent_variables$time, "tzone")
-  }
+  tz_list <- list(
+    temp = attr(temp_data$time, "tzone"),
+    eload = attr(eload_data$time, "tzone"),
+    additional_independent_variables = attr(additional_independent_variables$time, "tzone"))
   
   # Remove all items from the list with no data, meaning there was no data frame
   # to read a timezone from.
   
-  tz_list <- tz_list[tz_list != "no data"]
+  tz_list <- tz_list[!sapply(tz_list, is.null)]
   
-  # Stop if any timezones do not match
+  # Warn if any timezones do not match 
   if (length(unique(tz_list)) > 1L){
-    stop_msg <- paste("The timezones of the input dataframes do not match.", "\n",
-                      paste(names(tz_list), ": ", tz_list, sep="", collapse="\n"), "\n", sep="")
-    stop(stop_msg)
+    
+    # Store the first timezone. Going forward, this is what all date-time objects
+    # will be declared with.
+    timezone <- tz_list[[1]]
+    
+    warn_msg <- paste("The timezones of the input dataframes do not match.", "\n",
+                      paste(names(tz_list), ": ", tz_list, sep="", collapse="\n"), "\n", 
+                      paste("Forcing all timezones to ", timezone), sep="")
+    
+    if (! is.null(temp_data)) temp_data$time <- lubridate::force_tz(temp_data$time, tzone = timezone)
+    if (! is.null(eload_data)) eload_data$time <- lubridate::force_tz(eload_data$time, tzone = timezone)
+    if (! is.null(additional_independent_variables)) additional_independent_variables$time <- lubridate::force_tz(additional_independent_variables$time, tzone = timezone)
+    
+    warning(warn_msg)
+  } else {
+    
+    # Store the shared timezone. Going forward, this is what all date-time objects
+    # will be declared with.
+    timezone <- unlist(unique(tz_list))
   }
-  
-  # Store the shared timezone. Going forward, this is what all date-time objects
-  # will be declared with.
-  timezone <- unlist(unique(tz_list))
   
   # Parse string dates into date-time objects.
   # The truncated = 3 means up to three time specifiers (hour, minute, and second)
