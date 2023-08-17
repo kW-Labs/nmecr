@@ -78,11 +78,13 @@ baseline_df <- create_dataframe(eload_data = school_eload,
                                 temp_data = school_temp,
                                 convert_to_data_interval = "Daily")
 
-baseline_df_with_op_mode <- create_dataframe(eload_data = school_eload, 
-                                             temp_data = school_temp,
-                                             additional_independent_variables = school_op_mode,
-                                             additional_variable_aggregation = c(median, median, median, median),
-                                             convert_to_data_interval = "Daily")
+baseline_df_with_op_mode <- create_dataframe(
+  eload_data = school_eload, 
+  temp_data = school_temp,
+  additional_independent_variables = school_op_mode,
+  additional_variable_aggregation = c(median, median, median, median),
+  convert_to_data_interval = "Daily"
+  )
 
 
 ```
@@ -106,7 +108,7 @@ Figure 1: Baseline Energy Use over Time
 ggplot2::ggplot(baseline_df, aes(x = temp, y = eload)) +
   geom_point() +
   xlab("Temperature") +
-  scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma)+
+  scale_y_continuous(name = "Energy Consumption (kWh)", labels = scales::comma) +
   theme_minimal() +
   theme(legend.position = "bottom")
 
@@ -128,7 +130,7 @@ TOWT_model <- model_with_TOWT(training_data = baseline_df,
                                 assign_model_inputs(regression_type = "TOWT"))
 TOWT_df <- TOWT_model$training_data
 
-names(TOWT_df) <- c("time", "eload", "temp", "HDD", "CDD", "model_fit_without_op.mode_info")
+names(TOWT_df)[names(TOWT_df) == "model_fit"] <- "model_fit_without_op.mode_info"
 
 TOWT_model_with_op_mode <- model_with_TOWT(training_data = baseline_df_with_op_mode, 
                             model_input_options = 
@@ -136,9 +138,7 @@ TOWT_model_with_op_mode <- model_with_TOWT(training_data = baseline_df_with_op_m
 
 TOWT_df_with_op_mode <- TOWT_model_with_op_mode$training_data
 
-names(TOWT_df_with_op_mode) <- c("time", "eload", "temp", "school holidays", 
-                                 "summer maintenance", "summer school", "pre-class ramp up",
-                                 "HDD", "CDD",  "model_fit_with_op.mode_info")
+names(TOWT_df_with_op_mode)[names(TOWT_df_with_op_mode) == "model_fit"] <- "model_fit_with_op.mode_info"
 
 TOWT_all_data <- TOWT_df %>%
   dplyr::inner_join(TOWT_df_with_op_mode, by = c("time", "temp", "HDD", "CDD", "eload"))
@@ -148,15 +148,15 @@ TOWT_all_data <- TOWT_df %>%
 ```{r TOWT model, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
 
 TOWT_plot_data <- TOWT_all_data %>%
-  tidyr::gather(key = "variable", value = "value", -c("time", "temp", "CDD", "HDD", 
-                                                      "school holidays", "summer maintenance", "summer school", 
-                                                      "pre-class ramp up"))
+  tidyr::gather(key = "variable", value = "value", 
+                -c("time", "temp", "CDD", "HDD", "school_holidays", 
+                   "summer maintenance", "summer school", "pre-class ramp up"))
 
 TOWT_plot_data %>%
     filter(variable != "model_fit_with_op.mode_info") %>%
-  ggplot2::ggplot(aes(x = time, y = value, -c("time", "temp", "CDD", "HDD", 
-                                                      "school holidays", "summer maintenance", "summer school", 
-                                                      "pre-class ramp up"))) +
+  ggplot2::ggplot(aes(x = time, y = value, 
+                      -c("time", "temp", "CDD", "HDD", "school_holidays", 
+                         "summer maintenance", "summer school", "pre-class ramp up"))) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
@@ -173,9 +173,9 @@ Figure 3: Baseline Energy Use modeled with Time-of-week and Temperature over Tim
 
 TOWT_plot_data %>%
     filter(variable != "model_fit_without_op.mode_info") %>%
-  ggplot2::ggplot(aes(x = time, y = value, -c("time", "temp", "CDD", "HDD", 
-                                                      "school holidays", "summer maintenance", "summer school", 
-                                                      "pre-class ramp up"))) +
+  ggplot2::ggplot(aes(x = time, y = value, 
+                      -c("time", "temp", "CDD", "HDD", "school_holidays", 
+                         "summer maintenance", "summer school", "pre-class ramp up"))) +
   geom_line(aes(color = variable), size = 1) +
   xlab("Time") +
   scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
@@ -189,9 +189,10 @@ TOWT_plot_data %>%
 Figure 4: Baseline Energy Use modeled with Time-of-week and Temperature over Time with Operating Mode Information
 
 ```{r TOWT scatter, fig.width=7, fig.height=3, echo = FALSE, results='hide'}
- ggplot2::ggplot(TOWT_plot_data, aes(x = temp, y = value, -c("time", "temp", "CDD", "HDD", 
-                                                      "school holidays", "summer maintenance", "summer school", 
-                                                      "pre-class ramp up"))) +
+ ggplot2::ggplot(TOWT_plot_data, aes(x = temp, y = value, 
+                                     -c("time", "temp", "CDD", "HDD", "school_holidays", 
+                                        "summer maintenance", "summer school", 
+                                        "pre-class ramp up"))) +
   geom_point(aes(color = variable), size = 1) +
   xlab("Temperature") +
   scale_y_continuous(name = "Energy Data & Model Fit (kWh)", labels = scales::comma) +
@@ -241,11 +242,13 @@ The California Public Utilities Commission requires savings to be detectable abo
 
 ```{r savings summary, results='markup'}
 
-TOWT_savings <- calculate_savings_and_uncertainty(prediction_df = NULL, 
-                                                  savings_fraction = 0.1,
-                                                  modeled_object = TOWT_model_with_op_mode, 
-                                                  model_summary_statistics = TOWT_with_op_mode_stats,
-                                                  confidence_level = 90)
+TOWT_savings <- calculate_savings_and_uncertainty(
+  prediction_df = NULL, 
+  savings_fraction = 0.1,
+  modeled_object = TOWT_model_with_op_mode, 
+  model_summary_statistics = TOWT_with_op_mode_stats,
+  confidence_level = 90
+  )
 
 TOWT_savings$savings_summary_df
 ```
