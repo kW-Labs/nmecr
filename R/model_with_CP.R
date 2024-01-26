@@ -48,8 +48,8 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
       names(training_data)[names(training_data) == "eload_perday"] <- "dependent_variable"
 
       keep <- training_data %>%
-        dplyr::select(dplyr::contains("_perday")) %>%
-        dplyr::select(-c("HDD_perday", "CDD_perday", "days"))
+        dplyr::select(! dplyr::contains("_perday")) %>%
+        dplyr::select(-c("HDD", "CDD", "days", "interval_start", "interval_end", "eload"))
 
     } else {
 
@@ -58,7 +58,7 @@ model_with_CP <- function(training_data = NULL, model_input_options = NULL){
 
       keep <- training_data %>%
         dplyr::select(! dplyr::contains("_perday")) %>%
-        dplyr::select(-c("HDD", "CDD", "days"))
+        dplyr::select(-c("HDD", "CDD", "days", "interval_start", "interval_end"))
 
     }
   }
