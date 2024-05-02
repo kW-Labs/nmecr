@@ -20,7 +20,6 @@ Imports:
     lubridate,
     segmented,
     magrittr,
-    assertive,
     xts,
     zoo,
     purrr,
