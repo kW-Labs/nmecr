@@ -32,7 +32,7 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
     stop("Error: confidence level cannot be less than zero or greater than 100")
   }
 
-  if(! assertive::is_numeric(confidence_level)){
+  if(! is.numeric(confidence_level)){
     stop("Error: confidence level needs to be a numeric input between 0 and 100")
   }
 

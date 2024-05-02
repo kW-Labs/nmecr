@@ -41,11 +41,11 @@ calculate_coverage <- function(dataframe = NULL, ref_temp_data = NULL,
   }
 
 
-  if(! assertive::is_numeric(outlier_threshold)){
+  if(! is.numeric(outlier_threshold)){
     stop("outlier_threshold must be a numeric input")
   }
 
-  if(extrapolation_limit < 0 | extrapolation_limit > 1 | ! assertive::is_numeric(extrapolation_limit)){
+  if(extrapolation_limit < 0 | extrapolation_limit > 1 | ! is.numeric(extrapolation_limit)){
     stop("extrapolation_limit must be a numeric input between 0 and 1. Default: 0.05")
   }
 

@@ -63,7 +63,7 @@ model_with_TOWT <- function(training_data = NULL, prediction_data = NULL, model_
       stop("Error: Please make sure the occupancy_info dataframe has 7 rows corresponding to 7 unique times of week")
     }
 
-    if(!assertive::is_data.frame(occupancy_info)){
+    if(! is.data.frame(occupancy_info)){
       stop("Error: Please make sure the uploaded occupancy infomation is a dataframe.")
     }
 

@@ -37,24 +37,24 @@ assign_model_inputs <- function(timescale_days = NULL,
                              day_normalized = FALSE){
 
   if (! is.null(timescale_days)) {
-    if(! assertive::is_numeric(timescale_days)) {
+    if(! is.numeric(timescale_days)) {
       stop("Error: timescale_days should either be NULL or a numeric input. Default value: NULL")
     }
   }
 
-  if (! assertive::is_logical(has_temp_knots_defined)) {
+  if (! is.logical(has_temp_knots_defined)) {
     stop("Error: has_temp_knots_defined must be a a logical input. Default: FALSE")
   }
 
-  if (! assertive::is_logical(equal_temp_segment_points)) {
+  if (! is.logical(equal_temp_segment_points)) {
     stop("Error: equal_temp_segment_points must be a a logical input. Default: TRUE")
   }
 
-  if (! assertive::is_numeric(temp_segments_numeric)) {
+  if (! is.numeric(temp_segments_numeric)) {
     stop("Error: temp_segments_numeric must be a numeric input. Default value: 6")
   }
 
-  if (! assertive::is_numeric(temp_knots_value)) {
+  if (! is.numeric(temp_knots_value)) {
     stop("Error: temp_knots_value must be a numeric vector input. Default value: c(40, 55, 65, 80, 90)")
   }
 
@@ -63,11 +63,11 @@ assign_model_inputs <- function(timescale_days = NULL,
   }
 
 
-  if (! assertive::is_numeric(initial_breakpoints)) {
+  if (! is.numeric(initial_breakpoints)) {
     stop("Error: initial_breakpoints must be a numeric vector input. Default value: c(50,65)")
   }
 
-  if(! assertive::is_numeric(occupancy_threshold)){
+  if(! is.numeric(occupancy_threshold)){
     stop("Error: occupancy_threshold must be between 0 and 1")
   }
 

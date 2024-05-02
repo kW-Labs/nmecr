@@ -78,7 +78,7 @@ create_dataframe <- function(eload_data = NULL, temp_data = NULL, operating_mode
     }
   }
   
-  if(! assertive::is_numeric(temp_balancepoint)) {
+  if(! is.numeric(temp_balancepoint)) {
     stop("temp_balancepoint needs to be a numeric input")
   }
   

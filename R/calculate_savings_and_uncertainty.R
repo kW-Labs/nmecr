@@ -27,11 +27,11 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
     stop("Error: confidence level cannot be less than zero or greater than 100")
   }
 
-  if(! assertive::is_numeric(confidence_level)){
+  if(! is.numeric(confidence_level)){
     stop("Error: confidence level needs to be a numeric input between 0 and 100")
   }
 
-  if(! assertive::is_numeric(savings_fraction)) {
+  if(! is.numeric(savings_fraction)) {
     stop("Error: confidence level needs to be a numeric input between 0 and 1")
   }
 
