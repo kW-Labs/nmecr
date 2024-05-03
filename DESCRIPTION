@@ -1,7 +1,7 @@
 Package: nmecr
 Type: Package
 Title: An implementation of peer-reviewed energy data analysis algorithms for site-specific M&V
-Version: 1.0.16
+Version: 1.0.17
 Authors@R: c(
   person("Luu", "Dexter", email = "dluu@kw-engineering.com", role = c("aut"), comment = c(ORCID = "0009-0007-3416-3050")),
   person("Jacoby", "Maggie", email = "mjacoby@kw-engineering.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9394-5393")),
