@@ -89,13 +89,13 @@ calculate_norm_savings_and_uncertainty <- function(baseline_model = NULL, baseli
 
   } else if (baseline_model$model_input_options$chosen_modeling_interval == "Daily") {
 
-    observation_count <- 12
+    observation_count <- nrow(normalized_weather)/mean(c(30, 31))
 
     alpha <- ( - 0.00024 * (observation_count ^ 2) + (0.03535 * (observation_count) + 1.00286))
 
   } else if (baseline_model$model_input_options$chosen_modeling_interval == "Monthly") {
 
-    observation_count <- 12
+    observation_count <- nrow(normalized_weather)
 
     alpha <- (- 0.00022 * (observation_count ^ 2)) + (0.03306 * (observation_count)) + 0.94054
   }

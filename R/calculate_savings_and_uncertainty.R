@@ -84,14 +84,13 @@ calculate_savings_and_uncertainty <- function(prediction_df = NULL, savings_frac
 
   } else if (modeled_object$model_input_options$chosen_modeling_interval == "Daily") {
 
-    observation_count <- length(modeled_object$training_data$time) %>%
-      magrittr::divide_by(mean(30, 31))
+    observation_count <- m/mean(c(30, 31))
 
     alpha <- ( - 0.00024 * (observation_count ^ 2) + (0.03535 * (observation_count) + 1.00286))
 
   } else if (modeled_object$model_input_options$chosen_modeling_interval == "Monthly") {
 
-    observation_count <- length(modeled_object$training_data$time)
+    observation_count <- m
 
     alpha <- (- 0.00022 * (observation_count ^ 2)) + (0.03306 * (observation_count)) + 0.94054
   }
